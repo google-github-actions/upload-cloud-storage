@@ -97,14 +97,11 @@ jobs:
 
       - name: npm install
         run: npm install
-        working-directory: ./upload-cloud-storage
 
       - name: npm lint
         run: npm run lint
-        working-directory: ./upload-cloud-storage
 
       - name: npm test
         run: npm run test
-        working-directory: ./upload-cloud-storage
         env:
           UPLOAD_CLOUD_STORAGE_TEST_BUCKET: ${{ secrets.UPLOAD_CLOUD_STORAGE_TEST_BUCKET }}
