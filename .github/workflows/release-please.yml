@@ -1,0 +1,53 @@
+on:
+  push:
+    branches:
+      - master
+name: build and release-please
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: git pull
+      - name: install
+        run: npm install
+      - name: build
+        run: npm run build
+      - name: commit
+        run: |-
+          git config --global user.name "actions-bot"
+          git add dist/
+          git diff-index --quiet HEAD || git commit -m "chore: build dist upload-cloud-storage"
+          git pull --rebase
+          git push origin master
+  release-please-pr:
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+        matrix: 
+          actions: ["upload-cloud-storage"]
+    steps:
+      - uses: google-github-actions/release-please-action@main
+        with:
+          token: ${{ secrets.ACTIONS_BOT_TOKEN }}
+          release-type: node
+          fork: true
+          package-name: ${{ matrix.actions }}
+          path: ${{ matrix.actions }}
+          monorepo-tags: ${{ matrix.actions }}
+          command: release-pr
+  release-please-release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+        matrix: 
+          actions: ["upload-cloud-storage"]
+    steps:
+      - uses: google-github-actions/release-please-action@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: node
+          package-name: ${{ matrix.actions }}
+          path: ${{ matrix.actions }}
+          monorepo-tags: ${{ matrix.actions }}
+          command: github-release
