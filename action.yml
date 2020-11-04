@@ -1,6 +1,6 @@
 name: Cloud Storage Uploader
 description: Upload files or folders to GCS buckets
-author: GoogleCloudPlatform
+author: Google LLC
 
 inputs:
   credentials:
