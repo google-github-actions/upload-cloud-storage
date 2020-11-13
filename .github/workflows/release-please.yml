@@ -68,8 +68,7 @@ jobs:
           release-type: node
           fork: true
           package-name: ${{env.ACTION_NAME}}
-          path: ${{env.ACTION_NAME}}
-          monorepo-tags: ${{env.ACTION_NAME}}
+          bump-minor-pre-major: true
           command: release-pr
   release-please-release:
     runs-on: ubuntu-latest
@@ -80,6 +79,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: node
           package-name: ${{env.ACTION_NAME}}
-          path: ${{env.ACTION_NAME}}
-          monorepo-tags: ${{env.ACTION_NAME}}
+          bump-minor-pre-major: true
           command: github-release
