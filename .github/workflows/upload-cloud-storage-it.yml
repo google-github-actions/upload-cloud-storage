@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   gcloud:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: with setup-gcloud
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +33,7 @@ jobs:
         run: echo '${{ steps.upload.outputs.uploaded }}'
 
   b64_json:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: with base64 json creds
     runs-on: ubuntu-latest
     steps:
@@ -57,6 +59,7 @@ jobs:
         run: echo '${{ steps.upload.outputs.uploaded }}'
 
   json:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: with json creds
     runs-on: ubuntu-latest
     steps:
@@ -82,6 +85,7 @@ jobs:
         run: echo '${{ steps.upload.outputs.uploaded }}'
 
   mocha-it:
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
     name: mocha integration tests
     runs-on: ubuntu-latest
     steps:
