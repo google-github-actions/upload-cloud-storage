@@ -16,7 +16,7 @@
 
 import * as fs from 'fs';
 import { UploadHelper } from './upload-helper';
-import { Storage, UploadResponse } from '@google-cloud/storage';
+import { Storage, UploadResponse, StorageOptions } from '@google-cloud/storage';
 
 /**
  * Available options to create the client.
@@ -37,6 +37,9 @@ type ClientOptions = {
 export class Client {
   readonly storage: Storage;
   constructor(opts?: ClientOptions) {
+    const options: StorageOptions = {
+      userAgent: 'github-actions-upload-cloud-storage/0.2.0'
+    }
     if (opts?.credentials) {
       // If the credentials are not JSON, they are probably base64-encoded. Even
       // though we don't instruct users to provide base64-encoded credentials,
@@ -46,10 +49,9 @@ export class Client {
         opts.credentials = Buffer.from(creds, 'base64').toString('utf8');
       }
       const creds = JSON.parse(opts.credentials);
-      this.storage = new Storage({ credentials: creds });
-    } else {
-      this.storage = new Storage();
+      options.credentials = creds;
     }
+    this.storage = new Storage(options);
   }
   /**
    * Invokes GCS Helper for uploading file or directory.
