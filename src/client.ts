@@ -38,8 +38,8 @@ export class Client {
   readonly storage: Storage;
   constructor(opts?: ClientOptions) {
     const options: StorageOptions = {
-      userAgent: 'github-actions-upload-cloud-storage/0.2.0'
-    }
+      userAgent: 'github-actions-upload-cloud-storage/0.2.0',
+    };
     if (opts?.credentials) {
       // If the credentials are not JSON, they are probably base64-encoded. Even
       // though we don't instruct users to provide base64-encoded credentials,
