@@ -60,7 +60,11 @@ export class Client {
    * @param prefix Optional prefix when uploading to GCS.
    * @returns List of uploaded file(s).
    */
-  async upload(destination: string, path: string): Promise<UploadResponse[]> {
+  async upload(
+    destination: string,
+    path: string,
+    gzip: boolean,
+  ): Promise<UploadResponse[]> {
     let bucketName = destination;
     let prefix = '';
     // If destination of the form my-bucket/subfolder get bucket and prefix.
@@ -73,12 +77,18 @@ export class Client {
     const stat = await fs.promises.stat(path);
     const uploader = new UploadHelper(this.storage);
     if (stat.isFile()) {
-      const uploadedFile = await uploader.uploadFile(bucketName, path, prefix);
+      const uploadedFile = await uploader.uploadFile(
+        bucketName,
+        path,
+        gzip,
+        prefix,
+      );
       return [uploadedFile];
     } else {
       const uploadedFiles = await uploader.uploadDirectory(
         bucketName,
         path,
+        gzip,
         prefix,
       );
       return uploadedFiles;

@@ -46,13 +46,14 @@ export class UploadHelper {
   async uploadFile(
     bucketName: string,
     filename: string,
+    gzip: boolean,
     destination?: string,
   ): Promise<UploadResponse> {
     interface UploadOptions {
       gzip: boolean;
       destination?: string;
     }
-    const options: UploadOptions = { gzip: true };
+    const options: UploadOptions = { gzip };
     if (destination) {
       // If obj prefix is set, then extract filename and append to prefix.
       options.destination = `${destination}/${path.posix.basename(filename)}`;
@@ -76,6 +77,7 @@ export class UploadHelper {
   async uploadDirectory(
     bucketName: string,
     directoryPath: string,
+    gzip: boolean,
     prefix = '',
   ): Promise<UploadResponse[]> {
     const pathDirName = path.posix.dirname(directoryPath);
@@ -96,6 +98,7 @@ export class UploadHelper {
         const uploadResp = await this.uploadFile(
           bucketName,
           filePath,
+          gzip,
           destination,
         );
         return uploadResp;
