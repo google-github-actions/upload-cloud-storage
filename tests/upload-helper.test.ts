@@ -46,14 +46,19 @@ describe('Unit Test uploadFile', function() {
 
   it('uploads a single file', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE);
+    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true);
     // Assert that upload method in storage library was called with right file.
     expect(this.uploadStub.firstCall.args[0]).eq(EXAMPLE_FILE);
   });
 
   it('uploads a single file with prefix', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, EXAMPLE_PREFIX);
+    await uploader.uploadFile(
+      EXAMPLE_BUCKET,
+      EXAMPLE_FILE,
+      true,
+      EXAMPLE_PREFIX,
+    );
     // Assert that upload method in storage library was called with right file
     // and right prefix.
     expect(this.uploadStub.firstCall.args[0]).eq(EXAMPLE_FILE);
@@ -83,7 +88,7 @@ describe('Unit Test uploadDir', function() {
 
   it('uploads a dir', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR);
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, true);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -97,7 +102,12 @@ describe('Unit Test uploadDir', function() {
 
   it('uploads a dir with prefix', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, EXAMPLE_PREFIX);
+    await uploader.uploadDirectory(
+      EXAMPLE_BUCKET,
+      EXAMPLE_DIR,
+      true,
+      EXAMPLE_PREFIX,
+    );
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -107,7 +117,7 @@ describe('Unit Test uploadDir', function() {
     );
     // Capture destination arguments passed to uploadFile.
     const destinations = uploadFileCalls.map(
-      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[2],
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[3],
     );
     // Assert uploadDir called uploadFile with right files.
     expect(filenames).to.have.members(FILES_IN_DIR);

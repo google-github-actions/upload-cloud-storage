@@ -108,6 +108,14 @@ The files will be uploaded to `gs://bucket-name/folder/file1`,`gs://bucket-name/
 
   In the above example, the file will be uploaded to gs://bucket-name/prefix/file
 
+- `gzip`: (Optional) Upload file(s) with gzip content encoding, defaults to true.
+
+  ```yaml
+  gzip: false
+  ```
+
+  In the above example, the file(s) will be uploaded without `gzip` content-encoding
+
 - `credentials`: (Optional) [Google Service Account JSON][sa] credentials as JSON or base64 encoded string,
   typically sourced from a [GitHub Secret][gh-secret]. If unspecified, other
   authentication methods are attempted. See [Authorization](#Authorization) below.

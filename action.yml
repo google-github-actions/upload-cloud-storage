@@ -20,6 +20,10 @@ inputs:
       GCS bucket name of form <bucketname> or with an optional prefix
       of form <bucketname>/<prefix>
     required: true
+  gzip:
+    description: |-
+      Upload file(s) with gzip content encoding, defaults to true.
+    required: false
 
 runs:
   using: "node12"
