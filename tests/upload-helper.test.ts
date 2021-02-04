@@ -88,7 +88,7 @@ describe('Unit Test uploadDir', function() {
 
   it('uploads a dir', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, true);
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, false);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -105,7 +105,7 @@ describe('Unit Test uploadDir', function() {
     await uploader.uploadDirectory(
       EXAMPLE_BUCKET,
       EXAMPLE_DIR,
-      true,
+      false,
       EXAMPLE_PREFIX,
     );
     // Assert that uploadFile was called for each file in directory.
