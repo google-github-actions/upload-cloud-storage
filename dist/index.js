@@ -5830,9 +5830,10 @@ function run() {
         try {
             const path = core.getInput('path', { required: true });
             const destination = core.getInput('destination', { required: true });
+            const gzip = core.getInput('gzip', { required: false }) === 'false' ? false : true;
             const serviceAccountKey = core.getInput('credentials');
             const client = new client_1.Client({ credentials: serviceAccountKey });
-            const uploadResponses = yield client.upload(destination, path);
+            const uploadResponses = yield client.upload(destination, path, gzip);
             core.setOutput('uploaded', uploadResponses
                 .map((uploadResponse) => uploadResponse[0].name)
                 .toString());
@@ -17513,9 +17514,9 @@ class UploadHelper {
      * @param destination The destination prefix.
      * @returns The UploadResponse which contains the file and metadata.
      */
-    uploadFile(bucketName, filename, destination) {
+    uploadFile(bucketName, filename, gzip, destination) {
         return __awaiter(this, void 0, void 0, function* () {
-            const options = { gzip: true };
+            const options = { gzip };
             if (destination) {
                 // If obj prefix is set, then extract filename and append to prefix.
                 options.destination = `${destination}/${path.posix.basename(filename)}`;
@@ -17536,7 +17537,7 @@ class UploadHelper {
      * @param clearExistingFilesFirst Clean files in the prefix before uploading.
      * @returns The list of UploadResponses which contains the file and metadata.
      */
-    uploadDirectory(bucketName, directoryPath, prefix = '') {
+    uploadDirectory(bucketName, directoryPath, gzip, prefix = '') {
         return __awaiter(this, void 0, void 0, function* () {
             const pathDirName = path.posix.dirname(directoryPath);
             // Get list of files in the directory.
@@ -17548,7 +17549,7 @@ class UploadHelper {
                 if (prefix) {
                     destination = `${prefix}/${destination}`;
                 }
-                const uploadResp = yield this.uploadFile(bucketName, filePath, destination);
+                const uploadResp = yield this.uploadFile(bucketName, filePath, gzip, destination);
                 return uploadResp;
             })));
             return resp;
@@ -64790,7 +64791,7 @@ class Client {
      * @param prefix Optional prefix when uploading to GCS.
      * @returns List of uploaded file(s).
      */
-    upload(destination, path) {
+    upload(destination, path, gzip) {
         return __awaiter(this, void 0, void 0, function* () {
             let bucketName = destination;
             let prefix = '';
@@ -64803,11 +64804,11 @@ class Client {
             const stat = yield fs.promises.stat(path);
             const uploader = new upload_helper_1.UploadHelper(this.storage);
             if (stat.isFile()) {
-                const uploadedFile = yield uploader.uploadFile(bucketName, path, prefix);
+                const uploadedFile = yield uploader.uploadFile(bucketName, path, gzip, prefix);
                 return [uploadedFile];
             }
             else {
-                const uploadedFiles = yield uploader.uploadDirectory(bucketName, path, prefix);
+                const uploadedFiles = yield uploader.uploadDirectory(bucketName, path, gzip, prefix);
                 return uploadedFiles;
             }
         });
