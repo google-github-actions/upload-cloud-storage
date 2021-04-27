@@ -16,7 +16,12 @@
 
 import * as fs from 'fs';
 import { UploadHelper } from './upload-helper';
-import { Storage, UploadResponse, StorageOptions, PredefinedAcl } from '@google-cloud/storage';
+import {
+  Storage,
+  UploadResponse,
+  StorageOptions,
+  PredefinedAcl,
+} from '@google-cloud/storage';
 
 /**
  * Available options to create the client.
