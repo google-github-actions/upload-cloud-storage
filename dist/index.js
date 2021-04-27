@@ -5831,9 +5831,15 @@ function run() {
             const path = core.getInput('path', { required: true });
             const destination = core.getInput('destination', { required: true });
             const gzip = core.getInput('gzip', { required: false }) === 'false' ? false : true;
+            const predefinedAclInput = core.getInput('predefinedAcl', {
+                required: false,
+            });
+            const predefinedAcl = predefinedAclInput === ''
+                ? undefined
+                : predefinedAclInput;
             const serviceAccountKey = core.getInput('credentials');
             const client = new client_1.Client({ credentials: serviceAccountKey });
-            const uploadResponses = yield client.upload(destination, path, gzip);
+            const uploadResponses = yield client.upload(destination, path, gzip, predefinedAcl);
             core.setOutput('uploaded', uploadResponses
                 .map((uploadResponse) => uploadResponse[0].name)
                 .toString());
@@ -5857,7 +5863,7 @@ run();
 /* 139 */
 /***/ (function(module) {
 
-module.exports = {"_args":[["@google-cloud/storage@5.5.0","/home/runner/work/upload-cloud-storage/upload-cloud-storage"]],"_from":"@google-cloud/storage@5.5.0","_id":"@google-cloud/storage@5.5.0","_inBundle":false,"_integrity":"sha512-Pat83kHNnKJpEHUirtQtCoAJ2K3OlEo2ZcSlPjierJnEKnhbIQPyJ6mAbs/ovm3K3QDQhouKJ9QSONkFPEwQuA==","_location":"/@google-cloud/storage","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"@google-cloud/storage@5.5.0","name":"@google-cloud/storage","escapedName":"@google-cloud%2fstorage","scope":"@google-cloud","rawSpec":"5.5.0","saveSpec":null,"fetchSpec":"5.5.0"},"_requiredBy":["/"],"_resolved":"https://registry.npmjs.org/@google-cloud/storage/-/storage-5.5.0.tgz","_spec":"5.5.0","_where":"/home/runner/work/upload-cloud-storage/upload-cloud-storage","author":{"name":"Google Inc."},"bugs":{"url":"https://github.com/googleapis/nodejs-storage/issues"},"dependencies":{"@google-cloud/common":"^3.3.0","@google-cloud/paginator":"^3.0.0","@google-cloud/promisify":"^2.0.0","arrify":"^2.0.0","compressible":"^2.0.12","date-and-time":"^0.14.0","duplexify":"^4.0.0","extend":"^3.0.2","gaxios":"^4.0.0","gcs-resumable-upload":"^3.1.0","get-stream":"^6.0.0","hash-stream-validation":"^0.2.2","mime":"^2.2.0","mime-types":"^2.0.8","onetime":"^5.1.0","p-limit":"^3.0.1","pumpify":"^2.0.0","snakeize":"^0.1.0","stream-events":"^1.0.1","xdg-basedir":"^4.0.0"},"description":"Cloud Storage Client Library for Node.js","devDependencies":{"@google-cloud/pubsub":"^2.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.5.1","@microsoft/api-documenter":"^7.8.10","@microsoft/api-extractor":"^7.8.10","@types/compressible":"^2.0.0","@types/concat-stream":"^1.6.0","@types/configstore":"^4.0.0","@types/date-and-time":"^0.13.0","@types/extend":"^3.0.0","@types/mime":"^2.0.0","@types/mime-types":"^2.1.0","@types/mocha":"^8.0.0","@types/nock":"^10.0.0","@types/node":"^11.13.4","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/pumpify":"^1.4.1","@types/sinon":"^9.0.0","@types/tmp":"0.2.0","@types/uuid":"^8.0.0","@types/xdg-basedir":"^2.0.0","c8":"^7.0.0","codecov":"^3.0.0","form-data":"^3.0.0","gts":"^2.0.0","jsdoc":"^3.6.2","jsdoc-fresh":"^1.0.1","jsdoc-region-tag":"^1.0.2","linkinator":"^2.0.0","mocha":"^8.0.0","nock":"~13.0.0","node-fetch":"^2.2.0","normalize-newline":"^3.0.0","proxyquire":"^2.1.3","sinon":"^9.0.0","tmp":"^0.2.0","typescript":"^3.8.3","uuid":"^8.0.0","yargs":"^16.0.0"},"engines":{"node":">=10"},"files":["build/src","!build/src/**/*.map"],"homepage":"https://github.com/googleapis/nodejs-storage#readme","keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"license":"Apache-2.0","main":"./build/src/index.js","name":"@google-cloud/storage","repository":{"type":"git","url":"git+https://github.com/googleapis/nodejs-storage.git"},"scripts":{"all-test":"npm test && npm run system-test && npm run samples-test","api-documenter":"api-documenter yaml --input-folder=temp","api-extractor":"api-extractor run --local","benchwrapper":"node bin/benchwrapper.js","check":"gts check","clean":"gts clean","compile":"tsc -p .","conformance-test":"mocha build/conformance-test","docs":"jsdoc -c .jsdoc.js","docs-test":"linkinator docs","fix":"gts fix","lint":"gts check","precompile":"gts clean","preconformance-test":"npm run compile","predocs":"npm run compile","predocs-test":"npm run docs","prelint":"cd samples; npm link ../; npm install","prepare":"npm run compile","presystem-test":"npm run compile","pretest":"npm run compile","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","system-test":"mocha build/system-test --timeout 600000 --exit","test":"c8 mocha build/test"},"types":"./build/src/index.d.ts","version":"5.5.0"};
+module.exports = {"name":"@google-cloud/storage","description":"Cloud Storage Client Library for Node.js","version":"5.5.0","license":"Apache-2.0","author":"Google Inc.","engines":{"node":">=10"},"repository":"googleapis/nodejs-storage","main":"./build/src/index.js","types":"./build/src/index.d.ts","files":["build/src","!build/src/**/*.map"],"keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"scripts":{"predocs":"npm run compile","docs":"jsdoc -c .jsdoc.js","system-test":"mocha build/system-test --timeout 600000 --exit","conformance-test":"mocha build/conformance-test","preconformance-test":"npm run compile","presystem-test":"npm run compile","test":"c8 mocha build/test","pretest":"npm run compile","lint":"gts check","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","all-test":"npm test && npm run system-test && npm run samples-test","check":"gts check","clean":"gts clean","compile":"tsc -p .","fix":"gts fix","prepare":"npm run compile","docs-test":"linkinator docs","predocs-test":"npm run docs","benchwrapper":"node bin/benchwrapper.js","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean","api-extractor":"api-extractor run --local","api-documenter":"api-documenter yaml --input-folder=temp"},"dependencies":{"@google-cloud/common":"^3.3.0","@google-cloud/paginator":"^3.0.0","@google-cloud/promisify":"^2.0.0","arrify":"^2.0.0","compressible":"^2.0.12","date-and-time":"^0.14.0","duplexify":"^4.0.0","extend":"^3.0.2","gaxios":"^4.0.0","gcs-resumable-upload":"^3.1.0","get-stream":"^6.0.0","hash-stream-validation":"^0.2.2","mime":"^2.2.0","mime-types":"^2.0.8","onetime":"^5.1.0","p-limit":"^3.0.1","pumpify":"^2.0.0","snakeize":"^0.1.0","stream-events":"^1.0.1","xdg-basedir":"^4.0.0"},"devDependencies":{"@google-cloud/pubsub":"^2.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.5.1","@microsoft/api-documenter":"^7.8.10","@microsoft/api-extractor":"^7.8.10","@types/compressible":"^2.0.0","@types/concat-stream":"^1.6.0","@types/configstore":"^4.0.0","@types/date-and-time":"^0.13.0","@types/extend":"^3.0.0","@types/mime":"^2.0.0","@types/mime-types":"^2.1.0","@types/mocha":"^8.0.0","@types/nock":"^10.0.0","@types/node":"^11.13.4","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/pumpify":"^1.4.1","@types/sinon":"^9.0.0","@types/tmp":"0.2.0","@types/uuid":"^8.0.0","@types/xdg-basedir":"^2.0.0","c8":"^7.0.0","codecov":"^3.0.0","form-data":"^3.0.0","gts":"^2.0.0","jsdoc":"^3.6.2","jsdoc-fresh":"^1.0.1","jsdoc-region-tag":"^1.0.2","linkinator":"^2.0.0","mocha":"^8.0.0","nock":"~13.0.0","node-fetch":"^2.2.0","normalize-newline":"^3.0.0","proxyquire":"^2.1.3","sinon":"^9.0.0","tmp":"^0.2.0","typescript":"^3.8.3","uuid":"^8.0.0","yargs":"^16.0.0"}};
 
 /***/ }),
 /* 140 */,
@@ -17514,9 +17520,9 @@ class UploadHelper {
      * @param destination The destination prefix.
      * @returns The UploadResponse which contains the file and metadata.
      */
-    uploadFile(bucketName, filename, gzip, destination) {
+    uploadFile(bucketName, filename, gzip, destination, predefinedAcl) {
         return __awaiter(this, void 0, void 0, function* () {
-            const options = { gzip };
+            const options = { gzip, predefinedAcl };
             if (destination) {
                 // If obj prefix is set, then extract filename and append to prefix.
                 options.destination = `${destination}/${path.posix.basename(filename)}`;
@@ -17537,7 +17543,7 @@ class UploadHelper {
      * @param clearExistingFilesFirst Clean files in the prefix before uploading.
      * @returns The list of UploadResponses which contains the file and metadata.
      */
-    uploadDirectory(bucketName, directoryPath, gzip, prefix = '') {
+    uploadDirectory(bucketName, directoryPath, gzip, prefix = '', predefinedAcl) {
         return __awaiter(this, void 0, void 0, function* () {
             const pathDirName = path.posix.dirname(directoryPath);
             // Get list of files in the directory.
@@ -17549,7 +17555,7 @@ class UploadHelper {
                 if (prefix) {
                     destination = `${prefix}/${destination}`;
                 }
-                const uploadResp = yield this.uploadFile(bucketName, filePath, gzip, destination);
+                const uploadResp = yield this.uploadFile(bucketName, filePath, gzip, destination, predefinedAcl);
                 return uploadResp;
             })));
             return resp;
@@ -27207,7 +27213,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @returns {Array.<string>} a compiled object
      */
     date.compile = function (formatString) {
-        var re = /\[([^\[\]]*|\[[^\[\]]*\])*\]|([A-Za-z])\2+|\.{3}|./g, keys, pattern = [formatString];
+        var re = /\[([^\[\]]|\[[^\[\]]*])*]|([A-Za-z])\2+|\.{3}|./g, keys, pattern = [formatString];
 
         while ((keys = re.exec(formatString))) {
             pattern[pattern.length] = keys[0];
@@ -62511,7 +62517,7 @@ function isLooseTypedArray(arr) {
 /* 947 */
 /***/ (function(module) {
 
-module.exports = {"_args":[["google-auth-library@6.1.3","/home/runner/work/upload-cloud-storage/upload-cloud-storage"]],"_from":"google-auth-library@6.1.3","_id":"google-auth-library@6.1.3","_inBundle":false,"_integrity":"sha512-m9mwvY3GWbr7ZYEbl61isWmk+fvTmOt0YNUfPOUY2VH8K5pZlAIWJjxEi0PqR3OjMretyiQLI6GURMrPSwHQ2g==","_location":"/google-auth-library","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"google-auth-library@6.1.3","name":"google-auth-library","escapedName":"google-auth-library","rawSpec":"6.1.3","saveSpec":null,"fetchSpec":"6.1.3"},"_requiredBy":["/@google-cloud/common","/gcs-resumable-upload"],"_resolved":"https://registry.npmjs.org/google-auth-library/-/google-auth-library-6.1.3.tgz","_spec":"6.1.3","_where":"/home/runner/work/upload-cloud-storage/upload-cloud-storage","author":{"name":"Google Inc."},"bugs":{"url":"https://github.com/googleapis/google-auth-library-nodejs/issues"},"dependencies":{"arrify":"^2.0.0","base64-js":"^1.3.0","ecdsa-sig-formatter":"^1.0.11","fast-text-encoding":"^1.0.0","gaxios":"^4.0.0","gcp-metadata":"^4.2.0","gtoken":"^5.0.4","jws":"^4.0.0","lru-cache":"^6.0.0"},"description":"Google APIs Authentication Client Library for Node.js","devDependencies":{"@compodoc/compodoc":"^1.1.7","@microsoft/api-documenter":"^7.8.10","@microsoft/api-extractor":"^7.8.10","@types/base64-js":"^1.2.5","@types/chai":"^4.1.7","@types/jws":"^3.1.0","@types/lru-cache":"^5.0.0","@types/mocha":"^8.0.0","@types/mv":"^2.1.0","@types/ncp":"^2.0.1","@types/node":"^10.5.1","@types/sinon":"^9.0.0","@types/tmp":"^0.2.0","assert-rejects":"^1.0.0","c8":"^7.0.0","chai":"^4.2.0","codecov":"^3.0.2","execa":"^4.0.0","gts":"^2.0.0","is-docker":"^2.0.0","karma":"^5.0.0","karma-chrome-launcher":"^3.0.0","karma-coverage":"^2.0.0","karma-firefox-launcher":"^2.0.0","karma-mocha":"^2.0.0","karma-remap-coverage":"^0.1.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^4.0.0","keypair":"^1.0.1","linkinator":"^2.0.0","mocha":"^8.0.0","mv":"^2.1.1","ncp":"^2.0.0","nock":"^13.0.0","null-loader":"^4.0.0","puppeteer":"^5.0.0","sinon":"^9.0.0","tmp":"^0.2.0","ts-loader":"^8.0.0","typescript":"^3.8.3","webpack":"^4.20.2","webpack-cli":"^4.0.0"},"engines":{"node":">=10"},"files":["build/src","!build/src/**/*.map"],"homepage":"https://github.com/googleapis/google-auth-library-nodejs#readme","keywords":["google","api","google apis","client","client library"],"license":"Apache-2.0","main":"./build/src/index.js","name":"google-auth-library","repository":{"type":"git","url":"git+https://github.com/googleapis/google-auth-library-nodejs.git"},"scripts":{"api-documenter":"api-documenter yaml --input-folder=temp","api-extractor":"api-extractor run --local","browser-test":"karma start","clean":"gts clean","compile":"tsc -p .","docs":"compodoc src/","docs-test":"linkinator docs","fix":"gts fix","lint":"gts check","precompile":"gts clean","predocs-test":"npm run docs","prelint":"cd samples; npm link ../; npm install","prepare":"npm run compile","presystem-test":"npm run compile","pretest":"npm run compile","samples-test":"cd samples/ && npm link ../ && npm test && cd ../","system-test":"mocha build/system-test --timeout 60000","test":"c8 mocha build/test","webpack":"webpack"},"types":"./build/src/index.d.ts","version":"6.1.3"};
+module.exports = {"name":"google-auth-library","version":"6.1.3","author":"Google Inc.","description":"Google APIs Authentication Client Library for Node.js","engines":{"node":">=10"},"main":"./build/src/index.js","types":"./build/src/index.d.ts","repository":"googleapis/google-auth-library-nodejs.git","keywords":["google","api","google apis","client","client library"],"dependencies":{"arrify":"^2.0.0","base64-js":"^1.3.0","ecdsa-sig-formatter":"^1.0.11","fast-text-encoding":"^1.0.0","gaxios":"^4.0.0","gcp-metadata":"^4.2.0","gtoken":"^5.0.4","jws":"^4.0.0","lru-cache":"^6.0.0"},"devDependencies":{"@compodoc/compodoc":"^1.1.7","@types/base64-js":"^1.2.5","@types/chai":"^4.1.7","@types/jws":"^3.1.0","@types/lru-cache":"^5.0.0","@types/mocha":"^8.0.0","@types/mv":"^2.1.0","@types/ncp":"^2.0.1","@types/node":"^10.5.1","@types/sinon":"^9.0.0","@types/tmp":"^0.2.0","assert-rejects":"^1.0.0","c8":"^7.0.0","chai":"^4.2.0","codecov":"^3.0.2","execa":"^4.0.0","gts":"^2.0.0","is-docker":"^2.0.0","karma":"^5.0.0","karma-chrome-launcher":"^3.0.0","karma-coverage":"^2.0.0","karma-firefox-launcher":"^2.0.0","karma-mocha":"^2.0.0","karma-remap-coverage":"^0.1.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^4.0.0","keypair":"^1.0.1","linkinator":"^2.0.0","mocha":"^8.0.0","mv":"^2.1.1","ncp":"^2.0.0","nock":"^13.0.0","null-loader":"^4.0.0","puppeteer":"^5.0.0","sinon":"^9.0.0","tmp":"^0.2.0","ts-loader":"^8.0.0","typescript":"^3.8.3","webpack":"^4.20.2","webpack-cli":"^4.0.0","@microsoft/api-documenter":"^7.8.10","@microsoft/api-extractor":"^7.8.10"},"files":["build/src","!build/src/**/*.map"],"scripts":{"test":"c8 mocha build/test","clean":"gts clean","prepare":"npm run compile","lint":"gts check","compile":"tsc -p .","fix":"gts fix","pretest":"npm run compile","docs":"compodoc src/","samples-test":"cd samples/ && npm link ../ && npm test && cd ../","system-test":"mocha build/system-test --timeout 60000","presystem-test":"npm run compile","webpack":"webpack","browser-test":"karma start","docs-test":"linkinator docs","predocs-test":"npm run docs","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean","api-extractor":"api-extractor run --local","api-documenter":"api-documenter yaml --input-folder=temp"},"license":"Apache-2.0"};
 
 /***/ }),
 /* 948 */
@@ -64791,7 +64797,7 @@ class Client {
      * @param prefix Optional prefix when uploading to GCS.
      * @returns List of uploaded file(s).
      */
-    upload(destination, path, gzip) {
+    upload(destination, path, gzip, predefinedAcl) {
         return __awaiter(this, void 0, void 0, function* () {
             let bucketName = destination;
             let prefix = '';
@@ -64804,11 +64810,11 @@ class Client {
             const stat = yield fs.promises.stat(path);
             const uploader = new upload_helper_1.UploadHelper(this.storage);
             if (stat.isFile()) {
-                const uploadedFile = yield uploader.uploadFile(bucketName, path, gzip, prefix);
+                const uploadedFile = yield uploader.uploadFile(bucketName, path, gzip, prefix, predefinedAcl);
                 return [uploadedFile];
             }
             else {
-                const uploadedFiles = yield uploader.uploadDirectory(bucketName, path, gzip, prefix);
+                const uploadedFiles = yield uploader.uploadDirectory(bucketName, path, gzip, prefix, predefinedAcl);
                 return uploadedFiles;
             }
         });
