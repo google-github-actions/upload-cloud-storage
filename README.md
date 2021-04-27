@@ -116,6 +116,16 @@ The files will be uploaded to `gs://bucket-name/folder/file1`,`gs://bucket-name/
 
   In the above example, the file(s) will be uploaded without `gzip` content-encoding
 
+- `predefinedAcl`: (Optional) Apply a predefined set of access controls to the file(s).
+
+  ```yaml
+  predefinedAcl: publicRead
+  ```
+
+  In the above example, the uploaded file(s) can be read by all anonymous users.
+
+  Acceptable values are: `authenticatedRead`, `bucketOwnerFullControl`, `bucketOwnerRead`, `private`, `projectPrivate`, `publicRead`. See [the document](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions) for details.
+
 - `credentials`: (Optional) [Google Service Account JSON][sa] credentials as JSON or base64 encoded string,
   typically sourced from a [GitHub Secret][gh-secret]. If unspecified, other
   authentication methods are attempted. See [Authorization](#Authorization) below.
