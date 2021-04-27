@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Storage, UploadResponse } from '@google-cloud/storage';
+import { PredefinedAcl, Storage, UploadResponse } from '@google-cloud/storage';
 import * as path from 'path';
 import { getFiles } from './util';
 
@@ -48,12 +48,14 @@ export class UploadHelper {
     filename: string,
     gzip: boolean,
     destination?: string,
+    predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse> {
     interface UploadOptions {
       gzip: boolean;
       destination?: string;
+      predefinedAcl?: PredefinedAcl;
     }
-    const options: UploadOptions = { gzip };
+    const options: UploadOptions = { gzip, predefinedAcl };
     if (destination) {
       // If obj prefix is set, then extract filename and append to prefix.
       options.destination = `${destination}/${path.posix.basename(filename)}`;
@@ -79,6 +81,7 @@ export class UploadHelper {
     directoryPath: string,
     gzip: boolean,
     prefix = '',
+    predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse[]> {
     const pathDirName = path.posix.dirname(directoryPath);
     // Get list of files in the directory.
@@ -100,6 +103,7 @@ export class UploadHelper {
           filePath,
           gzip,
           destination,
+          predefinedAcl,
         );
         return uploadResp;
       }),
