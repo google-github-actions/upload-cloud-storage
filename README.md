@@ -119,10 +119,10 @@ The files will be uploaded to `gs://bucket-name/folder/file1`,`gs://bucket-name/
 - `predefinedAcl`: (Optional) Apply a predefined set of access controls to the file(s).
 
   ```yaml
-  predefinedAcl: publicRead
+  predefinedAcl: projectPrivate
   ```
 
-  In the above example, the uploaded file(s) can be read by all anonymous users.
+  In the above example, project team members get access to the uploaded file(s) according to their roles.
 
   Acceptable values are: `authenticatedRead`, `bucketOwnerFullControl`, `bucketOwnerRead`, `private`, `projectPrivate`, `publicRead`. See [the document](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions) for details.
 
