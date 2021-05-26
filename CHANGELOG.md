@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.2.1...v0.3.0) (2021-05-26)
+
+
+### Features
+
+* Add `predefinedAcl` option ([#28](https://www.github.com/google-github-actions/upload-cloud-storage/issues/28)) ([#31](https://www.github.com/google-github-actions/upload-cloud-storage/issues/31)) ([a2ee322](https://www.github.com/google-github-actions/upload-cloud-storage/commit/a2ee322f4331b6873c769c25eb7e896f0ebddf99))
+
 ### [0.2.1](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.2.0...v0.2.1) (2020-11-14)
 
 
