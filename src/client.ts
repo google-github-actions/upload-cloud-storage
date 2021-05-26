@@ -16,7 +16,12 @@
 
 import * as fs from 'fs';
 import { UploadHelper } from './upload-helper';
-import { Storage, UploadResponse, StorageOptions } from '@google-cloud/storage';
+import {
+  Storage,
+  UploadResponse,
+  StorageOptions,
+  PredefinedAcl,
+} from '@google-cloud/storage';
 
 /**
  * Available options to create the client.
@@ -64,6 +69,7 @@ export class Client {
     destination: string,
     path: string,
     gzip: boolean,
+    predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse[]> {
     let bucketName = destination;
     let prefix = '';
@@ -82,6 +88,7 @@ export class Client {
         path,
         gzip,
         prefix,
+        predefinedAcl,
       );
       return [uploadedFile];
     } else {
@@ -90,6 +97,7 @@ export class Client {
         path,
         gzip,
         prefix,
+        predefinedAcl,
       );
       return uploadedFiles;
     }
