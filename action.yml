@@ -24,6 +24,10 @@ inputs:
     description: |-
       Upload file(s) with gzip content encoding, defaults to true.
     required: false
+  predefinedAcl:
+    description: |-
+      Apply a predefined set of access controls to the file(s).
+    required: false
 
 runs:
   using: "node12"
