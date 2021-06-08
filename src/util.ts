@@ -31,16 +31,16 @@ export async function GetDestinationFromPath(
   parent = true,
   prefix = '',
 ): Promise<string> {
-  let dest = path.normalize(filePath);
+  let dest = path.posix.normalize(filePath);
   // if parent is set to false, modify dest path to remove parentDir
   if (!parent) {
     // get components of parent path "./test/foo" to [test,foo]
-    const splitDirPath = path
+    const splitDirPath = path.posix
       .normalize(directory)
-      .split(path.sep)
+      .split(path.posix.sep)
       .filter((p) => p);
     // get components of file path "./test/foo/1" becomes [test,foo,1]
-    const splitDestPath = path.normalize(filePath).split(path.sep);
+    const splitDestPath = path.posix.normalize(filePath).split(path.posix.sep);
     // for each element in parent path pop those from file path
     // for a given parent dir like [test,foo], files maybe [test,foo,1] [test,foo,bar,1]
     // which is transformed to [1], [bar,1] etc
@@ -48,11 +48,11 @@ export async function GetDestinationFromPath(
       splitDestPath.shift();
     });
     // create final destination by joining [bar,1] to "bar/1"
-    dest = path.join(...splitDestPath);
+    dest = path.posix.join(...splitDestPath);
   }
   // add any prefix if set "bar/1" with prefix "testprfx" becomes "testprfx/bar/1"
   if (prefix) {
-    dest = path.join(prefix, dest);
+    dest = path.posix.join(prefix, dest);
   }
   return dest;
 }

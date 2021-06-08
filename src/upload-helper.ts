@@ -66,7 +66,7 @@ export class UploadHelper {
     predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse> {
     const options: UploadOptions = { gzip, predefinedAcl };
-    const normalizedFilePath = path.normalize(filename);
+    const normalizedFilePath = path.posix.normalize(filename);
     // set destination if defined
     if (destination) {
       options.destination = destination;
@@ -117,7 +117,7 @@ export class UploadHelper {
     concurrency = 100,
   ): Promise<UploadResponse[]> {
     // const filesList = await getFiles(directoryPath,parent);
-    const filesList = await globby([path.join(directoryPath, glob)]);
+    const filesList = await globby([path.posix.join(directoryPath, glob)]);
     const uploader = async (filePath: string): Promise<UploadResponse> => {
       const destination = await GetDestinationFromPath(
         filePath,

@@ -96,7 +96,7 @@ export class Client {
       destination = '';
       // If obj prefix is set, then extract filename and append to prefix to create destination
       if (prefix) {
-        destination = path.join(prefix, path.posix.basename(filePath));
+        destination = path.posix.join(prefix, path.posix.basename(filePath));
       }
       const uploadedFile = await uploader.uploadFile(
         bucketName,

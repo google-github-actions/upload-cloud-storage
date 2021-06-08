@@ -245,7 +245,7 @@ describe('Integration Upload ', function() {
         postfix: '.txt',
         dir: tmpDirPath,
       });
-      fs.writeFileSync(tmpFilePath, path.basename(tmpFilePath));
+      fs.writeFileSync(tmpFilePath, path.posix.basename(tmpFilePath));
     }
 
     const uploader = new Client();

@@ -52,7 +52,9 @@ describe('Unit Test uploadFile', function() {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, true);
     // Assert that upload method in storage library was called with right file.
-    expect(this.uploadStub.firstCall.args[0]).eq(path.normalize(EXAMPLE_FILE));
+    expect(this.uploadStub.firstCall.args[0]).eq(
+      path.posix.normalize(EXAMPLE_FILE),
+    );
   });
 
   it('uploads a single file with prefix', async function() {
@@ -66,7 +68,9 @@ describe('Unit Test uploadFile', function() {
     );
     // Assert that upload method in storage library was called with right file
     // and right prefix.
-    expect(this.uploadStub.firstCall.args[0]).eq(path.normalize(EXAMPLE_FILE));
+    expect(this.uploadStub.firstCall.args[0]).eq(
+      path.posix.normalize(EXAMPLE_FILE),
+    );
     expect(this.uploadStub.firstCall.args[1].destination.split('/')[0]).eq(
       EXAMPLE_PREFIX,
     );
