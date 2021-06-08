@@ -32,6 +32,18 @@ inputs:
     description: |-
       Apply a predefined set of access controls to the file(s).
     required: false
+  parent:
+    description: |-
+      Whether parent dir should be included in GCS destination, defaults to true.
+    required: false
+  glob:
+    description: |-
+      Optional glob pattern.
+    required: false
+  concurrency:
+    description: |-
+      Number of files to simultaneously upload, defaults to 100.
+    required: false
 
 runs:
   using: "node12"

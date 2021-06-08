@@ -66,17 +66,98 @@ steps:
       files: ${{steps.upload-files.outputs.uploaded}}
 ```
 
+## Destination Filenames
+
 If the folder has the following structure:
 
 ```
 .
-└── folder
+└── myfolder
     ├── file1
     └── folder2
-        └── file2
+        └── file2.txt
 ```
 
-The files will be uploaded to `gs://bucket-name/folder/file1`,`gs://bucket-name/folder/folder2/file2`
+### Default Configuration
+
+With default configuration
+
+```yaml
+steps:
+  - id: upload-files
+    uses: google-github-actions/upload-cloud-storage@main
+    with:
+      path: myfolder
+      destination: bucket-name
+```
+
+The files will be uploaded to `gs://bucket-name/myfolder/file1`,`gs://bucket-name/myfolder/folder2/file2.txt`
+
+Optionally, you can also specify a prefix in destination.
+
+```yaml
+steps:
+  - id: upload-files
+    uses: google-github-actions/upload-cloud-storage@main
+    with:
+      path: myfolder
+      destination: bucket-name/myprefix
+```
+
+The files will be uploaded to `gs://bucket-name/myprefix/myfolder/file1`,`gs://bucket-name/myprefix/myfolder/folder2/file2.txt`
+
+### Upload to bucket root
+
+To upload `myfolder` to the root of the bucket, you can set `parent` to false.
+Setting `parent` to false will omit `path` when uploading to bucket.
+
+```yaml
+steps:
+  - id: upload-files
+    uses: google-github-actions/upload-cloud-storage@main
+    with:
+      path: myfolder
+      destination: bucket-name
+      parent: false
+```
+
+The files will be uploaded to `gs://bucket-name/file1`,`gs://bucket-name/folder2/file2.txt`
+
+If path was set to `myfolder/folder2`, the file will be uploaded to `gs://bucket-name/file2.txt`
+
+Optionally, you can also specify a prefix in destination. 
+
+```yaml
+steps:
+  - id: upload-files
+    uses: google-github-actions/upload-cloud-storage@main
+    with:
+      path: myfolder
+      destination: bucket-name/myprefix
+      parent: false
+```
+
+The files will be uploaded to `gs://bucket-name/myprefix/file1`,`gs://bucket-name/myprefix/folder2/file2.txt`
+
+### Glob Pattern
+
+You can specify a glob pattern like
+
+```yaml
+steps:
+  - id: upload-files
+    uses: google-github-actions/upload-cloud-storage@main
+    with:
+      path: myfolder
+      destination: bucket-name
+      glob: '**/*.txt'
+```
+
+This will particular pattern will match all text files within `myfolder`.
+
+In this case, `myfolder/folder2/file2.txt` is the only matched file and will be uploaded to `gs://bucket-name/myfolder/folder2/file2.txt`.
+
+If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/file2.txt`.
 
 ## Inputs
 
@@ -129,6 +210,24 @@ The files will be uploaded to `gs://bucket-name/folder/file1`,`gs://bucket-name/
 - `credentials`: (Optional) [Google Service Account JSON][sa] credentials as JSON or base64 encoded string,
   typically sourced from a [GitHub Secret][gh-secret]. If unspecified, other
   authentication methods are attempted. See [Authorization](#Authorization) below.
+
+- `parent`: (Optional) Whether parent dir should be included in GCS destination, defaults to true.
+
+  ```yaml
+  parent: false
+  ```
+
+- `glob`: (Optional) Glob pattern.
+
+  ```yaml
+  glob: '*.txt'
+  ```
+
+- `concurrency`: (Optional) Number of files to simultaneously upload, defaults to 100.
+
+  ```yaml
+  concurrency: 10
+  ```
 
 ## Outputs
 
