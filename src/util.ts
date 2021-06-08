@@ -14,26 +14,45 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Recursively traverses a directory to extract a list of file paths.
+ * Constructs a destination path in GCS from a given filepath
  *
- * @param directory The path of the directory to traverse.
- * @param fileList  The files within the directory.
- * @returns The list of file paths in a given directory.
+ * @param filePath The path to file.
+ * @param directory  The parent dir specified.
+ * @param parent  If parent dir should be preserved in destination path.
+ * @param prefix  Prefix any to be prefixed to destination path.
+ * @returns The GCS destination for a given filepath
  */
-export async function getFiles(
+export async function GetDestinationFromPath(
+  filePath: string,
   directory: string,
-  fileList: string[] = [],
-): Promise<string[]> {
-  const items = await fs.promises.readdir(directory);
-  for (const item of items) {
-    const stat = await fs.promises.stat(path.posix.join(directory, item));
-    if (stat.isDirectory())
-      fileList = await getFiles(path.posix.join(directory, item), fileList);
-    else fileList.push(path.posix.join(directory, item));
+  parent = true,
+  prefix = '',
+): Promise<string> {
+  let dest = path.normalize(filePath);
+  // if parent is set to false, modify dest path to remove parentDir
+  if (!parent) {
+    // get components of parent path "./test/foo" to [test,foo]
+    const splitDirPath = path
+      .normalize(directory)
+      .split(path.sep)
+      .filter((p) => p);
+    // get components of file path "./test/foo/1" becomes [test,foo,1]
+    const splitDestPath = path.normalize(filePath).split(path.sep);
+    // for each element in parent path pop those from file path
+    // for a given parent dir like [test,foo], files maybe [test,foo,1] [test,foo,bar,1]
+    // which is transformed to [1], [bar,1] etc
+    splitDirPath.forEach(() => {
+      splitDestPath.shift();
+    });
+    // create final destination by joining [bar,1] to "bar/1"
+    dest = path.join(...splitDestPath);
   }
-  return fileList;
+  // add any prefix if set "bar/1" with prefix "testprfx" becomes "testprfx/bar/1"
+  if (prefix) {
+    dest = path.join(prefix, dest);
+  }
+  return dest;
 }

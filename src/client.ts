@@ -15,6 +15,7 @@
  */
 
 import * as fs from 'fs';
+import * as path from 'path';
 import { UploadHelper } from './upload-helper';
 import {
   Storage,
@@ -60,19 +61,25 @@ export class Client {
   }
   /**
    * Invokes GCS Helper for uploading file or directory.
-   * @param bucketName Name of bucket to upload file/dir.
-   * @param path Path of the file/dir to upload.
+   * @param destination Name of bucket and optional prefix to upload file/dir.
+   * @param filePath FilePath of the file/dir to upload.
    * @param gzip Gzip files on upload.
    * @param resumable Allow resuming uploads.
-   * @param prefix Optional prefix when uploading to GCS.
+   * @param glob Glob pattern if any.
+   * @param parent Flag to enable parent dir in destination path.
+   * @param predefinedAcl Predefined ACL config.
+   * @param concurrency Number of files to simultaneously upload.
    * @returns List of uploaded file(s).
    */
   async upload(
     destination: string,
-    path: string,
+    filePath: string,
     gzip: boolean,
     resumable: boolean,
+    glob = '',
+    parent = true,
     predefinedAcl?: PredefinedAcl,
+    concurrency = 100,
   ): Promise<UploadResponse[]> {
     let bucketName = destination;
     let prefix = '';
@@ -83,26 +90,34 @@ export class Client {
       prefix = destination.substring(idx + 1);
     }
 
-    const stat = await fs.promises.stat(path);
+    const stat = await fs.promises.stat(filePath);
     const uploader = new UploadHelper(this.storage);
     if (stat.isFile()) {
+      destination = '';
+      // If obj prefix is set, then extract filename and append to prefix to create destination
+      if (prefix) {
+        destination = path.join(prefix, path.posix.basename(filePath));
+      }
       const uploadedFile = await uploader.uploadFile(
         bucketName,
-        path,
+        filePath,
         gzip,
         resumable,
-        prefix,
+        destination,
         predefinedAcl,
       );
       return [uploadedFile];
     } else {
       const uploadedFiles = await uploader.uploadDirectory(
         bucketName,
-        path,
+        filePath,
+        glob,
         gzip,
         resumable,
         prefix,
+        parent,
         predefinedAcl,
+        concurrency,
       );
       return uploadedFiles;
     }

@@ -24,7 +24,10 @@ import {
   UploadOptions,
   UploadResponse,
 } from '@google-cloud/storage';
-import { getFiles } from './util';
+import { GetDestinationFromPath } from './util';
+import globby from 'globby';
+import * as core from '@actions/core';
+import pMap from 'p-map';
 
 /**
  * Wraps interactions with the the GCS library.
@@ -50,7 +53,8 @@ export class UploadHelper {
    * @param filename The file path.
    * @param gzip Gzip files on upload.
    * @param resumable Allow resuming uploads.
-   * @param destination The destination prefix.
+   * @param destination The destination in GCS to upload file to.
+   * @param predefinedAcl Predefined ACL config.
    * @returns The UploadResponse which contains the file and metadata.
    */
   async uploadFile(
@@ -62,9 +66,17 @@ export class UploadHelper {
     predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse> {
     const options: UploadOptions = { gzip, predefinedAcl };
+    const normalizedFilePath = path.normalize(filename);
+    // set destination if defined
     if (destination) {
-      // If obj prefix is set, then extract filename and append to prefix.
-      options.destination = `${destination}/${path.posix.basename(filename)}`;
+      options.destination = destination;
+    }
+    if (!process.env.UPLOAD_ACTION_NO_LOG) {
+      core.info(
+        `Uploading file: ${normalizedFilePath} to gs://${bucketName}/${
+          destination ? destination : normalizedFilePath
+        }`,
+      );
     }
     if (resumable) {
       options.resumable = true;
@@ -76,54 +88,53 @@ export class UploadHelper {
 
     const uploadedFile = await this.storage
       .bucket(bucketName)
-      .upload(filename, options);
+      .upload(normalizedFilePath, options);
     return uploadedFile;
   }
 
   /**
    * Uploads a specified directory to a GCS bucket. Based on
-   * https://github.com/googleapis/nodejs-storage/blob/master/samples/uploadDirectory.js
    *
    * @param bucketName The name of the bucket.
    * @param directoryPath The path of the directory to upload.
    * @param gzip Gzip files on upload.
    * @param resumable Allow resuming uploads.
+   * @param glob Glob pattern if any.
+   * @param parent Flag to enable parent dir in destination path.
+   * @param predefinedAcl Predefined ACL config.
+   * @param concurrency Number of files simultaneously uploaded.
    * @returns The list of UploadResponses which contains the file and metadata.
    */
   async uploadDirectory(
     bucketName: string,
     directoryPath: string,
+    glob = '',
     gzip: boolean,
     resumable: boolean,
     prefix = '',
+    parent = true,
     predefinedAcl?: PredefinedAcl,
+    concurrency = 100,
   ): Promise<UploadResponse[]> {
-    const pathDirName = path.posix.dirname(directoryPath);
-    // Get list of files in the directory.
-    const filesList = await getFiles(directoryPath);
-
-    const resp = await Promise.all(
-      filesList.map(async (filePath) => {
-        // Get relative path from directoryPath.
-        let destination = `${path.posix.dirname(
-          path.posix.relative(pathDirName, filePath),
-        )}`;
-        // If prefix is set, prepend.
-        if (prefix) {
-          destination = `${prefix}/${destination}`;
-        }
-
-        const uploadResp = await this.uploadFile(
-          bucketName,
-          filePath,
-          gzip,
-          resumable,
-          destination,
-          predefinedAcl,
-        );
-        return uploadResp;
-      }),
-    );
-    return resp;
+    // const filesList = await getFiles(directoryPath,parent);
+    const filesList = await globby([path.join(directoryPath, glob)]);
+    const uploader = async (filePath: string): Promise<UploadResponse> => {
+      const destination = await GetDestinationFromPath(
+        filePath,
+        directoryPath,
+        parent,
+        prefix,
+      );
+      const uploadResp = await this.uploadFile(
+        bucketName,
+        filePath,
+        gzip,
+        resumable,
+        destination,
+        predefinedAcl,
+      );
+      return uploadResp;
+    };
+    return await pMap(filesList, uploader, { concurrency });
   }
 }
