@@ -20,6 +20,7 @@ import 'mocha';
 import { Client } from '../src/client';
 import * as tmp from 'tmp';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { Storage } from '@google-cloud/storage';
 import pMap from 'p-map';
@@ -44,6 +45,8 @@ chai.use(chaiAsPromised);
 // eslint-disable-next-line
 const should = chai.should();
 const expect = chai.expect;
+// skip performance test and error message verification on Windows
+const isWin = os.platform() === 'win32';
 
 describe('Integration Upload ', function() {
   let testBucket: string;
@@ -233,7 +236,7 @@ describe('Integration Upload ', function() {
   });
 
   it(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function() {
-    if (!testBucket) {
+    if (isWin) {
       this.skip();
     }
     tmp.setGracefulCleanup();
@@ -255,6 +258,9 @@ describe('Integration Upload ', function() {
   });
 
   it('throws an error for a non existent dir', async function() {
+    if (isWin) {
+      this.skip();
+    }
     const uploader = new Client();
     return uploader
       .upload(testBucket, EXAMPLE_DIR + '/nonexistent')
