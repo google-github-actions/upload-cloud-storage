@@ -32,6 +32,7 @@ describe('Integration Upload Helper', function() {
       testBucket,
       './tests/testdata/test1.txt',
       true,
+      true,
     );
     expect(uploadResponse[0].name).eql('test1.txt');
   });
@@ -45,6 +46,7 @@ describe('Integration Upload Helper', function() {
     const uploadResponse = await uploader.uploadFile(
       testBucket,
       './tests/testdata/test1.txt',
+      true,
       true,
       'testprefix',
     );
@@ -61,6 +63,7 @@ describe('Integration Upload Helper', function() {
       testBucket,
       './tests/testdata/testfile',
       true,
+      true,
       'testprefix',
     );
     expect(uploadResponse[0].name).eql('testprefix/testfile');
@@ -75,6 +78,7 @@ describe('Integration Upload Helper', function() {
     const uploadResponse = await uploader.uploadFile(
       testBucket,
       './tests/testdata/🚀',
+      true,
       true,
       'testprefix',
     );

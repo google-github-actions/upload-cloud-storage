@@ -51,12 +51,13 @@ describe('Unit Test Client', function() {
     const path = './tests/testdata/test1.txt';
     const bucketName = 'foo';
     const prefix = 'test-prefix';
-    await client.upload(`${bucketName}/${prefix}`, path, true);
+    await client.upload(`${bucketName}/${prefix}`, path, true, true);
     expect(uploadFileStub.calledOnce);
     expect(uploadFileStub.firstCall.args[0]).to.equal(bucketName);
     expect(uploadFileStub.firstCall.args[1]).to.equal(path);
     expect(uploadFileStub.firstCall.args[2]).to.equal(true);
-    expect(uploadFileStub.firstCall.args[3]).to.equal(prefix);
+    expect(uploadFileStub.firstCall.args[3]).to.equal(true);
+    expect(uploadFileStub.firstCall.args[4]).to.equal(prefix);
   });
 
   it('calls uploadDirectory', async function() {
@@ -67,11 +68,12 @@ describe('Unit Test Client', function() {
     const client = new Client();
     const path = './tests/testdata';
     const bucketName = 'foo';
-    await client.upload(bucketName, path, true);
+    await client.upload(bucketName, path, true, true);
     expect(uploadDirSpy.calledOnce);
     expect(uploadDirSpy.firstCall.args[0]).to.equal(bucketName);
     expect(uploadDirSpy.firstCall.args[1]).to.equal(path);
     expect(uploadDirSpy.firstCall.args[2]).to.equal(true);
-    expect(uploadDirSpy.firstCall.args[3]).to.equal('');
+    expect(uploadDirSpy.firstCall.args[3]).to.equal(true);
+    expect(uploadDirSpy.firstCall.args[4]).to.equal('');
   });
 });
