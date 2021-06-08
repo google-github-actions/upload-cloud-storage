@@ -37,6 +37,36 @@ describe('Integration Upload Helper', function() {
     expect(uploadResponse[0].name).eql('test1.txt');
   });
 
+  it('uploads a single file without gzip', async function() {
+    if (!testBucket) {
+      this.skip();
+    }
+
+    const uploader = new UploadHelper(new Storage());
+    const uploadResponse = await uploader.uploadFile(
+      testBucket,
+      './tests/testdata/test1.txt',
+      false,
+      true,
+    );
+    expect(uploadResponse[0].name).eql('test1.txt');
+  });
+
+  it('uploads a single file without resumable', async function() {
+    if (!testBucket) {
+      this.skip();
+    }
+
+    const uploader = new UploadHelper(new Storage());
+    const uploadResponse = await uploader.uploadFile(
+      testBucket,
+      './tests/testdata/test1.txt',
+      true,
+      false,
+    );
+    expect(uploadResponse[0].name).eql('test1.txt');
+  });
+
   it('uploads a single file with prefix', async function() {
     if (!testBucket) {
       this.skip();
