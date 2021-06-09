@@ -43,7 +43,7 @@ export class Client {
   readonly storage: Storage;
   constructor(opts?: ClientOptions) {
     const options: StorageOptions = {
-      userAgent: 'github-actions-upload-cloud-storage/0.2.0',
+      userAgent: 'github-actions-upload-cloud-storage/0.3.0',
     };
     if (opts?.credentials) {
       // If the credentials are not JSON, they are probably base64-encoded. Even
@@ -62,6 +62,8 @@ export class Client {
    * Invokes GCS Helper for uploading file or directory.
    * @param bucketName Name of bucket to upload file/dir.
    * @param path Path of the file/dir to upload.
+   * @param gzip Gzip files on upload.
+   * @param resumable Allow resuming uploads.
    * @param prefix Optional prefix when uploading to GCS.
    * @returns List of uploaded file(s).
    */
@@ -69,6 +71,7 @@ export class Client {
     destination: string,
     path: string,
     gzip: boolean,
+    resumable: boolean,
     predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse[]> {
     let bucketName = destination;
@@ -87,6 +90,7 @@ export class Client {
         bucketName,
         path,
         gzip,
+        resumable,
         prefix,
         predefinedAcl,
       );
@@ -96,6 +100,7 @@ export class Client {
         bucketName,
         path,
         gzip,
+        resumable,
         prefix,
         predefinedAcl,
       );

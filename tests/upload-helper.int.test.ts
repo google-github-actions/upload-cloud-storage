@@ -32,6 +32,37 @@ describe('Integration Upload Helper', function() {
       testBucket,
       './tests/testdata/test1.txt',
       true,
+      true,
+    );
+    expect(uploadResponse[0].name).eql('test1.txt');
+  });
+
+  it('uploads a single file without gzip', async function() {
+    if (!testBucket) {
+      this.skip();
+    }
+
+    const uploader = new UploadHelper(new Storage());
+    const uploadResponse = await uploader.uploadFile(
+      testBucket,
+      './tests/testdata/test1.txt',
+      false,
+      true,
+    );
+    expect(uploadResponse[0].name).eql('test1.txt');
+  });
+
+  it('uploads a single file without resumable', async function() {
+    if (!testBucket) {
+      this.skip();
+    }
+
+    const uploader = new UploadHelper(new Storage());
+    const uploadResponse = await uploader.uploadFile(
+      testBucket,
+      './tests/testdata/test1.txt',
+      true,
+      false,
     );
     expect(uploadResponse[0].name).eql('test1.txt');
   });
@@ -45,6 +76,7 @@ describe('Integration Upload Helper', function() {
     const uploadResponse = await uploader.uploadFile(
       testBucket,
       './tests/testdata/test1.txt',
+      true,
       true,
       'testprefix',
     );
@@ -61,6 +93,7 @@ describe('Integration Upload Helper', function() {
       testBucket,
       './tests/testdata/testfile',
       true,
+      true,
       'testprefix',
     );
     expect(uploadResponse[0].name).eql('testprefix/testfile');
@@ -75,6 +108,7 @@ describe('Integration Upload Helper', function() {
     const uploadResponse = await uploader.uploadFile(
       testBucket,
       './tests/testdata/🚀',
+      true,
       true,
       'testprefix',
     );
