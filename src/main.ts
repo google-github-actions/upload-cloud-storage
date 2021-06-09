@@ -24,6 +24,10 @@ async function run(): Promise<void> {
     const destination = core.getInput('destination', { required: true });
     const gzip =
       core.getInput('gzip', { required: false }) === 'false' ? false : true;
+    const resumable =
+      core.getInput('resumable', { required: false }) === 'false'
+        ? false
+        : true;
     const predefinedAclInput = core.getInput('predefinedAcl', {
       required: false,
     });
@@ -37,6 +41,7 @@ async function run(): Promise<void> {
       destination,
       path,
       gzip,
+      resumable,
       predefinedAcl,
     );
 

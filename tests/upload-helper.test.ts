@@ -46,7 +46,7 @@ describe('Unit Test uploadFile', function() {
 
   it('uploads a single file', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true);
+    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, true);
     // Assert that upload method in storage library was called with right file.
     expect(this.uploadStub.firstCall.args[0]).eq(EXAMPLE_FILE);
   });
@@ -56,6 +56,7 @@ describe('Unit Test uploadFile', function() {
     await uploader.uploadFile(
       EXAMPLE_BUCKET,
       EXAMPLE_FILE,
+      true,
       true,
       EXAMPLE_PREFIX,
     );
@@ -88,7 +89,7 @@ describe('Unit Test uploadDir', function() {
 
   it('uploads a dir', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, true);
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, true, true);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -106,6 +107,7 @@ describe('Unit Test uploadDir', function() {
       EXAMPLE_BUCKET,
       EXAMPLE_DIR,
       true,
+      true,
       EXAMPLE_PREFIX,
     );
     // Assert that uploadFile was called for each file in directory.
@@ -117,7 +119,7 @@ describe('Unit Test uploadDir', function() {
     );
     // Capture destination arguments passed to uploadFile.
     const destinations = uploadFileCalls.map(
-      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[3],
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
     );
     // Assert uploadDir called uploadFile with right files.
     expect(filenames).to.have.members(FILES_IN_DIR);

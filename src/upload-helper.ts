@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-import { PredefinedAcl, Storage, UploadResponse } from '@google-cloud/storage';
+import * as os from 'os';
 import * as path from 'path';
+import * as process from 'process';
+
+import {
+  PredefinedAcl,
+  Storage,
+  UploadOptions,
+  UploadResponse,
+} from '@google-cloud/storage';
 import { getFiles } from './util';
 
 /**
@@ -40,6 +48,8 @@ export class UploadHelper {
    *
    * @param bucketName The name of the bucket.
    * @param filename The file path.
+   * @param gzip Gzip files on upload.
+   * @param resumable Allow resuming uploads.
    * @param destination The destination prefix.
    * @returns The UploadResponse which contains the file and metadata.
    */
@@ -47,19 +57,23 @@ export class UploadHelper {
     bucketName: string,
     filename: string,
     gzip: boolean,
+    resumable: boolean,
     destination?: string,
     predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse> {
-    interface UploadOptions {
-      gzip: boolean;
-      destination?: string;
-      predefinedAcl?: PredefinedAcl;
-    }
     const options: UploadOptions = { gzip, predefinedAcl };
     if (destination) {
       // If obj prefix is set, then extract filename and append to prefix.
       options.destination = `${destination}/${path.posix.basename(filename)}`;
     }
+    if (resumable) {
+      options.resumable = true;
+      options.configPath = path.join(
+        os.tmpdir(),
+        `upload-cloud-storage-${process.hrtime.bigint()}.json`,
+      );
+    }
+
     const uploadedFile = await this.storage
       .bucket(bucketName)
       .upload(filename, options);
@@ -72,14 +86,15 @@ export class UploadHelper {
    *
    * @param bucketName The name of the bucket.
    * @param directoryPath The path of the directory to upload.
-   * @param objectKeyPrefix Optional Prefix for in the GCS bucket.
-   * @param clearExistingFilesFirst Clean files in the prefix before uploading.
+   * @param gzip Gzip files on upload.
+   * @param resumable Allow resuming uploads.
    * @returns The list of UploadResponses which contains the file and metadata.
    */
   async uploadDirectory(
     bucketName: string,
     directoryPath: string,
     gzip: boolean,
+    resumable: boolean,
     prefix = '',
     predefinedAcl?: PredefinedAcl,
   ): Promise<UploadResponse[]> {
@@ -102,6 +117,7 @@ export class UploadHelper {
           bucketName,
           filePath,
           gzip,
+          resumable,
           destination,
           predefinedAcl,
         );
