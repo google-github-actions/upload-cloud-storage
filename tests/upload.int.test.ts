@@ -131,6 +131,34 @@ describe('Integration Upload ', function () {
     expect(filesInBucket).to.have.members([expectedFile]);
   });
 
+it('uploads a single file with metadata', async function() {
+    const uploader = new Client();
+    const uploadResponse = await uploader.upload(
+      testBucket,
+      './tests/testdata/test1.txt',
+      '',
+      true,
+      true,
+      true,
+      undefined,
+      100,
+      {
+        contentType: 'application/json',
+        metadata: {
+          foo: 'bar',
+        },
+      },
+    );
+    expect(uploadResponse[0][0].name).eql('test1.txt');
+    const filesInBucket = await getFilesInBucket();
+    expect(filesInBucket.length).eq(1);
+    expect(filesInBucket).to.have.members(['test1.txt']);
+    const metadata = uploadResponse[0][0].metadata;
+    expect(metadata.contentType).eql('application/json');
+    expect(Object.keys(metadata.metadata).length).eq(1);
+    expect(metadata.metadata.foo).eql('bar');
+  });
+
   it('uploads a single file with prefix without resumeable', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
