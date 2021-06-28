@@ -1,10 +1,14 @@
 name: upload-cloud-storage Integration
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - 'main'
+  pull_request:
 
 jobs:
   gcloud:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: with setup-gcloud
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +37,7 @@ jobs:
         run: echo '${{ steps.upload.outputs.uploaded }}'
 
   b64_json:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: with base64 json creds
     runs-on: ubuntu-latest
     steps:
@@ -59,7 +63,7 @@ jobs:
         run: echo '${{ steps.upload.outputs.uploaded }}'
 
   json:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: with json creds
     runs-on: ubuntu-latest
     steps:
@@ -85,7 +89,7 @@ jobs:
         run: echo '${{ steps.upload.outputs.uploaded }}'
 
   mocha-it:
-    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
     name: mocha integration tests
     runs-on: ubuntu-latest
     steps:
