@@ -24,25 +24,25 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@actions/core": "^1.2.6",
-    "@google-cloud/storage": "^5.5.0"
+    "@google-cloud/storage": "^5.8.5"
   },
   "devDependencies": {
     "@types/chai": "^4.2.9",
     "@types/mocha": "^7.0.1",
     "@types/node": "^13.7.4",
-    "@types/sinon": "^7.5.2",
+    "@types/sinon": "^10.0.2",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^4.28.1",
     "@zeit/ncc": "^0.21.0",
     "chai": "^4.2.0",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.0",
+    "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-prettier": "^3.1.2",
     "husky": "^4.2.3",
     "mocha": "^7.0.1",
     "prettier": "^1.19.1",
     "sinon": "^9.0.1",
-    "ts-node": "^8.6.2",
+    "ts-node": "^10.0.0",
     "typescript": "^3.8.2"
   }
 }
