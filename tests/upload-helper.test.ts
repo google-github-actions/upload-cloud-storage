@@ -80,29 +80,17 @@ describe('Unit Test uploadFile', function() {
 
   it('uploads a single file not resumeable', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadFile(
-      EXAMPLE_BUCKET,
-      EXAMPLE_FILE,
-      true,
-      false,
-    );
+    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, false);
     expect(this.uploadStub.firstCall.args[1].resumable).to.not.exist;
     expect(this.uploadStub.firstCall.args[1].configPath).to.not.exist;
   });
 
   it('uploads a single file no gzip', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadFile(
-      EXAMPLE_BUCKET,
-      EXAMPLE_FILE,
-      false,
-      false,
-    );
+    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, false, false);
     expect(this.uploadStub.firstCall.args[1].gzip).to.be.false;
   });
-
 });
-
 
 /**
  * Unit Test uploadDir method in uploadHelper.
