@@ -73,6 +73,12 @@ describe('Integration Upload ', function() {
     testBucket = await getNewBucket();
     process.env.UPLOAD_ACTION_NO_LOG = 'true';
   });
+  // skip test if no bucket is set
+  this.beforeEach(function(){
+    if (!process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT) {
+      this.skip()
+    }
+  });
   // remove all files in bucket before each test
   this.afterEach(async function() {
     const [files] = await storage.bucket(testBucket).getFiles();
@@ -114,7 +120,22 @@ describe('Integration Upload ', function() {
       `${testBucket}/${EXAMPLE_PREFIX}`,
       './tests/testdata/test1.txt',
       '',
-      true,
+      false,
+    );
+    const expectedFile = `${EXAMPLE_PREFIX}/test1.txt`;
+    expect(uploadResponse[0][0].name).eql(expectedFile);
+    const filesInBucket = await getFilesInBucket();
+    expect(filesInBucket.length).eq(1);
+    expect(filesInBucket).to.have.members([expectedFile]);
+  });
+
+  it('uploads a single file with prefix without resumeable', async function() {
+    const uploader = new Client();
+    const uploadResponse = await uploader.upload(
+      `${testBucket}/${EXAMPLE_PREFIX}`,
+      './tests/testdata/test1.txt',
+      '',
+      false,
       false,
     );
     const expectedFile = `${EXAMPLE_PREFIX}/test1.txt`;
@@ -171,7 +192,7 @@ describe('Integration Upload ', function() {
 
   it('uploads a directory without parentDir', async function() {
     const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR, '', true, false);
+    await uploader.upload(testBucket, EXAMPLE_DIR, '', true,true, false);
     const filesInBucket = await getFilesInBucket();
     expect(filesInBucket.length).eq(FILES_IN_DIR_WITHOUT_PARENT_DIR.length);
     expect(filesInBucket).to.have.members(FILES_IN_DIR_WITHOUT_PARENT_DIR);
@@ -183,6 +204,7 @@ describe('Integration Upload ', function() {
       `${testBucket}/${EXAMPLE_PREFIX}`,
       EXAMPLE_DIR,
       '',
+      true,
       true,
       false,
     );
@@ -204,7 +226,7 @@ describe('Integration Upload ', function() {
 
   it('uploads a directory with globstar txt without parentDir', async function() {
     const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR, '**/*.txt', true, false);
+    await uploader.upload(testBucket, EXAMPLE_DIR, '**/*.txt', true, true, false);
     const filesInBucket = await getFilesInBucket();
     expect(filesInBucket.length).eq(TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR.length);
     expect(filesInBucket).to.have.members(TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR);
@@ -216,6 +238,7 @@ describe('Integration Upload ', function() {
       `${testBucket}/${EXAMPLE_PREFIX}`,
       EXAMPLE_DIR,
       '**/*.txt',
+      true,
       true,
       false,
     );
@@ -252,7 +275,7 @@ describe('Integration Upload ', function() {
     }
 
     const uploader = new Client();
-    await uploader.upload(testBucket, tmpDirPath);
+    await uploader.upload(testBucket, tmpDirPath,'',true,false);
     const filesInBucket = await getFilesInBucket();
     expect(filesInBucket.length).eq(PERF_TEST_FILE_COUNT);
   });

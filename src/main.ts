@@ -44,9 +44,9 @@ async function run(): Promise<void> {
     const uploadResponses = await client.upload(
       destination,
       path,
+      glob,
       gzip,
       resumable,
-      glob,
       parent,
       predefinedAcl,
       concurrency,

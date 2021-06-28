@@ -97,9 +97,9 @@ export class UploadHelper {
    *
    * @param bucketName The name of the bucket.
    * @param directoryPath The path of the directory to upload.
+   * @param glob Glob pattern if any.
    * @param gzip Gzip files on upload.
    * @param resumable Allow resuming uploads.
-   * @param glob Glob pattern if any.
    * @param parent Flag to enable parent dir in destination path.
    * @param predefinedAcl Predefined ACL config.
    * @param concurrency Number of files simultaneously uploaded.

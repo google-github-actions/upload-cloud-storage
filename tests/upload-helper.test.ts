@@ -74,8 +74,35 @@ describe('Unit Test uploadFile', function() {
     expect(this.uploadStub.firstCall.args[1].destination.split('/')[0]).eq(
       EXAMPLE_PREFIX,
     );
+    expect(this.uploadStub.firstCall.args[1].resumable).to.be.true;
+    expect(this.uploadStub.firstCall.args[1].configPath).to.exist;
   });
+
+  it('uploads a single file not resumeable', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadFile(
+      EXAMPLE_BUCKET,
+      EXAMPLE_FILE,
+      true,
+      false,
+    );
+    expect(this.uploadStub.firstCall.args[1].resumable).to.not.exist;
+    expect(this.uploadStub.firstCall.args[1].configPath).to.not.exist;
+  });
+
+  it('uploads a single file no gzip', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadFile(
+      EXAMPLE_BUCKET,
+      EXAMPLE_FILE,
+      false,
+      false,
+    );
+    expect(this.uploadStub.firstCall.args[1].gzip).to.be.false;
+  });
+
 });
+
 
 /**
  * Unit Test uploadDir method in uploadHelper.
@@ -158,7 +185,7 @@ describe('Unit Test uploadDir', function() {
     );
     // Capture destination arguments passed to uploadFile.
     const destinations = uploadFileCalls.map(
-      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[3],
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
     );
     // Assert uploadDir called uploadFile with right files.
     expect(filenames).to.have.members(FILES_IN_DIR);
@@ -186,7 +213,7 @@ describe('Unit Test uploadDir', function() {
     );
     // Capture destination arguments passed to uploadFile.
     const destinations = uploadFileCalls.map(
-      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[3],
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
     );
     // Assert uploadDir called uploadFile with right files.
     expect(filenames).to.have.members(FILES_IN_DIR);
@@ -219,7 +246,7 @@ describe('Unit Test uploadDir', function() {
     );
     // Capture destination arguments passed to uploadFile.
     const destinations = uploadFileCalls.map(
-      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[3],
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
     );
     // Assert uploadDir called uploadFile with right files.
     expect(filenames).to.have.members(TXT_FILES_IN_DIR);
@@ -247,7 +274,7 @@ describe('Unit Test uploadDir', function() {
     );
     // Capture destination arguments passed to uploadFile.
     const destinations = uploadFileCalls.map(
-      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[3],
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
     );
     // Assert uploadDir called uploadFile with right files.
     expect(filenames).to.have.members(TXT_FILES_IN_TOP_DIR);

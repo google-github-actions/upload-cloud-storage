@@ -63,9 +63,9 @@ export class Client {
    * Invokes GCS Helper for uploading file or directory.
    * @param destination Name of bucket and optional prefix to upload file/dir.
    * @param filePath FilePath of the file/dir to upload.
+   * @param glob Glob pattern if any.
    * @param gzip Gzip files on upload.
    * @param resumable Allow resuming uploads.
-   * @param glob Glob pattern if any.
    * @param parent Flag to enable parent dir in destination path.
    * @param predefinedAcl Predefined ACL config.
    * @param concurrency Number of files to simultaneously upload.
@@ -74,9 +74,9 @@ export class Client {
   async upload(
     destination: string,
     filePath: string,
-    gzip: boolean,
-    resumable: boolean,
     glob = '',
+    gzip: boolean = true,
+    resumable: boolean = true,
     parent = true,
     predefinedAcl?: PredefinedAcl,
     concurrency = 100,
