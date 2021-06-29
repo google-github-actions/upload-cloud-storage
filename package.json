@@ -6,7 +6,6 @@
   "scripts": {
     "build": "ncc build src/main.ts",
     "lint": "eslint . --ext .ts,.tsx",
-    "fixlint": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write **/*.ts",
     "test": "mocha -r ts-node/register -t 600s 'tests/*.test.ts'"
   },

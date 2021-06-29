@@ -116,7 +116,7 @@ export class UploadHelper {
     predefinedAcl?: PredefinedAcl,
     concurrency = 100,
   ): Promise<UploadResponse[]> {
-    // const filesList = await getFiles(directoryPath,parent);
+    // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
     const filesList = await globby([path.posix.join(directoryPath, glob)]);
     const uploader = async (filePath: string): Promise<UploadResponse> => {
       const destination = await GetDestinationFromPath(

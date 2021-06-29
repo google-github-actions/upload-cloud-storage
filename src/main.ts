@@ -32,7 +32,9 @@ async function run(): Promise<void> {
       required: false,
     });
     const parent =
-      core.getInput('parent', { required: false }) === 'false' ? false : true;
+      core.getInput('parent', { required: false }).toLowerCase() === 'false'
+        ? false
+        : true;
     const glob = core.getInput('glob');
     const concurrency = Number(core.getInput('concurrency')) || 100;
     const predefinedAcl =
