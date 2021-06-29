@@ -31,6 +31,12 @@ async function run(): Promise<void> {
     const predefinedAclInput = core.getInput('predefinedAcl', {
       required: false,
     });
+    const parent =
+      core.getInput('parent', { required: false }).toLowerCase() === 'false'
+        ? false
+        : true;
+    const glob = core.getInput('glob');
+    const concurrency = Number(core.getInput('concurrency')) || 100;
     const predefinedAcl =
       predefinedAclInput === ''
         ? undefined
@@ -40,9 +46,12 @@ async function run(): Promise<void> {
     const uploadResponses = await client.upload(
       destination,
       path,
+      glob,
       gzip,
       resumable,
+      parent,
       predefinedAcl,
+      concurrency,
     );
 
     core.setOutput(

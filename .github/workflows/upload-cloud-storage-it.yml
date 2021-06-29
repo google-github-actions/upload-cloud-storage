@@ -113,3 +113,4 @@ jobs:
         run: npm run test
         env:
           UPLOAD_CLOUD_STORAGE_TEST_BUCKET: ${{ secrets.UPLOAD_CLOUD_STORAGE_TEST_BUCKET }}
+          UPLOAD_CLOUD_STORAGE_TEST_PROJECT: ${{ secrets.UPLOAD_CLOUD_STORAGE_PROJECT }}

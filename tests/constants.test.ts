@@ -36,3 +36,23 @@ export const FILES_IN_DIR = [
   'tests/testdata/testfile',
   'tests/testdata/🚀',
 ];
+
+export const TXT_FILES_IN_TOP_DIR = [
+  'tests/testdata/test1.txt',
+  'tests/testdata/test2.txt',
+];
+
+export const TXT_FILES_IN_DIR = [
+  'tests/testdata/nested1/nested2/test3.txt',
+  'tests/testdata/nested1/test1.txt',
+  'tests/testdata/test1.txt',
+  'tests/testdata/test2.txt',
+];
+
+export const TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR = TXT_FILES_IN_DIR.map((f) =>
+  f.replace(`tests/testdata/`, ''),
+);
+
+export const FILES_IN_DIR_WITHOUT_PARENT_DIR = FILES_IN_DIR.map((f) =>
+  f.replace(`tests/testdata/`, ''),
+);

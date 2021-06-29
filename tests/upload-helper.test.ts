@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
+import * as path from 'path';
 import { UploadHelper } from '../src/upload-helper';
 import { Storage, Bucket } from '@google-cloud/storage';
 import {
@@ -27,6 +28,9 @@ import {
   FILES_IN_DIR,
   FAKE_METADATA,
   EXAMPLE_PREFIX,
+  FILES_IN_DIR_WITHOUT_PARENT_DIR,
+  TXT_FILES_IN_DIR,
+  TXT_FILES_IN_TOP_DIR,
 } from './constants.test';
 /**
  * Unit Test uploadFile method in uploadHelper.
@@ -48,7 +52,9 @@ describe('Unit Test uploadFile', function() {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, true);
     // Assert that upload method in storage library was called with right file.
-    expect(this.uploadStub.firstCall.args[0]).eq(EXAMPLE_FILE);
+    expect(this.uploadStub.firstCall.args[0]).eq(
+      path.posix.normalize(EXAMPLE_FILE),
+    );
   });
 
   it('uploads a single file with prefix', async function() {
@@ -62,10 +68,27 @@ describe('Unit Test uploadFile', function() {
     );
     // Assert that upload method in storage library was called with right file
     // and right prefix.
-    expect(this.uploadStub.firstCall.args[0]).eq(EXAMPLE_FILE);
+    expect(this.uploadStub.firstCall.args[0]).eq(
+      path.posix.normalize(EXAMPLE_FILE),
+    );
     expect(this.uploadStub.firstCall.args[1].destination.split('/')[0]).eq(
       EXAMPLE_PREFIX,
     );
+    expect(this.uploadStub.firstCall.args[1].resumable).to.be.true;
+    expect(this.uploadStub.firstCall.args[1].configPath).to.exist;
+  });
+
+  it('uploads a single file not resumeable', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, false);
+    expect(this.uploadStub.firstCall.args[1].resumable).to.not.exist;
+    expect(this.uploadStub.firstCall.args[1].configPath).to.not.exist;
+  });
+
+  it('uploads a single file no gzip', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, false, false);
+    expect(this.uploadStub.firstCall.args[1].gzip).to.be.false;
   });
 });
 
@@ -89,7 +112,7 @@ describe('Unit Test uploadDir', function() {
 
   it('uploads a dir', async function() {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, true, true);
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, '', true, true);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -106,6 +129,7 @@ describe('Unit Test uploadDir', function() {
     await uploader.uploadDirectory(
       EXAMPLE_BUCKET,
       EXAMPLE_DIR,
+      '',
       true,
       true,
       EXAMPLE_PREFIX,
@@ -127,5 +151,122 @@ describe('Unit Test uploadDir', function() {
     destinations.forEach((destination: string) => {
       expect(destination.split('/')[0]).eq(EXAMPLE_PREFIX);
     });
+  });
+
+  it('uploads a dir at bucket root', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadDirectory(
+      EXAMPLE_BUCKET,
+      EXAMPLE_DIR,
+      '',
+      true,
+      true,
+      '',
+      false,
+    );
+    // Assert that uploadFile was called for each file in directory.
+    expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
+    // Capture filename arguments passed to uploadFile.
+    const uploadFileCalls = this.uploadFileStub.getCalls();
+    const filenames = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[1],
+    );
+    // Capture destination arguments passed to uploadFile.
+    const destinations = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
+    );
+    // Assert uploadDir called uploadFile with right files.
+    expect(filenames).to.have.members(FILES_IN_DIR);
+    // Assert uploadDir called uploadFile with destination paths.
+    expect(destinations).to.have.members(FILES_IN_DIR_WITHOUT_PARENT_DIR);
+  });
+
+  it('uploads a dir at bucket root with prefix', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadDirectory(
+      EXAMPLE_BUCKET,
+      EXAMPLE_DIR,
+      '',
+      true,
+      true,
+      EXAMPLE_PREFIX,
+      false,
+    );
+    // Assert that uploadFile was called for each file in directory.
+    expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
+    // Capture filename arguments passed to uploadFile.
+    const uploadFileCalls = this.uploadFileStub.getCalls();
+    const filenames = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[1],
+    );
+    // Capture destination arguments passed to uploadFile.
+    const destinations = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
+    );
+    // Assert uploadDir called uploadFile with right files.
+    expect(filenames).to.have.members(FILES_IN_DIR);
+    // Assert uploadDir called uploadFile with destination paths.
+    expect(destinations).to.have.members(
+      FILES_IN_DIR_WITHOUT_PARENT_DIR.map((f) => `${EXAMPLE_PREFIX}/${f}`),
+    );
+    // Assert uploadDir called uploadFile with prefixed destination.
+    destinations.forEach((destination: string) => {
+      expect(destination.split('/')[0]).eq(EXAMPLE_PREFIX);
+    });
+  });
+  it('uploads a dir at bucket root with globstar txt', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadDirectory(
+      EXAMPLE_BUCKET,
+      EXAMPLE_DIR,
+      '**/*.txt',
+      true,
+      true,
+      '',
+      true,
+    );
+    // Assert that uploadFile was called for each file in directory.
+    expect(this.uploadFileStub.callCount).eq(TXT_FILES_IN_DIR.length);
+    // Capture filename arguments passed to uploadFile.
+    const uploadFileCalls = this.uploadFileStub.getCalls();
+    const filenames = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[1],
+    );
+    // Capture destination arguments passed to uploadFile.
+    const destinations = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
+    );
+    // Assert uploadDir called uploadFile with right files.
+    expect(filenames).to.have.members(TXT_FILES_IN_DIR);
+    // Assert uploadDir called uploadFile with destination paths.
+    expect(destinations).to.have.members(TXT_FILES_IN_DIR);
+  });
+
+  it('uploads a dir at bucket root with glob txt in top dir', async function() {
+    const uploader = new UploadHelper(new Storage());
+    await uploader.uploadDirectory(
+      EXAMPLE_BUCKET,
+      EXAMPLE_DIR,
+      '*.txt',
+      true,
+      true,
+      '',
+      true,
+    );
+    // Assert that uploadFile was called for each file in directory.
+    expect(this.uploadFileStub.callCount).eq(TXT_FILES_IN_TOP_DIR.length);
+    // Capture filename arguments passed to uploadFile.
+    const uploadFileCalls = this.uploadFileStub.getCalls();
+    const filenames = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[1],
+    );
+    // Capture destination arguments passed to uploadFile.
+    const destinations = uploadFileCalls.map(
+      (uploadFileCall: sinon.SinonSpyCall) => uploadFileCall.args[4],
+    );
+    // Assert uploadDir called uploadFile with right files.
+    expect(filenames).to.have.members(TXT_FILES_IN_TOP_DIR);
+    // Assert uploadDir called uploadFile with destination paths.
+    expect(destinations).to.have.members(TXT_FILES_IN_TOP_DIR);
   });
 });
