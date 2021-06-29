@@ -195,6 +195,12 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
   gzip: false
   ```
 
+- `resumable`: (Optional) Enable resumable uploads, defaults to true.
+
+  ```yaml
+  resumable: false
+  ```
+
   In the above example, the file(s) will be uploaded without `gzip` content-encoding
 
 - `predefinedAcl`: (Optional) Apply a predefined set of access controls to the file(s).
