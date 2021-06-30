@@ -70,6 +70,9 @@ describe('Integration Upload ', function() {
   }
   // create a new bucket for tests
   this.beforeAll(async function() {
+    if (!process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT) {
+      this.skip();
+    }
     testBucket = await getNewBucket();
     process.env.UPLOAD_ACTION_NO_LOG = 'true';
   });
@@ -99,7 +102,9 @@ describe('Integration Upload ', function() {
   });
   // delete bucket after all tests
   this.afterAll(async function() {
-    await storage.bucket(testBucket).delete();
+    if (testBucket) {
+      await storage.bucket(testBucket).delete();
+    }
   });
 
   it('uploads a single file', async function() {
