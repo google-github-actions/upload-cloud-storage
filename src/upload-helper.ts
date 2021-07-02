@@ -24,6 +24,7 @@ import {
   UploadOptions,
   UploadResponse,
 } from '@google-cloud/storage';
+import { Metadata } from './headers';
 import { GetDestinationFromPath } from './util';
 import globby from 'globby';
 import * as core from '@actions/core';
@@ -64,6 +65,7 @@ export class UploadHelper {
     resumable: boolean,
     destination?: string,
     predefinedAcl?: PredefinedAcl,
+    metadata?: Metadata,
   ): Promise<UploadResponse> {
     const options: UploadOptions = { gzip, predefinedAcl };
     const normalizedFilePath = path.posix.normalize(filename);
@@ -84,6 +86,9 @@ export class UploadHelper {
         os.tmpdir(),
         `upload-cloud-storage-${process.hrtime.bigint()}.json`,
       );
+    }
+    if (metadata) {
+      options.metadata = metadata;
     }
 
     const uploadedFile = await this.storage
@@ -115,6 +120,7 @@ export class UploadHelper {
     parent = true,
     predefinedAcl?: PredefinedAcl,
     concurrency = 100,
+    metadata?: Metadata,
   ): Promise<UploadResponse[]> {
     // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
     const filesList = await globby([path.posix.join(directoryPath, glob)]);
@@ -132,6 +138,7 @@ export class UploadHelper {
         resumable,
         destination,
         predefinedAcl,
+        metadata,
       );
       return uploadResp;
     };

@@ -17,6 +17,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { UploadHelper } from './upload-helper';
+import { Metadata } from './headers';
 import {
   Storage,
   UploadResponse,
@@ -80,6 +81,7 @@ export class Client {
     parent = true,
     predefinedAcl?: PredefinedAcl,
     concurrency = 100,
+    metadata?: Metadata,
   ): Promise<UploadResponse[]> {
     let bucketName = destination;
     let prefix = '';
@@ -105,6 +107,7 @@ export class Client {
         resumable,
         destination,
         predefinedAcl,
+        metadata,
       );
       return [uploadedFile];
     } else {
@@ -118,6 +121,7 @@ export class Client {
         parent,
         predefinedAcl,
         concurrency,
+        metadata,
       );
       return uploadedFiles;
     }

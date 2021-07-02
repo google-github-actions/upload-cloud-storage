@@ -17,6 +17,7 @@
 import * as core from '@actions/core';
 import { PredefinedAcl } from '@google-cloud/storage';
 import { Client } from './client';
+import { parseHeadersInput } from './headers';
 
 async function run(): Promise<void> {
   try {
@@ -41,6 +42,11 @@ async function run(): Promise<void> {
       predefinedAclInput === ''
         ? undefined
         : (predefinedAclInput as PredefinedAcl);
+    const headersInput = core.getInput('headers', {
+      required: false,
+    });
+    const metadata =
+      headersInput === '' ? undefined : parseHeadersInput(headersInput);
     const serviceAccountKey = core.getInput('credentials');
     const client = new Client({ credentials: serviceAccountKey });
     const uploadResponses = await client.upload(
@@ -52,6 +58,7 @@ async function run(): Promise<void> {
       parent,
       predefinedAcl,
       concurrency,
+      metadata,
     );
 
     core.setOutput(
