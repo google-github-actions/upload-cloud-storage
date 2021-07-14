@@ -37,7 +37,7 @@
     "@types/tmp": "^0.2.0",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^4.28.1",
-    "@zeit/ncc": "^0.21.0",
+    "@zeit/ncc": "^0.22.3",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^6.8.0",
