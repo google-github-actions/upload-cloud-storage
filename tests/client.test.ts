@@ -24,24 +24,24 @@ import { FAKE_FILE, FAKE_METADATA } from './constants.test';
 /**
  * Unit Test upload method in Client.
  */
-describe('Unit Test Client', function() {
-  afterEach(function() {
+describe('Unit Test Client', function () {
+  afterEach(function () {
     sinon.restore();
   });
 
-  it('initializes with JSON creds', function() {
+  it('initializes with JSON creds', function () {
     const client = new Client({
       credentials: `{"foo":"bar"}`,
     });
     expect(client.storage.authClient.jsonContent).eql({ foo: 'bar' });
   });
 
-  it('initializes with ADC', function() {
+  it('initializes with ADC', function () {
     const client = new Client();
     expect(client.storage.authClient.jsonContent).eql(null);
   });
 
-  it('calls uploadFile', async function() {
+  it('calls uploadFile', async function () {
     const uploadFileStub = sinon
       .stub(UploadHelper.prototype, 'uploadFile')
       .callsFake(() => {
@@ -60,7 +60,7 @@ describe('Unit Test Client', function() {
     expect(uploadFileStub.firstCall.args[4]).to.equal(`${prefix}/test1.txt`);
   });
 
-  it('calls uploadDirectory', async function() {
+  it('calls uploadDirectory', async function () {
     sinon.stub(UploadHelper.prototype, 'uploadFile').callsFake(() => {
       return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
     });

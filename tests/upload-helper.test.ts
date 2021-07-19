@@ -35,8 +35,8 @@ import {
 /**
  * Unit Test uploadFile method in uploadHelper.
  */
-describe('Unit Test uploadFile', function() {
-  beforeEach(function() {
+describe('Unit Test uploadFile', function () {
+  beforeEach(function () {
     // Before each call is made to uploadFile stub upload method in storage
     // library to return fake constant data.
     this.uploadStub = sinon.stub(Bucket.prototype, 'upload').callsFake(() => {
@@ -44,11 +44,11 @@ describe('Unit Test uploadFile', function() {
     });
   });
 
-  afterEach(function() {
+  afterEach(function () {
     sinon.restore();
   });
 
-  it('uploads a single file', async function() {
+  it('uploads a single file', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, true);
     // Assert that upload method in storage library was called with right file.
@@ -57,7 +57,7 @@ describe('Unit Test uploadFile', function() {
     );
   });
 
-  it('uploads a single file with prefix', async function() {
+  it('uploads a single file with prefix', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(
       EXAMPLE_BUCKET,
@@ -78,14 +78,14 @@ describe('Unit Test uploadFile', function() {
     expect(this.uploadStub.firstCall.args[1].configPath).to.exist;
   });
 
-  it('uploads a single file not resumeable', async function() {
+  it('uploads a single file not resumeable', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, false);
     expect(this.uploadStub.firstCall.args[1].resumable).to.not.exist;
     expect(this.uploadStub.firstCall.args[1].configPath).to.not.exist;
   });
 
-  it('uploads a single file no gzip', async function() {
+  it('uploads a single file no gzip', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, false, false);
     expect(this.uploadStub.firstCall.args[1].gzip).to.be.false;
@@ -95,8 +95,8 @@ describe('Unit Test uploadFile', function() {
 /**
  * Unit Test uploadDir method in uploadHelper.
  */
-describe('Unit Test uploadDir', function() {
-  beforeEach(function() {
+describe('Unit Test uploadDir', function () {
+  beforeEach(function () {
     // Before each call is made to uploadDir stub uploadFile in UploadHelper to
     // return fake constant data.
     this.uploadFileStub = sinon
@@ -106,11 +106,11 @@ describe('Unit Test uploadDir', function() {
       });
   });
 
-  afterEach(function() {
+  afterEach(function () {
     sinon.restore();
   });
 
-  it('uploads a dir', async function() {
+  it('uploads a dir', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, '', true, true);
     // Assert that uploadFile was called for each file in directory.
@@ -124,7 +124,7 @@ describe('Unit Test uploadDir', function() {
     expect(filenames).to.have.members(FILES_IN_DIR);
   });
 
-  it('uploads a dir with prefix', async function() {
+  it('uploads a dir with prefix', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadDirectory(
       EXAMPLE_BUCKET,
@@ -153,7 +153,7 @@ describe('Unit Test uploadDir', function() {
     });
   });
 
-  it('uploads a dir at bucket root', async function() {
+  it('uploads a dir at bucket root', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadDirectory(
       EXAMPLE_BUCKET,
@@ -181,7 +181,7 @@ describe('Unit Test uploadDir', function() {
     expect(destinations).to.have.members(FILES_IN_DIR_WITHOUT_PARENT_DIR);
   });
 
-  it('uploads a dir at bucket root with prefix', async function() {
+  it('uploads a dir at bucket root with prefix', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadDirectory(
       EXAMPLE_BUCKET,
@@ -214,7 +214,7 @@ describe('Unit Test uploadDir', function() {
       expect(destination.split('/')[0]).eq(EXAMPLE_PREFIX);
     });
   });
-  it('uploads a dir at bucket root with globstar txt', async function() {
+  it('uploads a dir at bucket root with globstar txt', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadDirectory(
       EXAMPLE_BUCKET,
@@ -242,7 +242,7 @@ describe('Unit Test uploadDir', function() {
     expect(destinations).to.have.members(TXT_FILES_IN_DIR);
   });
 
-  it('uploads a dir at bucket root with glob txt in top dir', async function() {
+  it('uploads a dir at bucket root with glob txt in top dir', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadDirectory(
       EXAMPLE_BUCKET,

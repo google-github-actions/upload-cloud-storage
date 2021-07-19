@@ -48,7 +48,7 @@ const expect = chai.expect;
 // skip performance test and error message verification on Windows
 const isWin = os.platform() === 'win32';
 
-describe('Integration Upload ', function() {
+describe('Integration Upload ', function () {
   let testBucket: string;
   // helper function to create a new bucket
   async function getNewBucket(): Promise<string> {
@@ -69,7 +69,7 @@ describe('Integration Upload ', function() {
     return [];
   }
   // create a new bucket for tests
-  this.beforeAll(async function() {
+  this.beforeAll(async function () {
     if (!process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT) {
       this.skip();
     }
@@ -77,19 +77,16 @@ describe('Integration Upload ', function() {
     process.env.UPLOAD_ACTION_NO_LOG = 'true';
   });
   // skip test if no bucket is set
-  this.beforeEach(function() {
+  this.beforeEach(function () {
     if (!process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT) {
       this.skip();
     }
   });
   // remove all files in bucket before each test
-  this.afterEach(async function() {
+  this.afterEach(async function () {
     const [files] = await storage.bucket(testBucket).getFiles();
     const uploader = async (name: string): Promise<number> => {
-      const del = await storage
-        .bucket(testBucket)
-        .file(name)
-        .delete();
+      const del = await storage.bucket(testBucket).file(name).delete();
       return del[0].statusCode;
     };
     await pMap(
@@ -101,13 +98,13 @@ describe('Integration Upload ', function() {
     expect(checkFiles.length).eq(0);
   });
   // delete bucket after all tests
-  this.afterAll(async function() {
+  this.afterAll(async function () {
     if (testBucket) {
       await storage.bucket(testBucket).delete();
     }
   });
 
-  it('uploads a single file', async function() {
+  it('uploads a single file', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
       testBucket,
@@ -119,7 +116,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(['test1.txt']);
   });
 
-  it('uploads a single file with prefix no gzip', async function() {
+  it('uploads a single file with prefix no gzip', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
       `${testBucket}/${EXAMPLE_PREFIX}`,
@@ -134,7 +131,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members([expectedFile]);
   });
 
-  it('uploads a single file with prefix without resumeable', async function() {
+  it('uploads a single file with prefix without resumeable', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
       `${testBucket}/${EXAMPLE_PREFIX}`,
@@ -150,7 +147,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members([expectedFile]);
   });
 
-  it('uploads a single file without extension', async function() {
+  it('uploads a single file without extension', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
       `${testBucket}/${EXAMPLE_PREFIX}`,
@@ -163,7 +160,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members([expectedFile]);
   });
 
-  it('uploads a single file with non ascii filename 🚀', async function() {
+  it('uploads a single file with non ascii filename 🚀', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
       `${testBucket}/${EXAMPLE_PREFIX}`,
@@ -176,7 +173,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members([expectedFile]);
   });
 
-  it('uploads a directory', async function() {
+  it('uploads a directory', async function () {
     const uploader = new Client();
     await uploader.upload(testBucket, EXAMPLE_DIR);
     const filesInBucket = await getFilesInBucket();
@@ -184,7 +181,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(FILES_IN_DIR);
   });
 
-  it('uploads a directory with prefix', async function() {
+  it('uploads a directory with prefix', async function () {
     const uploader = new Client();
     await uploader.upload(`${testBucket}/${EXAMPLE_PREFIX}`, EXAMPLE_DIR);
     const filesInBucket = await getFilesInBucket();
@@ -195,7 +192,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(filesInDirWithPrefix);
   });
 
-  it('uploads a directory without parentDir', async function() {
+  it('uploads a directory without parentDir', async function () {
     const uploader = new Client();
     await uploader.upload(testBucket, EXAMPLE_DIR, '', true, true, false);
     const filesInBucket = await getFilesInBucket();
@@ -203,7 +200,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(FILES_IN_DIR_WITHOUT_PARENT_DIR);
   });
 
-  it('uploads a directory with prefix without parentDir', async function() {
+  it('uploads a directory with prefix without parentDir', async function () {
     const uploader = new Client();
     await uploader.upload(
       `${testBucket}/${EXAMPLE_PREFIX}`,
@@ -221,7 +218,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(filesInDirWithPrefix);
   });
 
-  it('uploads a directory with globstar txt', async function() {
+  it('uploads a directory with globstar txt', async function () {
     const uploader = new Client();
     await uploader.upload(testBucket, EXAMPLE_DIR, '**/*.txt');
     const filesInBucket = await getFilesInBucket();
@@ -229,7 +226,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(TXT_FILES_IN_DIR);
   });
 
-  it('uploads a directory with globstar txt without parentDir', async function() {
+  it('uploads a directory with globstar txt without parentDir', async function () {
     const uploader = new Client();
     await uploader.upload(
       testBucket,
@@ -244,7 +241,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR);
   });
 
-  it('uploads a directory with prefix with globstar txt without parentDir', async function() {
+  it('uploads a directory with prefix with globstar txt without parentDir', async function () {
     const uploader = new Client();
     await uploader.upload(
       `${testBucket}/${EXAMPLE_PREFIX}`,
@@ -262,7 +259,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(filesInDirWithPrefix);
   });
 
-  it('uploads a directory with top level txt glob', async function() {
+  it('uploads a directory with top level txt glob', async function () {
     const uploader = new Client();
     await uploader.upload(testBucket, EXAMPLE_DIR, '*.txt');
     const filesInBucket = await getFilesInBucket();
@@ -270,7 +267,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket).to.have.members(TXT_FILES_IN_TOP_DIR);
   });
 
-  it(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function() {
+  it(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function () {
     if (isWin) {
       this.skip();
     }
@@ -292,7 +289,7 @@ describe('Integration Upload ', function() {
     expect(filesInBucket.length).eq(PERF_TEST_FILE_COUNT);
   });
 
-  it('throws an error for a non existent dir', async function() {
+  it('throws an error for a non existent dir', async function () {
     if (isWin) {
       this.skip();
     }
@@ -304,7 +301,7 @@ describe('Integration Upload ', function() {
       );
   });
 
-  it('throws an error for a non existent bucket', async function() {
+  it('throws an error for a non existent bucket', async function () {
     const uploader = new Client();
     // error message seems to be either The specified bucket does not exist or Not Found so checking for 404 error code
     return uploader
