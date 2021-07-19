@@ -21,7 +21,7 @@ import { GetDestinationFromPath } from '../src/util';
 /**
  * Unit Test GetDestinationFromPath method in utils.
  */
-describe('Unit Test GetDestinationFromPath', function() {
+describe('Unit Test GetDestinationFromPath', function () {
   const tests = [
     {
       name: 'returns correct destination for a file',
@@ -74,8 +74,7 @@ describe('Unit Test GetDestinationFromPath', function() {
       output: 'prfx1/prfx2/foo/bar.txt',
     },
     {
-      name:
-        'returns correct destination for a file with relative path with two prefixes',
+      name: 'returns correct destination for a file with relative path with two prefixes',
       input: {
         filePath: './foo/bar.txt',
         directory: 'foo',
@@ -105,8 +104,7 @@ describe('Unit Test GetDestinationFromPath', function() {
       output: 'bar/bar.txt',
     },
     {
-      name:
-        'returns correct destination for a file without parent with two dirs in path',
+      name: 'returns correct destination for a file without parent with two dirs in path',
       input: {
         filePath: 'foo/bar/bar.txt',
         directory: 'foo/bar',
@@ -116,8 +114,7 @@ describe('Unit Test GetDestinationFromPath', function() {
       output: 'bar.txt',
     },
     {
-      name:
-        'returns correct destination for a file with relative path without parent with two dirs in path',
+      name: 'returns correct destination for a file with relative path without parent with two dirs in path',
       input: {
         filePath: './foo/bar/bar.txt',
         directory: 'foo/bar',
@@ -137,8 +134,7 @@ describe('Unit Test GetDestinationFromPath', function() {
       output: 'prfx/bar.txt',
     },
     {
-      name:
-        'returns correct destination for a file without parent with two prefixes',
+      name: 'returns correct destination for a file without parent with two prefixes',
       input: {
         filePath: 'foo/bar.txt',
         directory: 'foo',
@@ -148,8 +144,7 @@ describe('Unit Test GetDestinationFromPath', function() {
       output: 'prfx1/prfx2/bar.txt',
     },
     {
-      name:
-        'returns correct destination for a file with relative path without parent with two prefixes',
+      name: 'returns correct destination for a file with relative path without parent with two prefixes',
       input: {
         filePath: './foo/bar.txt',
         directory: 'foo',
@@ -160,7 +155,7 @@ describe('Unit Test GetDestinationFromPath', function() {
     },
   ];
   tests.forEach((test) => {
-    it(test.name, async function() {
+    it(test.name, async function () {
       const { filePath, directory, parent, prefix } = test.input;
       const destination = await GetDestinationFromPath(
         filePath,
