@@ -19,7 +19,13 @@ module.exports =
 /******/ 		};
 /******/
 /******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 		var threw = true;
+/******/ 		try {
+/******/ 			modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 			threw = false;
+/******/ 		} finally {
+/******/ 			if(threw) delete installedModules[moduleId];
+/******/ 		}
 /******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
@@ -928,9 +934,9 @@ module.exports = require("tls");
 /***/ }),
 /* 17 */,
 /* 18 */
-/***/ (function() {
+/***/ (function(module) {
 
-eval("require")("encoding");
+module.exports = eval("require")("encoding");
 
 
 /***/ }),
@@ -1101,9 +1107,9 @@ module.exports = DataStream;
 /* 36 */,
 /* 37 */,
 /* 38 */
-/***/ (function() {
+/***/ (function(module) {
 
-eval("require")("request");
+module.exports = eval("require")("request");
 
 
 /***/ }),
@@ -39464,9 +39470,9 @@ module.exports = (...arguments_) => {
 /* 467 */,
 /* 468 */,
 /* 469 */
-/***/ (function() {
+/***/ (function(module) {
 
-eval("require")("fast-crc32c");
+module.exports = eval("require")("fast-crc32c");
 
 
 /***/ }),
@@ -61221,14 +61227,15 @@ var isWin32 = __webpack_require__(87).platform() === 'win32';
 
 var slash = '/';
 var backslash = /\\/g;
-var enclosure = /[\{\[].*[\/]*.*[\}\]]$/;
+var enclosure = /[\{\[].*[\}\]]$/;
 var globby = /(^|[^\\])([\{\[]|\([^\)]+$)/;
-var escaped = /\\([\*\?\|\[\]\(\)\{\}])/g;
+var escaped = /\\([\!\*\?\|\[\]\(\)\{\}])/g;
 
 /**
  * @param {string} str
  * @param {Object} opts
  * @param {boolean} [opts.flipBackslashes=true]
+ * @returns {string}
  */
 module.exports = function globParent(str, opts) {
   var options = Object.assign({ flipBackslashes: true }, opts);
