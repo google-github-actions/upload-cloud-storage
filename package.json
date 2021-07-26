@@ -23,7 +23,7 @@
   "author": "GoogleCloudPlatform",
   "license": "Apache-2.0",
   "dependencies": {
-    "@actions/core": "^1.2.6",
+    "@actions/core": "^1.4.0",
     "@google-cloud/storage": "^5.10.0",
     "globby": "^11.0.4",
     "p-map": "^4.0.0"
