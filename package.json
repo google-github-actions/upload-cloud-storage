@@ -24,7 +24,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@actions/core": "^1.2.6",
-    "@google-cloud/storage": "^5.8.5",
+    "@google-cloud/storage": "^5.10.0",
     "globby": "^11.0.4",
     "p-map": "^4.0.0"
   },
