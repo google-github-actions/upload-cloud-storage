@@ -3586,6 +3586,7 @@ formatters.O = function (v) {
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.toCommandValue = void 0;
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
  * @param input input to sanitize into a string
@@ -3756,14 +3757,27 @@ function legacy (fs) {
 "use strict";
 
 // For internal use, subject to change.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.issueCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__webpack_require__(747));
@@ -6982,6 +6996,25 @@ module.exports = require("child_process");
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -6990,13 +7023,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
@@ -7047,7 +7073,7 @@ run();
 /* 139 */
 /***/ (function(module) {
 
-module.exports = {"name":"@google-cloud/storage","description":"Cloud Storage Client Library for Node.js","version":"5.8.5","license":"Apache-2.0","author":"Google Inc.","engines":{"node":">=10"},"repository":"googleapis/nodejs-storage","main":"./build/src/index.js","types":"./build/src/index.d.ts","files":["build/src","!build/src/**/*.map"],"keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"scripts":{"predocs":"npm run compile","docs":"jsdoc -c .jsdoc.js","system-test":"mocha build/system-test --timeout 600000 --exit","conformance-test":"mocha build/conformance-test","preconformance-test":"npm run compile","presystem-test":"npm run compile","test":"c8 mocha build/test","pretest":"npm run compile","lint":"gts check","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","all-test":"npm test && npm run system-test && npm run samples-test","check":"gts check","clean":"gts clean","compile":"tsc -p .","fix":"gts fix","prepare":"npm run compile","docs-test":"linkinator docs","predocs-test":"npm run docs","benchwrapper":"node bin/benchwrapper.js","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean","api-extractor":"api-extractor run --local","api-documenter":"api-documenter yaml --input-folder=temp"},"dependencies":{"@google-cloud/common":"^3.6.0","@google-cloud/paginator":"^3.0.0","@google-cloud/promisify":"^2.0.0","arrify":"^2.0.0","async-retry":"^1.3.1","compressible":"^2.0.12","date-and-time":"^1.0.0","duplexify":"^4.0.0","extend":"^3.0.2","gaxios":"^4.0.0","gcs-resumable-upload":"^3.1.4","get-stream":"^6.0.0","hash-stream-validation":"^0.2.2","mime":"^2.2.0","mime-types":"^2.0.8","onetime":"^5.1.0","p-limit":"^3.0.1","pumpify":"^2.0.0","snakeize":"^0.1.0","stream-events":"^1.0.1","xdg-basedir":"^4.0.0"},"devDependencies":{"@google-cloud/pubsub":"^2.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.6.0","@microsoft/api-documenter":"^7.8.10","@microsoft/api-extractor":"^7.8.10","@types/async-retry":"^1.4.2","@types/compressible":"^2.0.0","@types/concat-stream":"^1.6.0","@types/configstore":"^5.0.0","@types/date-and-time":"^0.13.0","@types/extend":"^3.0.0","@types/mime":"^2.0.0","@types/mime-types":"^2.1.0","@types/mocha":"^8.0.0","@types/nock":"^10.0.0","@types/node":"^11.13.4","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/pumpify":"^1.4.1","@types/sinon":"^10.0.0","@types/tmp":"0.2.0","@types/uuid":"^8.0.0","@types/xdg-basedir":"^2.0.0","c8":"^7.0.0","codecov":"^3.0.0","form-data":"^4.0.0","gts":"^2.0.0","jsdoc":"^3.6.2","jsdoc-fresh":"^1.0.1","jsdoc-region-tag":"^1.0.2","linkinator":"^2.0.0","mocha":"^8.0.0","nock":"~13.0.0","node-fetch":"^2.2.0","proxyquire":"^2.1.3","sinon":"^10.0.0","tmp":"^0.2.0","typescript":"^3.8.3","uuid":"^8.0.0","yargs":"^16.0.0"},"_resolved":"https://registry.npmjs.org/@google-cloud/storage/-/storage-5.8.5.tgz","_integrity":"sha512-i0gB9CRwQeOBYP7xuvn14M40LhHCwMjceBjxE4CTvsqL519sVY5yVKxLiAedHWGwUZHJNRa7Q2CmNfkdRwVNPg==","_from":"@google-cloud/storage@5.8.5"};
+module.exports = {"name":"@google-cloud/storage","description":"Cloud Storage Client Library for Node.js","version":"5.10.0","license":"Apache-2.0","author":"Google Inc.","engines":{"node":">=10"},"repository":"googleapis/nodejs-storage","main":"./build/src/index.js","types":"./build/src/index.d.ts","files":["build/src","!build/src/**/*.map"],"keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"scripts":{"predocs":"npm run compile","docs":"jsdoc -c .jsdoc.js","system-test":"mocha build/system-test --timeout 600000 --exit","conformance-test":"mocha build/conformance-test","preconformance-test":"npm run compile","presystem-test":"npm run compile","test":"c8 mocha build/test","pretest":"npm run compile","lint":"gts check","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","all-test":"npm test && npm run system-test && npm run samples-test","check":"gts check","clean":"gts clean","compile":"tsc -p .","fix":"gts fix","prepare":"npm run compile","docs-test":"linkinator docs","predocs-test":"npm run docs","benchwrapper":"node bin/benchwrapper.js","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean"},"dependencies":{"@google-cloud/common":"^3.7.0","@google-cloud/paginator":"^3.0.0","@google-cloud/promisify":"^2.0.0","arrify":"^2.0.0","async-retry":"^1.3.1","compressible":"^2.0.12","date-and-time":"^1.0.0","duplexify":"^4.0.0","extend":"^3.0.2","gcs-resumable-upload":"^3.3.0","get-stream":"^6.0.0","hash-stream-validation":"^0.2.2","mime":"^2.2.0","mime-types":"^2.0.8","onetime":"^5.1.0","p-limit":"^3.0.1","pumpify":"^2.0.0","snakeize":"^0.1.0","stream-events":"^1.0.1","xdg-basedir":"^4.0.0"},"devDependencies":{"@google-cloud/pubsub":"^2.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.6.0","@types/async-retry":"^1.4.2","@types/compressible":"^2.0.0","@types/concat-stream":"^1.6.0","@types/configstore":"^5.0.0","@types/date-and-time":"^0.13.0","@types/extend":"^3.0.0","@types/mime":"^2.0.0","@types/mime-types":"^2.1.0","@types/mocha":"^8.0.0","@types/nock":"^10.0.0","@types/node":"^11.13.4","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/pumpify":"^1.4.1","@types/sinon":"^10.0.0","@types/tmp":"0.2.1","@types/uuid":"^8.0.0","@types/xdg-basedir":"^2.0.0","c8":"^7.0.0","codecov":"^3.0.0","form-data":"^4.0.0","gts":"^3.1.0","jsdoc":"^3.6.2","jsdoc-fresh":"^1.0.1","jsdoc-region-tag":"^1.0.2","linkinator":"^2.0.0","mocha":"^8.0.0","nock":"~13.1.0","node-fetch":"^2.2.0","proxyquire":"^2.1.3","sinon":"^11.0.0","tmp":"^0.2.0","typescript":"^3.8.3","uuid":"^8.0.0","yargs":"^16.0.0"},"_resolved":"https://registry.npmjs.org/@google-cloud/storage/-/storage-5.10.0.tgz","_integrity":"sha512-E0PXhN+8CiiOfrQuITyjALHMsGQFQmhhtHpzz0k/kgnFgM27ldSnLn1JADrWvIlfy8BTkR7u3GQCOtQCLPrVnw==","_from":"@google-cloud/storage@5.10.0"};
 
 /***/ }),
 /* 140 */,
@@ -7650,7 +7676,7 @@ Duplexify.prototype.end = function(data, enc, cb) {
   if (typeof enc === 'function') return this.end(data, null, enc)
   this._ended = true
   if (data) this.write(data)
-  if (!this._writableState.ending) this.write(SIGNAL_FLUSH)
+  if (!this._writableState.ending && !this._writableState.destroyed) this.write(SIGNAL_FLUSH)
   return stream.Writable.prototype.end.call(this, cb)
 }
 
@@ -15358,7 +15384,6 @@ const util_1 = __webpack_require__(903);
  * @see [IAM Roles](https://cloud.google.com/iam/docs/understanding-roles)
  *
  * @constructor Iam
- * @mixin
  *
  * @param {Bucket} bucket The parent instance.
  * @example
@@ -15642,6 +15667,25 @@ promisify_1.promisifyAll(Iam);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -15651,17 +15695,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.UploadHelper = void 0;
 const os = __importStar(__webpack_require__(87));
 const path = __importStar(__webpack_require__(622));
 const process = __importStar(__webpack_require__(765));
@@ -17710,23 +17748,32 @@ module.exports = Configstore;
 "use strict";
 
 const os = __webpack_require__(87);
+const tty = __webpack_require__(867);
 const hasFlag = __webpack_require__(364);
 
-const env = process.env;
+const {env} = process;
 
 let forceColor;
 if (hasFlag('no-color') ||
 	hasFlag('no-colors') ||
-	hasFlag('color=false')) {
-	forceColor = false;
+	hasFlag('color=false') ||
+	hasFlag('color=never')) {
+	forceColor = 0;
 } else if (hasFlag('color') ||
 	hasFlag('colors') ||
 	hasFlag('color=true') ||
 	hasFlag('color=always')) {
-	forceColor = true;
+	forceColor = 1;
 }
+
 if ('FORCE_COLOR' in env) {
-	forceColor = env.FORCE_COLOR.length === 0 || parseInt(env.FORCE_COLOR, 10) !== 0;
+	if (env.FORCE_COLOR === 'true') {
+		forceColor = 1;
+	} else if (env.FORCE_COLOR === 'false') {
+		forceColor = 0;
+	} else {
+		forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
+	}
 }
 
 function translateLevel(level) {
@@ -17742,8 +17789,8 @@ function translateLevel(level) {
 	};
 }
 
-function supportsColor(stream) {
-	if (forceColor === false) {
+function supportsColor(haveStream, streamIsTTY) {
+	if (forceColor === 0) {
 		return 0;
 	}
 
@@ -17757,22 +17804,21 @@ function supportsColor(stream) {
 		return 2;
 	}
 
-	if (stream && !stream.isTTY && forceColor !== true) {
+	if (haveStream && !streamIsTTY && forceColor === undefined) {
 		return 0;
 	}
 
-	const min = forceColor ? 1 : 0;
+	const min = forceColor || 0;
+
+	if (env.TERM === 'dumb') {
+		return min;
+	}
 
 	if (process.platform === 'win32') {
-		// Node.js 7.5.0 is the first version of Node.js to include a patch to
-		// libuv that enables 256 color output on Windows. Anything earlier and it
-		// won't work. However, here we target Node.js 8 at minimum as it is an LTS
-		// release, and Node.js 7 is not. Windows 10 build 10586 is the first Windows
-		// release that supports 256 colors. Windows 10 build 14931 is the first release
-		// that supports 16m/TrueColor.
+		// Windows 10 build 10586 is the first Windows release that supports 256 colors.
+		// Windows 10 build 14931 is the first release that supports 16m/TrueColor.
 		const osRelease = os.release().split('.');
 		if (
-			Number(process.versions.node.split('.')[0]) >= 8 &&
 			Number(osRelease[0]) >= 10 &&
 			Number(osRelease[2]) >= 10586
 		) {
@@ -17783,7 +17829,7 @@ function supportsColor(stream) {
 	}
 
 	if ('CI' in env) {
-		if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
+		if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
 			return 1;
 		}
 
@@ -17822,22 +17868,18 @@ function supportsColor(stream) {
 		return 1;
 	}
 
-	if (env.TERM === 'dumb') {
-		return min;
-	}
-
 	return min;
 }
 
 function getSupportLevel(stream) {
-	const level = supportsColor(stream);
+	const level = supportsColor(stream, stream && stream.isTTY);
 	return translateLevel(level);
 }
 
 module.exports = {
 	supportsColor: getSupportLevel,
-	stdout: getSupportLevel(process.stdout),
-	stderr: getSupportLevel(process.stderr)
+	stdout: translateLevel(supportsColor(true, tty.isatty(1))),
+	stderr: translateLevel(supportsColor(true, tty.isatty(2)))
 };
 
 
@@ -21623,6 +21665,7 @@ exports.GaxiosError = GaxiosError;
 // ignored, since we can never get coverage for them.
 var assert = __webpack_require__(59)
 var signals = __webpack_require__(654)
+var isWin = /^win/i.test(process.platform)
 
 var EE = __webpack_require__(614)
 /* istanbul ignore if */
@@ -21712,6 +21755,11 @@ signals.forEach(function (sig) {
       /* istanbul ignore next */
       emit('afterexit', null, sig)
       /* istanbul ignore next */
+      if (isWin && sig === 'SIGHUP') {
+        // "SIGHUP" throws an `ENOSYS` error on Windows,
+        // so use a supported signal instead
+        sig = 'SIGINT'
+      }
       process.kill(process.pid, sig)
     }
   }
@@ -21922,6 +21970,9 @@ function requestToFetchOptions(reqOpts) {
     options.headers = reqOpts.headers;
     let uri = (reqOpts.uri ||
         reqOpts.url);
+    if (!uri) {
+        throw new Error('Missing uri or url in reqOpts.');
+    }
     if (reqOpts.useQuerystring === true || typeof reqOpts.qs === 'object') {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const qs = __webpack_require__(191);
@@ -22139,12 +22190,21 @@ const TERMINATED_UPLOAD_STATUS_CODE = 410;
 const RESUMABLE_INCOMPLETE_STATUS_CODE = 308;
 const RETRY_LIMIT = 5;
 const DEFAULT_API_ENDPOINT_REGEX = /.*\.googleapis\.com/;
+const MAX_RETRY_DELAY = 64;
+const RETRY_DELAY_MULTIPLIER = 2;
+const MAX_TOTAL_RETRY_TIMEOUT = 600;
+const AUTO_RETRY_VALUE = true;
 exports.PROTOCOL_REGEX = /^(\w*):\/\//;
 class Upload extends Pumpify {
     constructor(cfg) {
+        var _a, _b, _c, _d, _e, _f;
         super();
         this.numBytesWritten = 0;
         this.numRetries = 0;
+        this.retryLimit = RETRY_LIMIT;
+        this.maxRetryDelay = MAX_RETRY_DELAY;
+        this.retryDelayMultiplier = RETRY_DELAY_MULTIPLIER;
+        this.maxRetryTotalTimeout = MAX_TOTAL_RETRY_TIMEOUT;
         streamEvents(this);
         cfg = cfg || {};
         if (!cfg.bucket || !cfg.file) {
@@ -22199,10 +22259,28 @@ class Upload extends Pumpify {
         this.configStore = new ConfigStore('gcs-resumable-upload', null, {
             configPath,
         });
+        const autoRetry = ((_a = cfg === null || cfg === void 0 ? void 0 : cfg.retryOptions) === null || _a === void 0 ? void 0 : _a.autoRetry) || AUTO_RETRY_VALUE;
         this.uriProvidedManually = !!cfg.uri;
         this.uri = cfg.uri || this.get('uri');
         this.numBytesWritten = 0;
         this.numRetries = 0;
+        if (autoRetry && ((_b = cfg === null || cfg === void 0 ? void 0 : cfg.retryOptions) === null || _b === void 0 ? void 0 : _b.maxRetries) !== undefined) {
+            this.retryLimit = cfg.retryOptions.maxRetries;
+        }
+        else if (!autoRetry) {
+            this.retryLimit = 0;
+        }
+        if (((_c = cfg === null || cfg === void 0 ? void 0 : cfg.retryOptions) === null || _c === void 0 ? void 0 : _c.maxRetryDelay) !== undefined) {
+            this.maxRetryDelay = cfg.retryOptions.maxRetryDelay;
+        }
+        if (((_d = cfg === null || cfg === void 0 ? void 0 : cfg.retryOptions) === null || _d === void 0 ? void 0 : _d.retryDelayMultiplier) !== undefined) {
+            this.retryDelayMultiplier = cfg.retryOptions.retryDelayMultiplier;
+        }
+        if (((_e = cfg === null || cfg === void 0 ? void 0 : cfg.retryOptions) === null || _e === void 0 ? void 0 : _e.totalTimeout) !== undefined) {
+            this.maxRetryTotalTimeout = cfg.retryOptions.totalTimeout;
+        }
+        this.timeOfFirstRequest = Date.now();
+        this.retryableErrorFn = (_f = cfg === null || cfg === void 0 ? void 0 : cfg.retryOptions) === null || _f === void 0 ? void 0 : _f.retryableErrorFn;
         const contentLength = cfg.metadata
             ? Number(cfg.metadata.contentLength)
             : NaN;
@@ -22369,10 +22447,12 @@ class Upload extends Pumpify {
             }
         }
         let length = chunk.length;
-        if (typeof chunk === 'string')
+        if (typeof chunk === 'string') {
             length = Buffer.byteLength(chunk, enc);
-        if (numBytesWritten < offset)
+        }
+        if (numBytesWritten < offset) {
             chunk = chunk.slice(offset - numBytesWritten);
+        }
         this.numBytesWritten += length;
         // only push data from the byte after the one we left off on
         next(undefined, this.numBytesWritten > offset ? chunk : undefined);
@@ -22481,30 +22561,51 @@ class Upload extends Pumpify {
      * @return {bool} is the request good?
      */
     onResponse(resp) {
-        if (resp.status === 404) {
-            if (this.numRetries < RETRY_LIMIT) {
-                this.numRetries++;
-                this.startUploading();
-            }
-            else {
-                this.destroy(new Error('Retry limit exceeded - ' + resp.data));
-            }
-            return false;
-        }
-        if (resp.status > 499 && resp.status < 600) {
-            if (this.numRetries < RETRY_LIMIT) {
-                const randomMs = Math.round(Math.random() * 1000);
-                const waitTime = Math.pow(2, this.numRetries) * 1000 + randomMs;
-                this.numRetries++;
-                setTimeout(this.continueUploading.bind(this), waitTime);
-            }
-            else {
-                this.destroy(new Error('Retry limit exceeded - ' + resp.data));
-            }
+        if ((this.retryableErrorFn &&
+            this.retryableErrorFn({
+                code: resp.status,
+                message: resp.statusText,
+                name: resp.statusText,
+            })) ||
+            resp.status === 404 ||
+            (resp.status > 499 && resp.status < 600)) {
+            this.attemptDelayedRetry(resp);
             return false;
         }
         this.emit('response', resp);
         return true;
+    }
+    /**
+     * @param resp GaxiosResponse object from previous attempt
+     */
+    attemptDelayedRetry(resp) {
+        if (this.numRetries < this.retryLimit) {
+            if (resp.status === 404) {
+                this.startUploading();
+            }
+            else {
+                const retryDelay = this.getRetryDelay();
+                if (retryDelay <= 0) {
+                    this.destroy(new Error(`Retry total time limit exceeded - ${resp.data}`));
+                    return;
+                }
+                setTimeout(this.continueUploading.bind(this), retryDelay);
+            }
+            this.numRetries++;
+        }
+        else {
+            this.destroy(new Error('Retry limit exceeded - ' + resp.data));
+        }
+    }
+    /**
+     * @returns {number} the amount of time to wait before retrying the request
+     */
+    getRetryDelay() {
+        const randomMs = Math.round(Math.random() * 1000);
+        const waitTime = Math.pow(this.retryDelayMultiplier, this.numRetries) * 1000 + randomMs;
+        const maxAllowableDelayMs = this.maxRetryTotalTimeout * 1000 - (Date.now() - this.timeOfFirstRequest);
+        const maxRetryDelayMs = this.maxRetryDelay * 1000;
+        return Math.min(waitTime, maxRetryDelayMs, maxAllowableDelayMs);
     }
     /*
      * Prepare user-defined API endpoint for compatibility with our API.
@@ -25969,6 +26070,25 @@ module.exports = __webpack_require__(600);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -25978,14 +26098,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.GetDestinationFromPath = void 0;
 const path = __importStar(__webpack_require__(622));
 /**
  * Constructs a destination path in GCS from a given filepath
@@ -29029,7 +29143,7 @@ class Notification extends common_1.ServiceObject {
              * Creates a notification subscription for the bucket.
              *
              * @see [Notifications: insert]{@link https://cloud.google.com/storage/docs/json_api/v1/notifications/insert}
-             * @method Notification#exists
+             * @method Notification#create
              *
              * @param {Topic|string} topic The Cloud PubSub topic to which this
              * subscription publishes. If the project ID is omitted, the current
@@ -29284,12 +29398,12 @@ promisify_1.promisifyAll(Notification);
 
 "use strict";
 
-module.exports = (flag, argv) => {
-	argv = argv || process.argv;
+
+module.exports = (flag, argv = process.argv) => {
 	const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
-	const pos = argv.indexOf(prefix + flag);
-	const terminatorPos = argv.indexOf('--');
-	return pos !== -1 && (terminatorPos === -1 ? true : pos < terminatorPos);
+	const position = argv.indexOf(prefix + flag);
+	const terminatorPosition = argv.indexOf('--');
+	return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
 };
 
 
@@ -34747,6 +34861,20 @@ const requestDefaults = {
     },
 };
 /**
+ * Default behavior: Automatically retry retriable server errors.
+ *
+ * @const {boolean}
+ * @private
+ */
+const AUTO_RETRY_DEFAULT = true;
+/**
+ * Default behavior: Only attempt to retry retriable errors 3 times.
+ *
+ * @const {number}
+ * @private
+ */
+const MAX_RETRY_DEFAULT = 3;
+/**
  * Custom error type for API errors.
  *
  * @param {object} errorBody - Error object.
@@ -35131,13 +35259,42 @@ class Util {
      * @param {function} callback - The callback function.
      */
     makeRequest(reqOpts, config, callback) {
+        var _a, _b, _c, _d, _e, _f, _g;
+        let autoRetryValue = AUTO_RETRY_DEFAULT;
+        if (config.autoRetry !== undefined &&
+            ((_a = config.retryOptions) === null || _a === void 0 ? void 0 : _a.autoRetry) !== undefined) {
+            throw new ApiError('autoRetry is deprecated. Use retryOptions.autoRetry instead.');
+        }
+        else if (config.autoRetry !== undefined) {
+            autoRetryValue = config.autoRetry;
+        }
+        else if (((_b = config.retryOptions) === null || _b === void 0 ? void 0 : _b.autoRetry) !== undefined) {
+            autoRetryValue = config.retryOptions.autoRetry;
+        }
+        let maxRetryValue = MAX_RETRY_DEFAULT;
+        if (config.maxRetries && ((_c = config.retryOptions) === null || _c === void 0 ? void 0 : _c.maxRetries)) {
+            throw new ApiError('maxRetries is deprecated. Use retryOptions.maxRetries instead.');
+        }
+        else if (config.maxRetries) {
+            maxRetryValue = config.maxRetries;
+        }
+        else if ((_d = config.retryOptions) === null || _d === void 0 ? void 0 : _d.maxRetries) {
+            maxRetryValue = config.retryOptions.maxRetries;
+        }
         const options = {
             request: teeny_request_1.teenyRequest.defaults(requestDefaults),
-            retries: config.autoRetry !== false ? config.maxRetries || 3 : 0,
+            retries: autoRetryValue !== false ? maxRetryValue : 0,
             shouldRetryFn(httpRespMessage) {
+                var _a, _b;
                 const err = util.parseHttpRespMessage(httpRespMessage).err;
+                if ((_a = config.retryOptions) === null || _a === void 0 ? void 0 : _a.retryableErrorFn) {
+                    return err && ((_b = config.retryOptions) === null || _b === void 0 ? void 0 : _b.retryableErrorFn(err));
+                }
                 return err && util.shouldRetryRequest(err);
             },
+            maxRetryDelay: (_e = config.retryOptions) === null || _e === void 0 ? void 0 : _e.maxRetryDelay,
+            retryDelayMultiplier: (_f = config.retryOptions) === null || _f === void 0 ? void 0 : _f.retryDelayMultiplier,
+            totalTimeout: (_g = config.retryOptions) === null || _g === void 0 ? void 0 : _g.totalTimeout,
         };
         if (typeof reqOpts.maxRetries === 'number') {
             options.retries = reqOpts.maxRetries;
@@ -35274,14 +35431,27 @@ exports.util = util;
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.issue = exports.issueCommand = void 0;
 const os = __importStar(__webpack_require__(87));
 const utils_1 = __webpack_require__(82);
 /**
@@ -39481,6 +39651,25 @@ module.exports = eval("require")("fast-crc32c");
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39490,14 +39679,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __webpack_require__(431);
 const file_command_1 = __webpack_require__(102);
 const utils_1 = __webpack_require__(82);
@@ -39564,7 +39747,9 @@ function addPath(inputPath) {
 }
 exports.addPath = addPath;
 /**
- * Gets the value of an input.  The value is also trimmed.
+ * Gets the value of an input.
+ * Unless trimWhitespace is set to false in InputOptions, the value is also trimmed.
+ * Returns an empty string if the value is not defined.
  *
  * @param     name     name of the input to get
  * @param     options  optional. See InputOptions.
@@ -39575,9 +39760,49 @@ function getInput(name, options) {
     if (options && options.required && !val) {
         throw new Error(`Input required and not supplied: ${name}`);
     }
+    if (options && options.trimWhitespace === false) {
+        return val;
+    }
     return val.trim();
 }
 exports.getInput = getInput;
+/**
+ * Gets the values of an multiline input.  Each value is also trimmed.
+ *
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string[]
+ *
+ */
+function getMultilineInput(name, options) {
+    const inputs = getInput(name, options)
+        .split('\n')
+        .filter(x => x !== '');
+    return inputs;
+}
+exports.getMultilineInput = getMultilineInput;
+/**
+ * Gets the input value of the boolean type in the YAML 1.2 "core schema" specification.
+ * Support boolean input list: `true | True | TRUE | false | False | FALSE` .
+ * The return value is also in boolean type.
+ * ref: https://yaml.org/spec/1.2/spec.html#id2804923
+ *
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   boolean
+ */
+function getBooleanInput(name, options) {
+    const trueValue = ['true', 'True', 'TRUE'];
+    const falseValue = ['false', 'False', 'FALSE'];
+    const val = getInput(name, options);
+    if (trueValue.includes(val))
+        return true;
+    if (falseValue.includes(val))
+        return false;
+    throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}\n` +
+        `Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
+}
+exports.getBooleanInput = getBooleanInput;
 /**
  * Sets the value of an output.
  *
@@ -39586,6 +39811,7 @@ exports.getInput = getInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
+    process.stdout.write(os.EOL);
     command_1.issueCommand('set-output', { name }, value);
 }
 exports.setOutput = setOutput;
@@ -40566,6 +40792,7 @@ module.exports = setup;
 
 var { PassThrough } = __webpack_require__(413);
 var debug = __webpack_require__(784)('retry-request');
+var extend = __webpack_require__(374);
 
 var DEFAULTS = {
   objectMode: false,
@@ -40630,7 +40857,7 @@ function retryRequest(requestOpts, opts, callback) {
   }
 
   var manualCurrentRetryAttemptWasSet = opts && typeof opts.currentRetryAttempt === 'number';
-  opts = Object.assign({}, DEFAULTS, opts);
+  opts = extend({}, DEFAULTS, opts);
 
   if (typeof opts.request === 'undefined') {
     try {
@@ -50308,6 +50535,7 @@ const mime = __webpack_require__(779);
 const path = __webpack_require__(622);
 const pLimit = __webpack_require__(523);
 const util_1 = __webpack_require__(669);
+const retry = __webpack_require__(41);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const snakeize = __webpack_require__(694);
 const acl_1 = __webpack_require__(572);
@@ -53250,6 +53478,49 @@ class Bucket extends common_1.ServiceObject {
      * Example of uploading an encrypted file:
      */
     upload(pathString, optionsOrCallback, callback) {
+        const upload = () => {
+            const isMultipart = options.resumable === false;
+            const returnValue = retry(async (bail) => {
+                await new Promise((resolve, reject) => {
+                    const writable = newFile.createWriteStream(options);
+                    if (options.onUploadProgress) {
+                        writable.on('progress', options.onUploadProgress);
+                    }
+                    fs.createReadStream(pathString)
+                        .pipe(writable)
+                        .on('error', err => {
+                        if (isMultipart &&
+                            this.storage.retryOptions.autoRetry &&
+                            this.storage.retryOptions.retryableErrorFn(err)) {
+                            return reject(err);
+                        }
+                        else {
+                            return bail(err);
+                        }
+                    })
+                        .on('finish', () => {
+                        return resolve();
+                    });
+                });
+            }, {
+                retries: this.storage.retryOptions.maxRetries,
+                factor: this.storage.retryOptions.retryDelayMultiplier,
+                maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000,
+                maxRetryTime: this.storage.retryOptions.totalTimeout * 1000,
+            });
+            if (!callback) {
+                return returnValue;
+            }
+            else {
+                return returnValue
+                    .then(() => {
+                    if (callback) {
+                        return callback(null, newFile, newFile.metadata);
+                    }
+                })
+                    .catch(callback);
+            }
+        };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (global['GCLOUD_SANDBOX_ENV']) {
             return;
@@ -53295,19 +53566,6 @@ class Bucket extends common_1.ServiceObject {
                     options.resumable = false;
                 }
                 upload();
-            });
-        }
-        function upload() {
-            const writable = newFile.createWriteStream(options);
-            if (options.onUploadProgress) {
-                writable.on('progress', options.onUploadProgress);
-            }
-            fs.createReadStream(pathString)
-                .on('error', callback)
-                .pipe(writable)
-                .on('error', callback)
-                .on('finish', () => {
-                callback(null, newFile, newFile.metadata);
             });
         }
     }
@@ -54686,7 +54944,181 @@ p7v.recipientInfoValidator = {
 
 /***/ }),
 /* 639 */,
-/* 640 */,
+/* 640 */
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+// Copyright 2021 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DownscopedClient = exports.EXPIRATION_TIME_OFFSET = void 0;
+const authclient_1 = __webpack_require__(616);
+const sts = __webpack_require__(732);
+/**
+ * The required token exchange grant_type: rfc8693#section-2.1
+ */
+const STS_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:token-exchange';
+/**
+ * The requested token exchange requested_token_type: rfc8693#section-2.1
+ */
+const STS_REQUEST_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:access_token';
+/**
+ * The requested token exchange subject_token_type: rfc8693#section-2.1
+ */
+const STS_SUBJECT_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:access_token';
+/** The STS access token exchange end point. */
+const STS_ACCESS_TOKEN_URL = 'https://sts.googleapis.com/v1beta/token';
+/**
+ * Offset to take into account network delays and server clock skews.
+ */
+exports.EXPIRATION_TIME_OFFSET = 5 * 60 * 1000;
+class DownscopedClient extends authclient_1.AuthClient {
+    constructor(client, cab, additionalOptions) {
+        super();
+        this.client = client;
+        this.cab = cab;
+        // Check a number of 1-10 access boundary rules are defined within credential access boundary.
+        if (cab.accessBoundary.accessBoundaryRules.length === 0) {
+            throw new Error('At least one access boundary rule needs to be defined.');
+        }
+        else if (cab.accessBoundary.accessBoundaryRules.length > 10) {
+            throw new Error('Access boundary rule exceeds limit, max 10 allowed.');
+        }
+        // Check at least one permission should be defined in each access boundary rule.
+        for (const rule of cab.accessBoundary.accessBoundaryRules) {
+            if (rule.availablePermissions.length === 0) {
+                throw new Error('At least one permission should be defined in access boundary rules.');
+            }
+        }
+        this.stsCredential = new sts.StsCredentials(STS_ACCESS_TOKEN_URL);
+        // Default OAuth scope. This could be overridden via public property.
+        this.cachedDownscopedAccessToken = null;
+        this.credentialAccessBoundary = cab;
+        this.authClient = client;
+        // As threshold could be zero,
+        // eagerRefreshThresholdMillis || EXPIRATION_TIME_OFFSET will override the
+        // zero value.
+        if (typeof (additionalOptions === null || additionalOptions === void 0 ? void 0 : additionalOptions.eagerRefreshThresholdMillis) !== 'number') {
+            this.eagerRefreshThresholdMillis = exports.EXPIRATION_TIME_OFFSET;
+        }
+        else {
+            this.eagerRefreshThresholdMillis = additionalOptions
+                .eagerRefreshThresholdMillis;
+        }
+        this.forceRefreshOnFailure = !!(additionalOptions === null || additionalOptions === void 0 ? void 0 : additionalOptions.forceRefreshOnFailure);
+    }
+    /**
+     * Provides a mechanism to inject Downscoped access tokens directly.
+     * When the provided credential expires, a new credential, using the
+     * external account options are retrieved.
+     * Notice DownscopedClient is the broker class mainly used for generate
+     * downscoped access tokens, it is unlikely we call this function in real
+     * use case.
+     * We implement to make this a helper function for testing all cases in getAccessToken().
+     * @param credentials The Credentials object to set on the current client.
+     */
+    setCredentials(credentials) {
+        super.setCredentials(credentials);
+        this.cachedDownscopedAccessToken = credentials;
+    }
+    async getAccessToken() {
+        // If the cached access token is unavailable or expired, force refresh.
+        // The Downscoped access token will be returned in GetAccessTokenResponse format.
+        // If cached access token is unavailable or expired, force refresh.
+        if (!this.cachedDownscopedAccessToken ||
+            this.isExpired(this.cachedDownscopedAccessToken)) {
+            await this.refreshAccessTokenAsync();
+        }
+        // Return Downscoped access token in GetAccessTokenResponse format.
+        return {
+            token: this.cachedDownscopedAccessToken.access_token,
+            res: this.cachedDownscopedAccessToken.res,
+        };
+    }
+    /**
+     * The main authentication interface. It takes an optional url which when
+     * present is the endpoint> being accessed, and returns a Promise which
+     * resolves with authorization header fields.
+     *
+     * The result has the form:
+     * { Authorization: 'Bearer <access_token_value>' }
+     */
+    async getRequestHeaders() {
+        throw new Error('Not implemented.');
+    }
+    request(opts, callback) {
+        throw new Error('Not implemented.');
+    }
+    /**
+     * Forces token refresh, even if unexpired tokens are currently cached.
+     * GCP access tokens are retrieved from authclient object/source credential.
+     * Thenm GCP access tokens are exchanged for downscoped access tokens via the
+     * token exchange endpoint.
+     * @return A promise that resolves with the fresh downscoped access token.
+     */
+    async refreshAccessTokenAsync() {
+        // Retrieve GCP access token from source credential.
+        const subjectToken = await (await this.authClient.getAccessToken()).token;
+        // Construct the STS credentials options.
+        const stsCredentialsOptions = {
+            grantType: STS_GRANT_TYPE,
+            requestedTokenType: STS_REQUEST_TOKEN_TYPE,
+            subjectToken: subjectToken,
+            subjectTokenType: STS_SUBJECT_TOKEN_TYPE,
+        };
+        // Exchange the source access token for a Downscoped access token.
+        const stsResponse = await this.stsCredential.exchangeToken(stsCredentialsOptions, undefined, this.credentialAccessBoundary);
+        // Save response in cached access token.
+        this.cachedDownscopedAccessToken = {
+            access_token: stsResponse.access_token,
+            expiry_date: new Date().getTime() + stsResponse.expires_in * 1000,
+            res: stsResponse.res,
+        };
+        // Save credentials.
+        this.credentials = {};
+        Object.assign(this.credentials, this.cachedDownscopedAccessToken);
+        delete this.credentials.res;
+        // Trigger tokens event to notify external listeners.
+        this.emit('tokens', {
+            refresh_token: null,
+            expiry_date: this.cachedDownscopedAccessToken.expiry_date,
+            access_token: this.cachedDownscopedAccessToken.access_token,
+            token_type: 'Bearer',
+            id_token: null,
+        });
+        // Return the cached access token.
+        return this.cachedDownscopedAccessToken;
+    }
+    /**
+     * Returns whether the provided credentials are expired or not.
+     * If there is no expiry time, assumes the token is not expired or expiring.
+     * @param downscopedAccessToken The credentials to check for expiration.
+     * @return Whether the credentials are expired or not.
+     */
+    isExpired(downscopedAccessToken) {
+        const now = new Date().getTime();
+        return downscopedAccessToken.expiry_date
+            ? now >=
+                downscopedAccessToken.expiry_date - this.eagerRefreshThresholdMillis
+            : false;
+    }
+}
+exports.DownscopedClient = DownscopedClient;
+//# sourceMappingURL=downscopedclient.js.map
+
+/***/ }),
 /* 641 */,
 /* 642 */
 /***/ (function(__unusedmodule, exports) {
@@ -55272,6 +55704,8 @@ var computeclient_1 = __webpack_require__(310);
 Object.defineProperty(exports, "Compute", { enumerable: true, get: function () { return computeclient_1.Compute; } });
 var envDetect_1 = __webpack_require__(813);
 Object.defineProperty(exports, "GCPEnv", { enumerable: true, get: function () { return envDetect_1.GCPEnv; } });
+var downscopedclient_1 = __webpack_require__(640);
+Object.defineProperty(exports, "DownscopedClient", { enumerable: true, get: function () { return downscopedclient_1.DownscopedClient; } });
 var iam_1 = __webpack_require__(866);
 Object.defineProperty(exports, "IAMAuth", { enumerable: true, get: function () { return iam_1.IAMAuth; } });
 var idtokenclient_1 = __webpack_require__(331);
@@ -60404,6 +60838,69 @@ const file_1 = __webpack_require__(930);
 const util_1 = __webpack_require__(903);
 const hmacKey_1 = __webpack_require__(932);
 exports.PROTOCOL_REGEX = /^(\w*):\/\//;
+/**
+ * Default behavior: Automatically retry retriable server errors.
+ *
+ * @const {boolean}
+ * @private
+ */
+const AUTO_RETRY_DEFAULT = true;
+/**
+ * Default behavior: Only attempt to retry retriable errors 3 times.
+ *
+ * @const {number}
+ * @private
+ */
+const MAX_RETRY_DEFAULT = 3;
+/**
+ * Default behavior: Wait twice as long as previous retry before retrying.
+ *
+ * @const {number}
+ * @private
+ */
+const RETRY_DELAY_MULTIPLIER_DEFAULT = 2;
+/**
+ * Default behavior: If the operation doesn't succeed after 600 seconds,
+ *  stop retrying.
+ *
+ * @const {number}
+ * @private
+ */
+const TOTAL_TIMEOUT_DEFAULT = 600;
+/**
+ * Default behavior: Wait no more than 64 seconds between retries.
+ *
+ * @const {number}
+ * @private
+ */
+const MAX_RETRY_DELAY_DEFAULT = 64;
+/**
+ * Returns true if the API request should be retried, given the error that was
+ * given the first time the request was attempted.
+ * @const
+ * @private
+ * @param {error} err - The API error to check if it is appropriate to retry.
+ * @return {boolean} True if the API request should be retried, false otherwise.
+ */
+const RETRYABLE_ERR_FN_DEFAULT = function (err) {
+    var _a;
+    if (err) {
+        if ([408, 429, 500, 502, 503, 504].indexOf(err.code) !== -1) {
+            return true;
+        }
+        if (err.errors) {
+            for (const e of err.errors) {
+                const reason = (_a = e.reason) === null || _a === void 0 ? void 0 : _a.toLowerCase();
+                if ((reason && reason.includes('eai_again')) || //DNS lookup error
+                    reason === 'connection reset by peer' ||
+                    reason === 'unexpected connection closure') {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+};
 /*! Developer Documentation
  *
  * Invoke this method to create a new Storage object bound with pre-determined
@@ -60556,11 +61053,26 @@ class Storage extends common_1.Service {
      * @property {object} [credentials] Credentials object.
      * @property {string} [credentials.client_email]
      * @property {string} [credentials.private_key]
-     * @property {boolean} [autoRetry=true] Automatically retry requests if the
+     * @property {object} [retryOptions] Options for customizing retries. Retriable server errors
+     *     will be retried with exponential delay between them dictated by the formula
+     *     max(maxRetryDelay, retryDelayMultiplier*retryNumber) until maxRetries or totalTimeout
+     *     has been reached. Retries will only happen if autoRetry is set to true.
+     * @property {boolean} [retryOptions.autoRetry=true] Automatically retry requests if the
      *     response is related to rate limits or certain intermittent server
      * errors. We will exponentially backoff subsequent requests by default.
-     * @property {number} [maxRetries=3] Maximum number of automatic retries
+     * @property {number} [retryOptions.retryDelayMultiplier = 2] the multiplier by which to
+     *   increase the delay time between the completion of failed requests, and the
+     *   initiation of the subsequent retrying request.
+     * @property {number} [retryOptions.totalTimeout = 600] The total time, starting from
+     *  when the initial request is sent, after which an error will
+     *   be returned, regardless of the retrying attempts made meanwhile.
+     * @property {number} [retryOptions.maxRetryDelay = 64] The maximum delay time between requests.
+     *   When this value is reached, ``retryDelayMultiplier`` will no longer be used to
+     *   increase delay time.
+     * @property {number} [retryOptions.maxRetries=3] Maximum number of automatic retries
      *     attempted before returning the error.
+     * @property {function} [retryOptions.retryableErrorFn] Function that returns true if a given
+     *     error should be retried and false otherwise.
      * @property {string} [userAgent] The value to be prepended to the User-Agent
      *     header in API requests.
      */
@@ -60568,11 +61080,11 @@ class Storage extends common_1.Service {
      * Constructs the Storage client.
      *
      * @example <caption>Create a client that uses Application Default Credentials
-     * (ADC)</caption> const {Storage} = require('@google-cloud/storage'); const
-     * storage = new Storage();
+     * (ADC)</caption>
+     * const {Storage} = require('@google-cloud/storage');
+     * const storage = new Storage();
      *
      * @example <caption>Create a client with explicit credentials</caption>
-     * storage');/storage');
      * const storage = new Storage({
      *   projectId: 'your-project-id',
      *   keyFilename: '/path/to/keyfile.json'
@@ -60581,6 +61093,7 @@ class Storage extends common_1.Service {
      * @param {StorageOptions} [options] Configuration options.
      */
     constructor(options = {}) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         let apiEndpoint = 'https://storage.googleapis.com';
         let customEndpoint = false;
         // Note: EMULATOR_HOST is an experimental configuration variable. Use apiEndpoint instead.
@@ -60596,10 +61109,37 @@ class Storage extends common_1.Service {
         options = Object.assign({}, options, { apiEndpoint });
         // Note: EMULATOR_HOST is an experimental configuration variable. Use apiEndpoint instead.
         const baseUrl = EMULATOR_HOST || `${options.apiEndpoint}/storage/v1`;
+        let autoRetryValue = AUTO_RETRY_DEFAULT;
+        if (options.autoRetry !== undefined &&
+            ((_a = options.retryOptions) === null || _a === void 0 ? void 0 : _a.autoRetry) !== undefined) {
+            throw new common_1.ApiError('autoRetry is deprecated. Use retryOptions.autoRetry instead.');
+        }
+        else if (options.autoRetry !== undefined) {
+            autoRetryValue = options.autoRetry;
+        }
+        else if (((_b = options.retryOptions) === null || _b === void 0 ? void 0 : _b.autoRetry) !== undefined) {
+            autoRetryValue = options.retryOptions.autoRetry;
+        }
+        let maxRetryValue = MAX_RETRY_DEFAULT;
+        if (options.maxRetries && ((_c = options.retryOptions) === null || _c === void 0 ? void 0 : _c.maxRetries)) {
+            throw new common_1.ApiError('maxRetries is deprecated. Use retryOptions.maxRetries instead.');
+        }
+        else if (options.maxRetries) {
+            maxRetryValue = options.maxRetries;
+        }
+        else if ((_d = options.retryOptions) === null || _d === void 0 ? void 0 : _d.maxRetries) {
+            maxRetryValue = options.retryOptions.maxRetries;
+        }
         const config = {
             apiEndpoint: options.apiEndpoint,
-            autoRetry: options.autoRetry,
-            maxRetries: options.maxRetries,
+            retryOptions: {
+                autoRetry: autoRetryValue,
+                maxRetries: maxRetryValue,
+                retryDelayMultiplier: ((_e = options.retryOptions) === null || _e === void 0 ? void 0 : _e.retryDelayMultiplier) ? (_f = options.retryOptions) === null || _f === void 0 ? void 0 : _f.retryDelayMultiplier : RETRY_DELAY_MULTIPLIER_DEFAULT,
+                totalTimeout: ((_g = options.retryOptions) === null || _g === void 0 ? void 0 : _g.totalTimeout) ? (_h = options.retryOptions) === null || _h === void 0 ? void 0 : _h.totalTimeout : TOTAL_TIMEOUT_DEFAULT,
+                maxRetryDelay: ((_j = options.retryOptions) === null || _j === void 0 ? void 0 : _j.maxRetryDelay) ? (_k = options.retryOptions) === null || _k === void 0 ? void 0 : _k.maxRetryDelay : MAX_RETRY_DELAY_DEFAULT,
+                retryableErrorFn: ((_l = options.retryOptions) === null || _l === void 0 ? void 0 : _l.retryableErrorFn) ? (_m = options.retryOptions) === null || _m === void 0 ? void 0 : _m.retryableErrorFn : RETRYABLE_ERR_FN_DEFAULT,
+            },
             baseUrl,
             customEndpoint,
             projectIdRequired: false,
@@ -60618,6 +61158,7 @@ class Storage extends common_1.Service {
          * @see Storage.acl
          */
         this.acl = Storage.acl;
+        this.retryOptions = config.retryOptions;
         this.getBucketsStream = paginator_1.paginator.streamify('getBuckets');
         this.getHmacKeysStream = paginator_1.paginator.streamify('getHmacKeys');
     }
@@ -61375,7 +61916,8 @@ class Service {
             email: options.email,
             token: options.token,
         });
-        this.makeAuthenticatedRequest = util_1.util.makeAuthenticatedRequestFactory(reqCfg);
+        this.makeAuthenticatedRequest =
+            util_1.util.makeAuthenticatedRequestFactory(reqCfg);
         this.authClient = this.makeAuthenticatedRequest.authClient;
         this.getCredentials = this.makeAuthenticatedRequest.getCredentials;
         const isCloudFunctionEnv = !!process.env.FUNCTION_NAME;
@@ -68037,12 +68579,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.unicodeJSONStringify = exports.objectKeyToLowercase = exports.qsStringify = exports.encodeURI = exports.fixedEncodeURIComponent = exports.objectEntries = exports.normalize = void 0;
 const querystring = __webpack_require__(191);
 function normalize(optionsOrCallback, cb) {
-    const options = (typeof optionsOrCallback === 'object'
-        ? optionsOrCallback
-        : {});
-    const callback = (typeof optionsOrCallback === 'function'
-        ? optionsOrCallback
-        : cb);
+    const options = (typeof optionsOrCallback === 'object' ? optionsOrCallback : {});
+    const callback = (typeof optionsOrCallback === 'function' ? optionsOrCallback : cb);
     return { options, callback };
 }
 exports.normalize = normalize;
@@ -69201,7 +69739,6 @@ const signer_1 = __webpack_require__(517);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const duplexify = __webpack_require__(147);
 const util_1 = __webpack_require__(903);
-const gaxios_1 = __webpack_require__(597);
 const retry = __webpack_require__(41);
 var ActionToHTTPMethod;
 (function (ActionToHTTPMethod) {
@@ -69544,9 +70081,6 @@ class File extends common_1.ServiceObject {
              * object, however the other properties outside of this object must adhere
              * to the [official API documentation](https://goo.gl/BOnnCK).
              *
-             * NOTE: multiple calls to setMetadata in parallel might result in
-             * unpredictable results. See [issue]{@link
-             * https://github.com/googleapis/nodejs-storage/issues/274}.
              *
              * See the examples below for more information.
              *
@@ -69840,7 +70374,8 @@ class File extends common_1.ServiceObject {
         if (this.encryptionKey !== undefined) {
             headers['x-goog-copy-source-encryption-algorithm'] = 'AES256';
             headers['x-goog-copy-source-encryption-key'] = this.encryptionKeyBase64;
-            headers['x-goog-copy-source-encryption-key-sha256'] = this.encryptionKeyHash;
+            headers['x-goog-copy-source-encryption-key-sha256'] =
+                this.encryptionKeyHash;
         }
         if (newFile.encryptionKey !== undefined) {
             this.setEncryptionKey(newFile.encryptionKey);
@@ -70278,6 +70813,7 @@ class File extends common_1.ServiceObject {
             private: options.private,
             public: options.public,
             userProject: options.userProject || this.userProject,
+            retryOptions: this.storage.retryOptions,
         }, callback);
     }
     /**
@@ -70643,6 +71179,7 @@ class File extends common_1.ServiceObject {
             bucket: this.bucket.name,
             file: this.name,
             generation: this.generation,
+            retryOptions: this.storage.retryOptions,
         });
         uploadStream.deleteConfig();
     }
@@ -70791,7 +71328,8 @@ class File extends common_1.ServiceObject {
                 reqOpts.headers = reqOpts.headers || {};
                 reqOpts.headers['x-goog-encryption-algorithm'] = 'AES256';
                 reqOpts.headers['x-goog-encryption-key'] = this.encryptionKeyBase64;
-                reqOpts.headers['x-goog-encryption-key-sha256'] = this.encryptionKeyHash;
+                reqOpts.headers['x-goog-encryption-key-sha256'] =
+                    this.encryptionKeyHash;
                 return reqOpts;
             },
         };
@@ -71531,15 +72069,23 @@ class File extends common_1.ServiceObject {
      * });
      */
     isPublic(callback) {
-        gaxios_1.request({
+        common_1.util.makeRequest({
             method: 'HEAD',
-            url: `http://${this.bucket.name}.storage.googleapis.com/${encodeURIComponent(this.name)}`,
-        }).then(() => callback(null, true), (err) => {
-            if (err.code === '403') {
-                callback(null, false);
+            uri: `http://${this.bucket.name}.storage.googleapis.com/${encodeURIComponent(this.name)}`,
+        }, {
+            retryOptions: this.storage.retryOptions,
+        }, (err) => {
+            if (err) {
+                const apiError = err;
+                if (apiError.code === 403) {
+                    callback(null, false);
+                }
+                else {
+                    callback(err);
+                }
             }
             else {
-                callback(err);
+                callback(null, true);
             }
         });
     }
@@ -72041,7 +72587,9 @@ class File extends common_1.ServiceObject {
             await new Promise((resolve, reject) => {
                 const writable = this.createWriteStream(options)
                     .on('error', err => {
-                    if (isMultipart && common_1.util.shouldRetryRequest(err)) {
+                    if (isMultipart &&
+                        this.storage.retryOptions.autoRetry &&
+                        this.storage.retryOptions.retryableErrorFn(err)) {
                         return reject(err);
                     }
                     else {
@@ -72057,7 +72605,10 @@ class File extends common_1.ServiceObject {
                 writable.end(data);
             });
         }, {
-            retries: 3,
+            retries: this.storage.retryOptions.maxRetries,
+            factor: this.storage.retryOptions.retryDelayMultiplier,
+            maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000,
+            maxRetryTime: this.storage.retryOptions.totalTimeout * 1000,
         });
         if (!callback) {
             return returnValue;
@@ -72185,6 +72736,7 @@ class File extends common_1.ServiceObject {
             public: options.public,
             uri: options.uri,
             userProject: options.userProject || this.userProject,
+            retryOptions: this.storage.retryOptions,
         });
         uploadStream
             .on('response', resp => {
@@ -72915,7 +73467,7 @@ function isLooseTypedArray(arr) {
 /* 947 */
 /***/ (function(module) {
 
-module.exports = {"name":"google-auth-library","version":"7.1.2","author":"Google Inc.","description":"Google APIs Authentication Client Library for Node.js","engines":{"node":">=10"},"main":"./build/src/index.js","types":"./build/src/index.d.ts","repository":"googleapis/google-auth-library-nodejs.git","keywords":["google","api","google apis","client","client library"],"dependencies":{"arrify":"^2.0.0","base64-js":"^1.3.0","ecdsa-sig-formatter":"^1.0.11","fast-text-encoding":"^1.0.0","gaxios":"^4.0.0","gcp-metadata":"^4.2.0","gtoken":"^5.0.4","jws":"^4.0.0","lru-cache":"^6.0.0"},"devDependencies":{"@compodoc/compodoc":"^1.1.7","@microsoft/api-documenter":"^7.8.10","@microsoft/api-extractor":"^7.8.10","@types/base64-js":"^1.2.5","@types/chai":"^4.1.7","@types/jws":"^3.1.0","@types/lru-cache":"^5.0.0","@types/mocha":"^8.0.0","@types/mv":"^2.1.0","@types/ncp":"^2.0.1","@types/node":"^14.0.0","@types/sinon":"^10.0.0","@types/tmp":"^0.2.0","assert-rejects":"^1.0.0","c8":"^7.0.0","chai":"^4.2.0","codecov":"^3.0.2","execa":"^5.0.0","gts":"^2.0.0","is-docker":"^2.0.0","karma":"^6.0.0","karma-chrome-launcher":"^3.0.0","karma-coverage":"^2.0.0","karma-firefox-launcher":"^2.0.0","karma-mocha":"^2.0.0","karma-remap-coverage":"^0.1.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^5.0.0","keypair":"^1.0.1","linkinator":"^2.0.0","mocha":"^8.0.0","mv":"^2.1.1","ncp":"^2.0.0","nock":"^13.0.0","null-loader":"^4.0.0","puppeteer":"^10.0.0","sinon":"^11.0.0","tmp":"^0.2.0","ts-loader":"^8.0.0","typescript":"^3.8.3","webpack":"^5.21.2","webpack-cli":"^4.0.0"},"files":["build/src","!build/src/**/*.map"],"scripts":{"test":"c8 mocha build/test","clean":"gts clean","prepare":"npm run compile","lint":"gts check","compile":"tsc -p .","fix":"gts fix","pretest":"npm run compile","docs":"compodoc src/","samples-setup":"cd samples/ && npm link ../ && npm run setup && cd ../","samples-test":"cd samples/ && npm link ../ && npm test && cd ../","system-test":"mocha build/system-test --timeout 60000","presystem-test":"npm run compile","webpack":"webpack","browser-test":"karma start","docs-test":"linkinator docs","predocs-test":"npm run docs","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean","api-extractor":"api-extractor run --local","api-documenter":"api-documenter yaml --input-folder=temp"},"license":"Apache-2.0","_resolved":"https://registry.npmjs.org/google-auth-library/-/google-auth-library-7.1.2.tgz","_integrity":"sha512-FMipHgfe2u1LzWsf2n9zEB9KsJ8M3n8OYTHbHtlkzPCyo7IknXQR5X99nfvwUHGuX+iEpihUZxDuPm7+qBYeXg==","_from":"google-auth-library@7.1.2"};
+module.exports = {"name":"google-auth-library","version":"7.3.0","author":"Google Inc.","description":"Google APIs Authentication Client Library for Node.js","engines":{"node":">=10"},"main":"./build/src/index.js","types":"./build/src/index.d.ts","repository":"googleapis/google-auth-library-nodejs.git","keywords":["google","api","google apis","client","client library"],"dependencies":{"arrify":"^2.0.0","base64-js":"^1.3.0","ecdsa-sig-formatter":"^1.0.11","fast-text-encoding":"^1.0.0","gaxios":"^4.0.0","gcp-metadata":"^4.2.0","gtoken":"^5.0.4","jws":"^4.0.0","lru-cache":"^6.0.0"},"devDependencies":{"@compodoc/compodoc":"^1.1.7","@types/base64-js":"^1.2.5","@types/chai":"^4.1.7","@types/jws":"^3.1.0","@types/lru-cache":"^5.0.0","@types/mocha":"^8.0.0","@types/mv":"^2.1.0","@types/ncp":"^2.0.1","@types/node":"^14.0.0","@types/sinon":"^10.0.0","@types/tmp":"^0.2.0","assert-rejects":"^1.0.0","c8":"^7.0.0","chai":"^4.2.0","codecov":"^3.0.2","execa":"^5.0.0","gts":"^2.0.0","is-docker":"^2.0.0","karma":"^6.0.0","karma-chrome-launcher":"^3.0.0","karma-coverage":"^2.0.0","karma-firefox-launcher":"^2.0.0","karma-mocha":"^2.0.0","karma-remap-coverage":"^0.1.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^5.0.0","keypair":"^1.0.1","linkinator":"^2.0.0","mocha":"^8.0.0","mv":"^2.1.1","ncp":"^2.0.0","nock":"^13.0.0","null-loader":"^4.0.0","puppeteer":"^10.0.0","sinon":"^11.0.0","tmp":"^0.2.0","ts-loader":"^8.0.0","typescript":"^3.8.3","webpack":"^5.21.2","webpack-cli":"^4.0.0"},"files":["build/src","!build/src/**/*.map"],"scripts":{"test":"c8 mocha build/test","clean":"gts clean","prepare":"npm run compile","lint":"gts check","compile":"tsc -p .","fix":"gts fix","pretest":"npm run compile","docs":"compodoc src/","samples-setup":"cd samples/ && npm link ../ && npm run setup && cd ../","samples-test":"cd samples/ && npm link ../ && npm test && cd ../","system-test":"mocha build/system-test --timeout 60000","presystem-test":"npm run compile","webpack":"webpack","browser-test":"karma start","docs-test":"linkinator docs","predocs-test":"npm run docs","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean"},"license":"Apache-2.0","_resolved":"https://registry.npmjs.org/google-auth-library/-/google-auth-library-7.3.0.tgz","_integrity":"sha512-MPeeMlnsYnoiiVFMwX3hgaS684aiXrSqKoDP+xL4Ejg4Z0qLvIeg4XsaChemyFI8ZUO7ApwDAzNtgmhWSDNh5w==","_from":"google-auth-library@7.3.0"};
 
 /***/ }),
 /* 948 */
@@ -72975,6 +73527,14 @@ class GoogleAuth {
     // https://github.com/Microsoft/TypeScript/issues/5228
     get isGCE() {
         return this.checkIsGCE;
+    }
+    // GAPIC client libraries should always use self-signed JWTs. The following
+    // variables are set on the JWT client in order to indicate the type of library,
+    // and sign the JWT with the correct audience and scopes (if not supplied).
+    setGapicJWTValues(client) {
+        client.defaultServicePath = this.defaultServicePath;
+        client.useJWTAccessAlways = this.useJWTAccessAlways;
+        client.defaultScopes = this.defaultScopes;
     }
     getProjectId(callback) {
         if (callback) {
@@ -73060,7 +73620,6 @@ class GoogleAuth {
             await this._tryGetApplicationCredentialsFromEnvironmentVariable(options);
         if (credential) {
             if (credential instanceof jwtclient_1.JWT) {
-                credential.defaultScopes = this.defaultScopes;
                 credential.scopes = this.scopes;
             }
             else if (credential instanceof baseexternalclient_1.BaseExternalAccountClient) {
@@ -73074,7 +73633,6 @@ class GoogleAuth {
         credential = await this._tryGetApplicationCredentialsFromWellKnownFile(options);
         if (credential) {
             if (credential instanceof jwtclient_1.JWT) {
-                credential.defaultScopes = this.defaultScopes;
                 credential.scopes = this.scopes;
             }
             else if (credential instanceof baseexternalclient_1.BaseExternalAccountClient) {
@@ -73220,7 +73778,7 @@ class GoogleAuth {
         else {
             options.scopes = this.scopes;
             client = new jwtclient_1.JWT(options);
-            client.defaultScopes = this.defaultScopes;
+            this.setGapicJWTValues(client);
             client.fromJSON(json);
         }
         return client;
@@ -73247,7 +73805,7 @@ class GoogleAuth {
         else {
             options.scopes = this.scopes;
             client = new jwtclient_1.JWT(options);
-            client.defaultScopes = this.defaultScopes;
+            this.setGapicJWTValues(client);
             client.fromJSON(json);
         }
         // cache both raw data used to instantiate client and client itself.
@@ -73297,6 +73855,7 @@ class GoogleAuth {
                             keyFile: this.keyFilename,
                         });
                         this.cachedCredential = client;
+                        this.setGapicJWTValues(client);
                         return resolve(client);
                     }
                 }
@@ -75261,6 +75820,25 @@ module.exports = function toString(obj) {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -75270,14 +75848,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Client = void 0;
 const fs = __importStar(__webpack_require__(747));
 const path = __importStar(__webpack_require__(622));
 const upload_helper_1 = __webpack_require__(231);
