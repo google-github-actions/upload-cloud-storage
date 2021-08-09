@@ -138,7 +138,7 @@ export class UploadHelper {
         resumable,
         destination,
         predefinedAcl,
-        metadata,
+        Object.assign({}, metadata),
       );
       return uploadResp;
     };
