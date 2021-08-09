@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.3.0...v0.4.0) (2021-08-09)
+
+
+### Features
+
+* Add support for configuring resumable uploads ([#34](https://www.github.com/google-github-actions/upload-cloud-storage/issues/34)) ([#36](https://www.github.com/google-github-actions/upload-cloud-storage/issues/36)) ([6623911](https://www.github.com/google-github-actions/upload-cloud-storage/commit/6623911abca8aa04b7e1b453c5bd4c8544cb0811))
+* Refactor action to support upload at root, glob matching ([#33](https://www.github.com/google-github-actions/upload-cloud-storage/issues/33)) ([a789c2a](https://www.github.com/google-github-actions/upload-cloud-storage/commit/a789c2a53adaa50b68f34fe3bfa2cf7b08585b71))
+
+
+### Bug Fixes
+
+* add docs for  resumable ([#54](https://www.github.com/google-github-actions/upload-cloud-storage/issues/54)) ([3bcc856](https://www.github.com/google-github-actions/upload-cloud-storage/commit/3bcc856858d4ef496631306d8ffe071d6e8d013d))
+* skip setup/teardown without auth ([#55](https://www.github.com/google-github-actions/upload-cloud-storage/issues/55)) ([a518f71](https://www.github.com/google-github-actions/upload-cloud-storage/commit/a518f71a726853dbf7be97b32c48a37d62139b15))
+
 ## [0.3.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.2.1...v0.3.0) (2021-05-26)
 
 
