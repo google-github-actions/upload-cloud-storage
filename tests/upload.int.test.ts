@@ -131,7 +131,7 @@ describe('Integration Upload ', function () {
     expect(filesInBucket).to.have.members([expectedFile]);
   });
 
-it('uploads a single file with metadata', async function() {
+  it('uploads a single file with metadata', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
       testBucket,

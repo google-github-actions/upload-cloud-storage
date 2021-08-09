@@ -23,12 +23,12 @@ import { parseHeadersInput } from '../src/headers';
 /**
  * Unit Test parseHeadersInput method in headers.
  */
-describe('Unit Test parseHeadersInput', function() {
-  afterEach(function() {
+describe('Unit Test parseHeadersInput', function () {
+  afterEach(function () {
     sinon.restore();
   });
 
-  it('parse settable fields', async function() {
+  it('parse settable fields', async function () {
     const warningStub = sinon.stub(core, 'warning');
     const input = `
             cache-control: public, max-age=3600
@@ -48,7 +48,7 @@ describe('Unit Test parseHeadersInput', function() {
     expect(warningStub.notCalled);
   });
 
-  it('parse custom metadata', async function() {
+  it('parse custom metadata', async function () {
     const warningStub = sinon.stub(core, 'warning');
     const input = `
             x-goog-meta-foo: value1
@@ -66,7 +66,7 @@ describe('Unit Test parseHeadersInput', function() {
     expect(warningStub.notCalled);
   });
 
-  it('invalid fields are ignored', async function() {
+  it('invalid fields are ignored', async function () {
     const warningStub = sinon.stub(core, 'warning');
     const input = `
             invalid: value

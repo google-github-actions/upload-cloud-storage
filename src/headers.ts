@@ -35,10 +35,7 @@ export interface Metadata {
 function parseSingleHeaderLine(input: string): [string, string] {
   const parts = input.split(':');
   const name = parts[0].trim().toLowerCase();
-  const value = parts
-    .splice(1)
-    .join(':')
-    .trim();
+  const value = parts.splice(1).join(':').trim();
   return [name, value];
 }
 
