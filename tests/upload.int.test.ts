@@ -228,6 +228,47 @@ describe('Integration Upload ', function () {
     expect(filesInBucket).to.have.members(FILES_IN_DIR_WITHOUT_PARENT_DIR);
   });
 
+  it('uploads a directory with custom metadata', async function () {
+    const uploader = new Client();
+    await uploader.upload(
+      testBucket,
+      EXAMPLE_DIR,
+      '',
+      true,
+      true,
+      true,
+      undefined,
+      100,
+      {
+        metadata: {
+          foo: 'bar',
+        },
+      },
+    );
+    const filesInBucket = await getFilesInBucket();
+    expect(filesInBucket.length).eq(FILES_IN_DIR.length);
+    expect(filesInBucket).to.have.members(FILES_IN_DIR);
+    const [files] = await storage.bucket(testBucket).getFiles();
+    files.forEach((f) => {
+      switch (path.extname(f.name)) {
+        case '.json': {
+          expect(f.metadata.contentType).eql('application/json');
+          break;
+        }
+        case '.txt': {
+          expect(f.metadata.contentType).eql('text/plain');
+          break;
+        }
+        default: {
+          expect(f.metadata.contentType).to.be.undefined;
+          break;
+        }
+      }
+      expect(Object.keys(f.metadata.metadata).length).eq(1);
+      expect(f.metadata.metadata.foo).eql('bar');
+    });
+  });
+
   it('uploads a directory with prefix without parentDir', async function () {
     const uploader = new Client();
     await uploader.upload(

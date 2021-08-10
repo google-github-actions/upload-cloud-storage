@@ -35,6 +35,7 @@ export const FILES_IN_DIR = [
   'tests/testdata/test2.txt',
   'tests/testdata/testfile',
   'tests/testdata/🚀',
+  'tests/testdata/test.json',
 ];
 
 export const TXT_FILES_IN_TOP_DIR = [
