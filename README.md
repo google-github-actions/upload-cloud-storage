@@ -213,6 +213,20 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
 
   Acceptable values are: `authenticatedRead`, `bucketOwnerFullControl`, `bucketOwnerRead`, `private`, `projectPrivate`, `publicRead`. See [the document](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions) for details.
 
+- `headers`: (Optional) Set object metadata.
+
+  ```yaml
+  headers: |-
+    content-type: application/json
+    x-goog-meta-custom-field: custom-value
+  ```
+
+  In the above example, file `Content-Type` will be set to `application/json` and custom metadata with key `custom-field` and value `custom-value` will be added to it.
+
+  Settable fields are: `Cache-Control`, `Content-Disposition`, `Content-Encoding`, `Content-Language`, `Content-Type`, `Custom-Time`. See [the document](https://cloud.google.com/storage/docs/gsutil/addlhelp/WorkingWithObjectMetadata#settable-fields;-field-values) for details.
+
+  All custom metadata fields must be prefixed with `x-goog-meta-`.
+
 - `credentials`: (Optional) [Google Service Account JSON][sa] credentials as JSON or base64 encoded string,
   typically sourced from a [GitHub Secret][gh-secret]. If unspecified, other
   authentication methods are attempted. See [Authorization](#Authorization) below.

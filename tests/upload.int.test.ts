@@ -131,6 +131,34 @@ describe('Integration Upload ', function () {
     expect(filesInBucket).to.have.members([expectedFile]);
   });
 
+  it('uploads a single file with metadata', async function () {
+    const uploader = new Client();
+    const uploadResponse = await uploader.upload(
+      testBucket,
+      './tests/testdata/test1.txt',
+      '',
+      true,
+      true,
+      true,
+      undefined,
+      100,
+      {
+        contentType: 'application/json',
+        metadata: {
+          foo: 'bar',
+        },
+      },
+    );
+    expect(uploadResponse[0][0].name).eql('test1.txt');
+    const filesInBucket = await getFilesInBucket();
+    expect(filesInBucket.length).eq(1);
+    expect(filesInBucket).to.have.members(['test1.txt']);
+    const metadata = uploadResponse[0][0].metadata;
+    expect(metadata.contentType).eql('application/json');
+    expect(Object.keys(metadata.metadata).length).eq(1);
+    expect(metadata.metadata.foo).eql('bar');
+  });
+
   it('uploads a single file with prefix without resumeable', async function () {
     const uploader = new Client();
     const uploadResponse = await uploader.upload(
@@ -198,6 +226,47 @@ describe('Integration Upload ', function () {
     const filesInBucket = await getFilesInBucket();
     expect(filesInBucket.length).eq(FILES_IN_DIR_WITHOUT_PARENT_DIR.length);
     expect(filesInBucket).to.have.members(FILES_IN_DIR_WITHOUT_PARENT_DIR);
+  });
+
+  it('uploads a directory with custom metadata', async function () {
+    const uploader = new Client();
+    await uploader.upload(
+      testBucket,
+      EXAMPLE_DIR,
+      '',
+      true,
+      true,
+      true,
+      undefined,
+      100,
+      {
+        metadata: {
+          foo: 'bar',
+        },
+      },
+    );
+    const filesInBucket = await getFilesInBucket();
+    expect(filesInBucket.length).eq(FILES_IN_DIR.length);
+    expect(filesInBucket).to.have.members(FILES_IN_DIR);
+    const [files] = await storage.bucket(testBucket).getFiles();
+    files.forEach((f) => {
+      switch (path.extname(f.name)) {
+        case '.json': {
+          expect(f.metadata.contentType).eql('application/json');
+          break;
+        }
+        case '.txt': {
+          expect(f.metadata.contentType).eql('text/plain');
+          break;
+        }
+        default: {
+          expect(f.metadata.contentType).to.be.undefined;
+          break;
+        }
+      }
+      expect(Object.keys(f.metadata.metadata).length).eq(1);
+      expect(f.metadata.metadata.foo).eql('bar');
+    });
   });
 
   it('uploads a directory with prefix without parentDir', async function () {
