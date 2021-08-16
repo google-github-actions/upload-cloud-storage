@@ -29,7 +29,7 @@
     "p-map": "^4.0.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.9",
+    "@types/chai": "^4.2.21",
     "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.4.10",
