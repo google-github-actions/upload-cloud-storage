@@ -153,6 +153,46 @@ describe('Unit Test GetDestinationFromPath', function () {
       },
       output: 'prfx1/prfx2/bar.txt',
     },
+    {
+      name: 'returns correct destination for a file without parent with absolute filepath',
+      input: {
+        filePath: '/foo/bar.txt',
+        directory: 'foo',
+        parent: false,
+        prefix: '',
+      },
+      output: 'bar.txt',
+    },
+    {
+      name: 'returns correct destination for a file with relative path without parent with two prefixes with absolute filepath',
+      input: {
+        filePath: '/foo/bar.txt',
+        directory: 'foo',
+        parent: false,
+        prefix: 'prfx1/prfx2',
+      },
+      output: 'prfx1/prfx2/bar.txt',
+    },
+    {
+      name: 'returns correct destination for a file with relative path without parent with two dirs in path with absolute filepath',
+      input: {
+        filePath: '/foo/bar/bar.txt',
+        directory: 'foo/bar',
+        parent: false,
+        prefix: '',
+      },
+      output: 'bar.txt',
+    },
+    {
+      name: 'returns correct destination for a file without parent within dir with absolute filepath',
+      input: {
+        filePath: '/foo/bar/bar.txt',
+        directory: 'foo',
+        parent: false,
+        prefix: '',
+      },
+      output: 'bar/bar.txt',
+    },
   ];
   tests.forEach((test) => {
     it(test.name, async function () {
