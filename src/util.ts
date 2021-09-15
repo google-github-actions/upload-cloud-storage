@@ -40,7 +40,10 @@ export async function GetDestinationFromPath(
       .split(path.posix.sep)
       .filter((p) => p);
     // get components of file path "./test/foo/1" becomes [test,foo,1]
-    const splitDestPath = path.posix.normalize(filePath).split(path.posix.sep);
+    const splitDestPath = path.posix
+      .normalize(filePath)
+      .split(path.posix.sep)
+      .filter((p) => p);
     // for each element in parent path pop those from file path
     // for a given parent dir like [test,foo], files maybe [test,foo,1] [test,foo,bar,1]
     // which is transformed to [1], [bar,1] etc
