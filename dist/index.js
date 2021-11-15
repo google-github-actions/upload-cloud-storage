@@ -3586,7 +3586,7 @@ formatters.O = function (v) {
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toCommandValue = void 0;
+exports.toCommandProperties = exports.toCommandValue = void 0;
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
  * @param input input to sanitize into a string
@@ -3601,6 +3601,25 @@ function toCommandValue(input) {
     return JSON.stringify(input);
 }
 exports.toCommandValue = toCommandValue;
+/**
+ *
+ * @param annotationProperties
+ * @returns The command properties to send with the actual annotation command
+ * See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
+ */
+function toCommandProperties(annotationProperties) {
+    if (!Object.keys(annotationProperties).length) {
+        return {};
+    }
+    return {
+        title: annotationProperties.title,
+        line: annotationProperties.startLine,
+        endLine: annotationProperties.endLine,
+        col: annotationProperties.startColumn,
+        endColumn: annotationProperties.endColumn
+    };
+}
+exports.toCommandProperties = toCommandProperties;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),
@@ -7052,8 +7071,14 @@ function run() {
                 required: false,
             });
             const metadata = headersInput === '' ? undefined : headers_1.parseHeadersInput(headersInput);
-            const serviceAccountKey = core.getInput('credentials');
-            const client = new client_1.Client({ credentials: serviceAccountKey });
+            const credentials = core.getInput('credentials');
+            // Add warning if using credentials
+            if (credentials) {
+                core.warning('"credentials" input has been deprecated. ' +
+                    'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
+                    'For more details, see https://github.com/google-github-actions/upload-cloud-storage#authorization');
+            }
+            const client = new client_1.Client({ credentials: credentials });
             const uploadResponses = yield client.upload(destination, path, glob, gzip, resumable, parent, predefinedAcl, concurrency, metadata);
             core.setOutput('uploaded', uploadResponses
                 .map((uploadResponse) => uploadResponse[0].name)
@@ -7078,7 +7103,7 @@ run();
 /* 139 */
 /***/ (function(module) {
 
-module.exports = {"name":"@google-cloud/storage","description":"Cloud Storage Client Library for Node.js","version":"5.10.0","license":"Apache-2.0","author":"Google Inc.","engines":{"node":">=10"},"repository":"googleapis/nodejs-storage","main":"./build/src/index.js","types":"./build/src/index.d.ts","files":["build/src","!build/src/**/*.map"],"keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"scripts":{"predocs":"npm run compile","docs":"jsdoc -c .jsdoc.js","system-test":"mocha build/system-test --timeout 600000 --exit","conformance-test":"mocha build/conformance-test","preconformance-test":"npm run compile","presystem-test":"npm run compile","test":"c8 mocha build/test","pretest":"npm run compile","lint":"gts check","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","all-test":"npm test && npm run system-test && npm run samples-test","check":"gts check","clean":"gts clean","compile":"tsc -p .","fix":"gts fix","prepare":"npm run compile","docs-test":"linkinator docs","predocs-test":"npm run docs","benchwrapper":"node bin/benchwrapper.js","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean"},"dependencies":{"@google-cloud/common":"^3.7.0","@google-cloud/paginator":"^3.0.0","@google-cloud/promisify":"^2.0.0","arrify":"^2.0.0","async-retry":"^1.3.1","compressible":"^2.0.12","date-and-time":"^1.0.0","duplexify":"^4.0.0","extend":"^3.0.2","gcs-resumable-upload":"^3.3.0","get-stream":"^6.0.0","hash-stream-validation":"^0.2.2","mime":"^2.2.0","mime-types":"^2.0.8","onetime":"^5.1.0","p-limit":"^3.0.1","pumpify":"^2.0.0","snakeize":"^0.1.0","stream-events":"^1.0.1","xdg-basedir":"^4.0.0"},"devDependencies":{"@google-cloud/pubsub":"^2.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.6.0","@types/async-retry":"^1.4.2","@types/compressible":"^2.0.0","@types/concat-stream":"^1.6.0","@types/configstore":"^5.0.0","@types/date-and-time":"^0.13.0","@types/extend":"^3.0.0","@types/mime":"^2.0.0","@types/mime-types":"^2.1.0","@types/mocha":"^8.0.0","@types/nock":"^10.0.0","@types/node":"^11.13.4","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/pumpify":"^1.4.1","@types/sinon":"^10.0.0","@types/tmp":"0.2.1","@types/uuid":"^8.0.0","@types/xdg-basedir":"^2.0.0","c8":"^7.0.0","codecov":"^3.0.0","form-data":"^4.0.0","gts":"^3.1.0","jsdoc":"^3.6.2","jsdoc-fresh":"^1.0.1","jsdoc-region-tag":"^1.0.2","linkinator":"^2.0.0","mocha":"^8.0.0","nock":"~13.1.0","node-fetch":"^2.2.0","proxyquire":"^2.1.3","sinon":"^11.0.0","tmp":"^0.2.0","typescript":"^3.8.3","uuid":"^8.0.0","yargs":"^16.0.0"},"_resolved":"https://registry.npmjs.org/@google-cloud/storage/-/storage-5.10.0.tgz","_integrity":"sha512-E0PXhN+8CiiOfrQuITyjALHMsGQFQmhhtHpzz0k/kgnFgM27ldSnLn1JADrWvIlfy8BTkR7u3GQCOtQCLPrVnw==","_from":"@google-cloud/storage@5.10.0"};
+module.exports = {"name":"@google-cloud/storage","description":"Cloud Storage Client Library for Node.js","version":"5.14.2","license":"Apache-2.0","author":"Google Inc.","engines":{"node":">=10"},"repository":"googleapis/nodejs-storage","main":"./build/src/index.js","types":"./build/src/index.d.ts","files":["build/src","!build/src/**/*.map"],"keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"scripts":{"predocs":"npm run compile","docs":"jsdoc -c .jsdoc.js","system-test":"mocha build/system-test --timeout 600000 --exit","conformance-test":"mocha build/conformance-test","preconformance-test":"npm run compile","presystem-test":"npm run compile","test":"c8 mocha build/test","pretest":"npm run compile","lint":"gts check","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","all-test":"npm test && npm run system-test && npm run samples-test","check":"gts check","clean":"gts clean","compile":"tsc -p .","fix":"gts fix","prepare":"npm run compile","docs-test":"linkinator docs","predocs-test":"npm run docs","benchwrapper":"node bin/benchwrapper.js","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean"},"dependencies":{"@google-cloud/common":"^3.7.0","@google-cloud/paginator":"^3.0.0","@google-cloud/promisify":"^2.0.0","arrify":"^2.0.0","async-retry":"^1.3.1","compressible":"^2.0.12","date-and-time":"^2.0.0","duplexify":"^4.0.0","extend":"^3.0.2","gcs-resumable-upload":"^3.3.0","get-stream":"^6.0.0","hash-stream-validation":"^0.2.2","mime":"^2.2.0","mime-types":"^2.0.8","p-limit":"^3.0.1","pumpify":"^2.0.0","snakeize":"^0.1.0","stream-events":"^1.0.1","xdg-basedir":"^4.0.0"},"devDependencies":{"@google-cloud/pubsub":"^2.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.6.0","@types/async-retry":"^1.4.2","@types/compressible":"^2.0.0","@types/concat-stream":"^1.6.0","@types/configstore":"^5.0.0","@types/date-and-time":"^0.13.0","@types/extend":"^3.0.0","@types/mime":"^2.0.0","@types/mime-types":"^2.1.0","@types/mocha":"^8.0.0","@types/node":"^11.13.4","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/pumpify":"^1.4.1","@types/sinon":"^10.0.0","@types/tmp":"0.2.1","@types/uuid":"^8.0.0","@types/xdg-basedir":"^2.0.0","c8":"^7.0.0","form-data":"^4.0.0","gts":"^3.1.0","jsdoc":"^3.6.2","jsdoc-fresh":"^1.0.1","jsdoc-region-tag":"^1.0.2","linkinator":"^2.0.0","mocha":"^8.0.0","nock":"~13.1.0","node-fetch":"^2.2.0","proxyquire":"^2.1.3","sinon":"^11.0.0","tmp":"^0.2.0","typescript":"^3.8.3","uuid":"^8.0.0","yargs":"^16.0.0"},"_resolved":"https://registry.npmjs.org/@google-cloud/storage/-/storage-5.14.2.tgz","_integrity":"sha512-mO2OV2J5eHWtYbjYjqIzOnucZ0wxxVTS6PYU0v1Cfa3iNWRD6oiv+OUvSz6FCifrJHgGuqb9J4kR9N6x72C7nw==","_from":"@google-cloud/storage@5.14.2"};
 
 /***/ }),
 /* 140 */,
@@ -26129,7 +26154,10 @@ function GetDestinationFromPath(filePath, directory, parent = true, prefix = '')
                 .split(path.posix.sep)
                 .filter((p) => p);
             // get components of file path "./test/foo/1" becomes [test,foo,1]
-            const splitDestPath = path.posix.normalize(filePath).split(path.posix.sep);
+            const splitDestPath = path.posix
+                .normalize(filePath)
+                .split(path.posix.sep)
+                .filter((p) => p);
             // for each element in parent path pop those from file path
             // for a given parent dir like [test,foo], files maybe [test,foo,1] [test,foo,bar,1]
             // which is transformed to [1], [bar,1] etc
@@ -26928,8 +26956,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @preserve date-and-time (c) KNOWLEDGECODE | MIT
      */
 
-    var date = {},
-        locales = {},
+    var locales = {},
         plugins = {},
         lang = 'en',
         _res = {
@@ -26966,10 +26993,11 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
             ddd: function (d/*, formatString*/) { return this.res.ddd[d.getDay()]; },
             dd: function (d/*, formatString*/) { return this.res.dd[d.getDay()]; },
             Z: function (d/*, formatString*/) {
-                var offset = d.utc ? 0 : d.getTimezoneOffset() / 0.6;
-                return (offset > 0 ? '-' : '+') + ('000' + Math.abs(offset - offset % 100 * 0.4)).slice(-4);
+                var offset = d.getTimezoneOffset() / 0.6 | 0;
+                return (offset > 0 ? '-' : '+') + ('000' + Math.abs(offset - (offset % 100 * 0.4 | 0))).slice(-4);
             },
-            post: function (str) { return str; }
+            post: function (str) { return str; },
+            res: _res
         },
         _parser = {
             YYYY: function (str/*, formatString */) { return this.exec(/^\d{4}/, str); },
@@ -27030,39 +27058,37 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
                 }
                 return { value: index, length: length };
             },
-            pre: function (str) { return str; }
+            pre: function (str) { return str; },
+            res: _res
         },
-        customize = function (code, base, locale) {
-            var extend = function (proto, props, res) {
-                    var Locale = function (r) {
-                        if (r) { this.res = r; }
-                    };
+        extend = function (base, props, override, res) {
+            var obj = {}, key;
 
-                    Locale.prototype = proto;
-                    Locale.prototype.constructor = Locale;
-
-                    var newLocale = new Locale(res),
-                        value;
-
-                    for (var key in props || {}) {
-                        value = props[key];
-                        newLocale[key] = value.slice ? value.slice() : value;
-                    }
-                    return newLocale;
-                },
-                loc = { res: extend(base.res, locale.res) };
-
-            loc.formatter = extend(base.formatter, locale.formatter, loc.res);
-            loc.parser = extend(base.parser, locale.parser, loc.res);
-            locales[code] = loc;
+            for (key in base) {
+                obj[key] = base[key];
+            }
+            for (key in props || {}) {
+                if (!(!!override ^ !!obj[key])) {
+                    obj[key] = props[key];
+                }
+            }
+            if (res) {
+                obj.res = res;
+            }
+            return obj;
         };
+
+    var proto = {
+        _formatter: _formatter,
+        _parser: _parser
+    };
 
     /**
      * Compiling a format string
      * @param {string} formatString - a format string
      * @returns {Array.<string>} a compiled object
      */
-    date.compile = function (formatString) {
+    proto.compile = function (formatString) {
         var re = /\[([^\[\]]|\[[^\[\]]*])*]|([A-Za-z])\2+|\.{3}|./g, keys, pattern = [formatString];
 
         while ((keys = re.exec(formatString))) {
@@ -27078,12 +27104,13 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {boolean} [utc] - output as UTC
      * @returns {string} a formatted string
      */
-    date.format = function (dateObj, arg, utc) {
-        var pattern = typeof arg === 'string' ? date.compile(arg) : arg,
-            d = date.addMinutes(dateObj, utc ? dateObj.getTimezoneOffset() : 0),
-            formatter = locales[lang].formatter, str = '';
+    proto.format = function (dateObj, arg, utc) {
+        var pattern = typeof arg === 'string' ? this.compile(arg) : arg,
+            offset = dateObj.getTimezoneOffset(),
+            d = this.addMinutes(dateObj, utc ? offset : 0),
+            formatter = this._formatter, str = '';
 
-        d.utc = utc || false;
+        d.getTimezoneOffset = function () { return utc ? 0 : offset; };
         for (var i = 1, len = pattern.length, token; i < len; i++) {
             token = pattern[i];
             str += formatter[token] ? formatter.post(formatter[token](d, pattern[0])) : token.replace(/\[(.*)]/, '$1');
@@ -27097,10 +27124,10 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {string|Array.<string>} arg - a format string or its compiled object
      * @returns {Object} a date structure
      */
-    date.preparse = function (dateString, arg) {
-        var pattern = typeof arg === 'string' ? date.compile(arg) : arg,
+    proto.preparse = function (dateString, arg) {
+        var pattern = typeof arg === 'string' ? this.compile(arg) : arg,
             dt = { Y: 1970, M: 1, D: 1, H: 0, A: 0, h: 0, m: 0, s: 0, S: 0, Z: 0, _index: 0, _length: 0, _match: 0 },
-            comment = /\[(.*)]/, parser = locales[lang].parser, offset = 0;
+            comment = /\[(.*)]/, parser = this._parser, offset = 0;
 
         dateString = parser.pre(dateString);
         for (var i = 1, len = pattern.length, token, result; i < len; i++) {
@@ -27111,7 +27138,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
                     break;
                 }
                 offset += result.length;
-                dt[token.charAt(0)] = result.value;
+                dt[result.token || token.charAt(0)] = result.value;
                 dt._match++;
             } else if (token === dateString.charAt(offset) || token === ' ') {
                 offset++;
@@ -27131,34 +27158,16 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
     };
 
     /**
-     * Validation
-     * @param {Object|string} arg1 - a date structure or a date string
-     * @param {string|Array.<string>} [arg2] - a format string or its compiled object
-     * @returns {boolean} whether the date string is a valid date
-     */
-    date.isValid = function (arg1, arg2) {
-        var dt = typeof arg1 === 'string' ? date.preparse(arg1, arg2) : arg1,
-            last = [31, 28 + date.isLeapYear(dt.Y) | 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][dt.M - 1];
-
-        return !(
-            dt._index < 1 || dt._length < 1 || dt._index - dt._length || dt._match < 1 ||
-            dt.Y < 1 || dt.Y > 9999 || dt.M < 1 || dt.M > 12 || dt.D < 1 || dt.D > last ||
-            dt.H < 0 || dt.H > 23 || dt.m < 0 || dt.m > 59 || dt.s < 0 || dt.s > 59 || dt.S < 0 || dt.S > 999 ||
-            dt.Z < -720 || dt.Z > 840
-        );
-    };
-
-    /**
      * Parsing a Date and Time string
      * @param {string} dateString - a date string
      * @param {string|Array.<string>} arg - a format string or its compiled object
      * @param {boolean} [utc] - input as UTC
      * @returns {Date} a constructed date
      */
-    date.parse = function (dateString, arg, utc) {
-        var dt = date.preparse(dateString, arg);
+    proto.parse = function (dateString, arg, utc) {
+        var dt = this.preparse(dateString, arg);
 
-        if (date.isValid(dt)) {
+        if (this.isValid(dt)) {
             dt.M -= dt.Y < 100 ? 22801 : 1; // 22801 = 1900 * 12 + 1
             if (utc || dt.Z) {
                 return new Date(Date.UTC(dt.Y, dt.M, dt.D, dt.H, dt.m + dt.Z, dt.s, dt.S));
@@ -27169,6 +27178,24 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
     };
 
     /**
+     * Validation
+     * @param {Object|string} arg1 - a date structure or a date string
+     * @param {string|Array.<string>} [arg2] - a format string or its compiled object
+     * @returns {boolean} whether the date string is a valid date
+     */
+    proto.isValid = function (arg1, arg2) {
+        var dt = typeof arg1 === 'string' ? this.preparse(arg1, arg2) : arg1,
+            last = [31, 28 + this.isLeapYear(dt.Y) | 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][dt.M - 1];
+
+        return !(
+            dt._index < 1 || dt._length < 1 || dt._index - dt._length || dt._match < 1 ||
+            dt.Y < 1 || dt.Y > 9999 || dt.M < 1 || dt.M > 12 || dt.D < 1 || dt.D > last ||
+            dt.H < 0 || dt.H > 23 || dt.m < 0 || dt.m > 59 || dt.s < 0 || dt.s > 59 || dt.S < 0 || dt.S > 999 ||
+            dt.Z < -720 || dt.Z > 840
+        );
+    };
+
+    /**
      * Transforming a Date and Time string
      * @param {string} dateString - a date string
      * @param {string|Array.<string>} arg1 - a format string or its compiled object
@@ -27176,8 +27203,8 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {boolean} [utc] - output as UTC
      * @returns {string} a formatted string
      */
-    date.transform = function (dateString, arg1, arg2, utc) {
-        return date.format(date.parse(dateString, arg1), arg2, utc);
+    proto.transform = function (dateString, arg1, arg2, utc) {
+        return this.format(this.parse(dateString, arg1), arg2, utc);
     };
 
     /**
@@ -27186,8 +27213,8 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} years - number of years to add
      * @returns {Date} a date after adding the value
      */
-    date.addYears = function (dateObj, years) {
-        return date.addMonths(dateObj, years * 12);
+    proto.addYears = function (dateObj, years) {
+        return this.addMonths(dateObj, years * 12);
     };
 
     /**
@@ -27196,7 +27223,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} months - number of months to add
      * @returns {Date} a date after adding the value
      */
-    date.addMonths = function (dateObj, months) {
+    proto.addMonths = function (dateObj, months) {
         var d = new Date(dateObj.getTime());
 
         d.setMonth(d.getMonth() + months);
@@ -27209,7 +27236,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} days - number of days to add
      * @returns {Date} a date after adding the value
      */
-    date.addDays = function (dateObj, days) {
+    proto.addDays = function (dateObj, days) {
         var d = new Date(dateObj.getTime());
 
         d.setDate(d.getDate() + days);
@@ -27222,8 +27249,8 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} hours - number of hours to add
      * @returns {Date} a date after adding the value
      */
-    date.addHours = function (dateObj, hours) {
-        return date.addMinutes(dateObj, hours * 60);
+    proto.addHours = function (dateObj, hours) {
+        return this.addMinutes(dateObj, hours * 60);
     };
 
     /**
@@ -27232,8 +27259,8 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} minutes - number of minutes to add
      * @returns {Date} a date after adding the value
      */
-    date.addMinutes = function (dateObj, minutes) {
-        return date.addSeconds(dateObj, minutes * 60);
+    proto.addMinutes = function (dateObj, minutes) {
+        return this.addSeconds(dateObj, minutes * 60);
     };
 
     /**
@@ -27242,8 +27269,8 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} seconds - number of seconds to add
      * @returns {Date} a date after adding the value
      */
-    date.addSeconds = function (dateObj, seconds) {
-        return date.addMilliseconds(dateObj, seconds * 1000);
+    proto.addSeconds = function (dateObj, seconds) {
+        return this.addMilliseconds(dateObj, seconds * 1000);
     };
 
     /**
@@ -27252,7 +27279,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} milliseconds - number of milliseconds to add
      * @returns {Date} a date after adding the value
      */
-    date.addMilliseconds = function (dateObj, milliseconds) {
+    proto.addMilliseconds = function (dateObj, milliseconds) {
         return new Date(dateObj.getTime() + milliseconds);
     };
 
@@ -27262,7 +27289,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {Date} date2 - a Date object
      * @returns {Object} a result object subtracting date2 from date1
      */
-    date.subtract = function (date1, date2) {
+    proto.subtract = function (date1, date2) {
         var delta = date1.getTime() - date2.getTime();
 
         return {
@@ -27289,7 +27316,7 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {number} y - year
      * @returns {boolean} whether year is leap year
      */
-    date.isLeapYear = function (y) {
+    proto.isLeapYear = function (y) {
         return (!(y % 4) && !!(y % 100)) || !(y % 400);
     };
 
@@ -27299,22 +27326,61 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @param {Date} date2 - a Date object
      * @returns {boolean} whether the two dates are the same day (time is ignored)
      */
-    date.isSameDay = function (date1, date2) {
+    proto.isSameDay = function (date1, date2) {
         return date1.toDateString() === date2.toDateString();
     };
 
     /**
-     * Changing the locale or defining new locales
-     * @param {Function|string} [code] - locale installer | language code
-     * @param {Object} [locale] - locale definition
+     * Defining new locale
+     * @param {string} code - language code
+     * @param {Function} locale - locale installer
      * @returns {string} current language code
      */
-    date.locale = function (code, locale) {
-        if (locale) {
-            customize(code, { res: _res, formatter: _formatter, parser: _parser }, locale);
-        } else {
-            lang = (typeof code === 'function' ? code : date.locale[code] || function () {})(date) || lang;
+    proto.locale = function (code, locale) {
+        if (!locales[code]) {
+            locales[code] = locale;
         }
+    };
+
+    /**
+     * Defining new plugin
+     * @param {string} name - plugin name
+     * @param {Function} plugin - plugin installer
+     * @returns {void}
+     */
+    proto.plugin = function (name, plugin) {
+        if (!plugins[name]) {
+            plugins[name] = plugin;
+        }
+    };
+
+    var date = extend(proto);
+
+    /**
+     * Changing locale
+     * @param {Function|string} [locale] - locale object | language code
+     * @returns {string} current language code
+     */
+    date.locale = function (locale) {
+        var install = typeof locale === 'function' ? locale : date.locale[locale];
+
+        if (!install) {
+            return lang;
+        }
+        lang = install(proto);
+
+        var extension = locales[lang] || {};
+        var res = extend(_res, extension.res, true);
+        var formatter = extend(_formatter, extension.formatter, true, res);
+        var parser = extend(_parser, extension.parser, true, res);
+
+        date._formatter = formatter;
+        date._parser = parser;
+
+        for (var plugin in plugins) {
+            date.extend(plugins[plugin]);
+        }
+
         return lang;
     };
 
@@ -27324,36 +27390,31 @@ pki.privateKeyInfoToPem = function(pki, maxline) {
      * @returns {void}
      */
     date.extend = function (extension) {
+        var res = extend(date._parser.res, extension.res);
         var extender = extension.extender || {};
+
+        date._formatter = extend(date._formatter, extension.formatter, false, res);
+        date._parser = extend(date._parser, extension.parser, false, res);
 
         for (var key in extender) {
             if (!date[key]) {
                 date[key] = extender[key];
             }
         }
-        if (extension.formatter || extension.parser || extension.res) {
-            customize(lang, locales[lang], extension);
-        }
     };
 
     /**
-     * Importing or defining plugins
-     * @param {Function|string} name - plugin installer | plugin name
-     * @param {Object} [plugin] - plugin object
+     * Importing plugin
+     * @param {Function|string} plugin - plugin object | plugin name
      * @returns {void}
      */
-    date.plugin = function (name, plugin) {
-        if (plugin) {
-            if (!plugins[name]) {
-                date.extend((plugins[name] = plugin));
-            }
-        } else {
-            (typeof name === 'function' ? name : date.plugin[name] || function () {})(date);
+    date.plugin = function (plugin) {
+        var install = typeof plugin === 'function' ? plugin : date.plugin[plugin];
+
+        if (install) {
+            date.extend(plugins[install(proto)] || {});
         }
     };
-
-    // Create default locale (English)
-    date.locale(lang, {});
 
     return date;
 
@@ -39795,7 +39856,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __webpack_require__(431);
 const file_command_1 = __webpack_require__(102);
 const utils_1 = __webpack_require__(82);
@@ -39973,19 +40034,30 @@ exports.debug = debug;
 /**
  * Adds an error issue
  * @param message error issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function error(message) {
-    command_1.issue('error', message instanceof Error ? message.toString() : message);
+function error(message, properties = {}) {
+    command_1.issueCommand('error', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.error = error;
 /**
- * Adds an warning issue
+ * Adds a warning issue
  * @param message warning issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function warning(message) {
-    command_1.issue('warning', message instanceof Error ? message.toString() : message);
+function warning(message, properties = {}) {
+    command_1.issueCommand('warning', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.warning = warning;
+/**
+ * Adds a notice issue
+ * @param message notice issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
+ */
+function notice(message, properties = {}) {
+    command_1.issueCommand('notice', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
+exports.notice = notice;
 /**
  * Writes info to log with console.log.
  * @param message info message
@@ -50639,7 +50711,7 @@ exports.wrap = function(obj, options, methods) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Bucket = exports.BucketActionToHTTPMethod = void 0;
+exports.Bucket = exports.AvailableServiceObjectMethods = exports.BucketActionToHTTPMethod = void 0;
 const common_1 = __webpack_require__(915);
 const paginator_1 = __webpack_require__(643);
 const promisify_1 = __webpack_require__(452);
@@ -50657,11 +50729,17 @@ const acl_1 = __webpack_require__(572);
 const file_1 = __webpack_require__(930);
 const iam_1 = __webpack_require__(228);
 const notification_1 = __webpack_require__(360);
+const storage_1 = __webpack_require__(762);
 const signer_1 = __webpack_require__(517);
 var BucketActionToHTTPMethod;
 (function (BucketActionToHTTPMethod) {
     BucketActionToHTTPMethod["list"] = "GET";
 })(BucketActionToHTTPMethod = exports.BucketActionToHTTPMethod || (exports.BucketActionToHTTPMethod = {}));
+var AvailableServiceObjectMethods;
+(function (AvailableServiceObjectMethods) {
+    AvailableServiceObjectMethods[AvailableServiceObjectMethods["setMetadata"] = 0] = "setMetadata";
+    AvailableServiceObjectMethods[AvailableServiceObjectMethods["delete"] = 1] = "delete";
+})(AvailableServiceObjectMethods = exports.AvailableServiceObjectMethods || (exports.AvailableServiceObjectMethods = {}));
 /**
  * The size of a file (in bytes) must be greater than this number to
  * automatically trigger a resumable upload.
@@ -50879,10 +50957,27 @@ const RESUMABLE_THRESHOLD = 5000000;
  */
 class Bucket extends common_1.ServiceObject {
     constructor(storage, name, options) {
+        var _a, _b, _c, _d;
         options = options || {};
         // Allow for "gs://"-style input, and strip any trailing slashes.
         name = name.replace(/^gs:\/\//, '').replace(/\/+$/, '');
         const requestQueryObject = {};
+        if ((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifGenerationMatch) {
+            requestQueryObject.ifGenerationMatch =
+                options.preconditionOpts.ifGenerationMatch;
+        }
+        if ((_b = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _b === void 0 ? void 0 : _b.ifGenerationNotMatch) {
+            requestQueryObject.ifGenerationNotMatch =
+                options.preconditionOpts.ifGenerationNotMatch;
+        }
+        if ((_c = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _c === void 0 ? void 0 : _c.ifMetagenerationMatch) {
+            requestQueryObject.ifMetagenerationMatch =
+                options.preconditionOpts.ifMetagenerationMatch;
+        }
+        if ((_d = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _d === void 0 ? void 0 : _d.ifMetagenerationNotMatch) {
+            requestQueryObject.ifMetagenerationNotMatch =
+                options.preconditionOpts.ifMetagenerationNotMatch;
+        }
         const userProject = options.userProject;
         if (typeof userProject === 'string') {
             requestQueryObject.userProject = userProject;
@@ -51235,6 +51330,7 @@ class Bucket extends common_1.ServiceObject {
         });
         this.iam = new iam_1.Iam(this);
         this.getFilesStream = paginator_1.paginator.streamify('getFiles');
+        this.instanceRetryValue = storage.retryOptions.autoRetry;
     }
     /**
      * @typedef {object} AddLifecycleRuleOptions Configuration options for Bucket#addLifecycleRule().
@@ -51433,8 +51529,10 @@ class Bucket extends common_1.ServiceObject {
             }
             return apiFormattedRule;
         });
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         if (options.append === false) {
             this.setMetadata({ lifecycle: { rule: newLifecycleRules } }, callback);
+            this.storage.retryOptions.autoRetry = this.instanceRetryValue;
             return;
         }
         // The default behavior appends the previously-defined lifecycle rules with
@@ -51451,6 +51549,7 @@ class Bucket extends common_1.ServiceObject {
                 },
             }, callback);
         });
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * @typedef {object} CombineOptions
@@ -51550,10 +51649,19 @@ class Bucket extends common_1.ServiceObject {
                 destinationFile.metadata.contentType = destinationContentType;
             }
         }
+        let maxRetries = this.storage.retryOptions.maxRetries;
+        if (((options === null || options === void 0 ? void 0 : options.ifGenerationMatch) === undefined &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) ||
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryNever) {
+            maxRetries = 0;
+        }
         // Make the request from the destination File object.
         destinationFile.request({
             method: 'POST',
             uri: '/compose',
+            maxRetries,
             json: {
                 destination: {
                     contentType: destinationFile.metadata.contentType,
@@ -51837,6 +51945,7 @@ class Bucket extends common_1.ServiceObject {
             uri: '/notificationConfigs',
             json: snakeize(body),
             qs: query,
+            maxRetries: 0,
         }, (err, apiResponse) => {
             if (err) {
                 callback(err, null, apiResponse);
@@ -51932,12 +52041,18 @@ class Bucket extends common_1.ServiceObject {
         }
         const MAX_PARALLEL_LIMIT = 10;
         const errors = [];
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.delete, AvailableServiceObjectMethods.delete);
         const deleteFile = (file) => {
-            return file.delete(query).catch(err => {
+            return file
+                .delete(query)
+                .catch(err => {
                 if (!query.force) {
                     throw err;
                 }
                 errors.push(err);
+            })
+                .finally(() => {
+                this.storage.retryOptions.autoRetry = this.instanceRetryValue;
             });
         };
         this.getFiles(query)
@@ -52070,11 +52185,13 @@ class Bucket extends common_1.ServiceObject {
      * Example of disabling requester pays:
      */
     disableRequesterPays(callback) {
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         this.setMetadata({
             billing: {
                 requesterPays: false,
             },
         }, callback || common_1.util.noop);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * Configuration object for enabling logging.
@@ -52142,6 +52259,7 @@ class Bucket extends common_1.ServiceObject {
                     role: 'roles/storage.objectCreator',
                 });
                 await this.iam.setPolicy(policy);
+                this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
                 [setMetadataResponse] = await this.setMetadata({
                     logging: {
                         logBucket,
@@ -52152,6 +52270,9 @@ class Bucket extends common_1.ServiceObject {
             catch (e) {
                 callback(e);
                 return;
+            }
+            finally {
+                this.storage.retryOptions.autoRetry = this.instanceRetryValue;
             }
             callback(null, setMetadataResponse);
         })();
@@ -52203,11 +52324,13 @@ class Bucket extends common_1.ServiceObject {
      * Example of enabling requester pays:
      */
     enableRequesterPays(callback) {
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         this.setMetadata({
             billing: {
                 requesterPays: true,
             },
         }, callback || common_1.util.noop);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * Create a {@link File} object. See {@link File} to see how to handle
@@ -52902,6 +53025,7 @@ class Bucket extends common_1.ServiceObject {
         if (options.userProject) {
             query.userProject = options.userProject;
         }
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         // You aren't allowed to set both predefinedAcl & acl properties on a bucket
         // so acl must explicitly be nullified.
         const metadata = extend({}, options.metadata, { acl: null });
@@ -52912,7 +53036,10 @@ class Bucket extends common_1.ServiceObject {
             }
             return [];
         })
-            .then(files => callback(null, files), callback);
+            .then(files => callback(null, files), callback)
+            .finally(() => {
+            this.storage.retryOptions.autoRetry = this.instanceRetryValue;
+        });
     }
     /**
      * @typedef {object} MakeBucketPublicOptions
@@ -53069,9 +53196,11 @@ class Bucket extends common_1.ServiceObject {
      * });
      */
     removeRetentionPeriod(callback) {
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         this.setMetadata({
             retentionPolicy: null,
         }, callback);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * Makes request and applies userProject query parameter if necessary.
@@ -53143,7 +53272,9 @@ class Bucket extends common_1.ServiceObject {
         callback =
             typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
         callback = callback || common_1.util.noop;
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         this.setMetadata({ labels }, options, callback);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * Lock all objects contained in the bucket, based on their creation time. Any
@@ -53181,11 +53312,13 @@ class Bucket extends common_1.ServiceObject {
      * });
      */
     setRetentionPeriod(duration, callback) {
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         this.setMetadata({
             retentionPolicy: {
                 retentionPeriod: duration,
             },
         }, callback);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      *
@@ -53231,9 +53364,11 @@ class Bucket extends common_1.ServiceObject {
      * });
      */
     setCorsConfiguration(corsConfiguration, callback) {
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         this.setMetadata({
             cors: corsConfiguration,
         }, callback);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * @typedef {object} SetBucketStorageClassOptions
@@ -53282,6 +53417,7 @@ class Bucket extends common_1.ServiceObject {
         const options = typeof optionsOrCallback === 'object' ? optionsOrCallback : {};
         callback =
             typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, AvailableServiceObjectMethods.setMetadata);
         // In case we get input like `storageClass`, convert to `storage_class`.
         storageClass = storageClass
             .replace(/-/g, '_')
@@ -53290,6 +53426,7 @@ class Bucket extends common_1.ServiceObject {
         })
             .toUpperCase();
         this.setMetadata({ storageClass }, options, callback);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * Set a user project to be billed for all requests made from this Bucket
@@ -53593,8 +53730,8 @@ class Bucket extends common_1.ServiceObject {
      * Example of uploading an encrypted file:
      */
     upload(pathString, optionsOrCallback, callback) {
-        const upload = () => {
-            const isMultipart = options.resumable === false;
+        var _a;
+        const upload = (numberOfRetries) => {
             const returnValue = retry(async (bail) => {
                 await new Promise((resolve, reject) => {
                     const writable = newFile.createWriteStream(options);
@@ -53604,8 +53741,7 @@ class Bucket extends common_1.ServiceObject {
                     fs.createReadStream(pathString)
                         .pipe(writable)
                         .on('error', err => {
-                        if (isMultipart &&
-                            this.storage.retryOptions.autoRetry &&
+                        if (this.storage.retryOptions.autoRetry &&
                             this.storage.retryOptions.retryableErrorFn(err)) {
                             return reject(err);
                         }
@@ -53618,7 +53754,7 @@ class Bucket extends common_1.ServiceObject {
                     });
                 });
             }, {
-                retries: this.storage.retryOptions.maxRetries,
+                retries: numberOfRetries,
                 factor: this.storage.retryOptions.retryDelayMultiplier,
                 maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000,
                 maxRetryTime: this.storage.retryOptions.totalTimeout * 1000,
@@ -53646,6 +53782,15 @@ class Bucket extends common_1.ServiceObject {
         options = Object.assign({
             metadata: {},
         }, options);
+        // Do not retry if precondition option ifMetagenerationMatch is not set
+        let maxRetries = this.storage.retryOptions.maxRetries;
+        if ((((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifMetagenerationMatch) === undefined &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) ||
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryNever) {
+            maxRetries = 0;
+        }
         let newFile;
         if (options.destination instanceof file_1.File) {
             newFile = options.destination;
@@ -53667,7 +53812,7 @@ class Bucket extends common_1.ServiceObject {
             });
         }
         if (options.resumable !== null && typeof options.resumable === 'boolean') {
-            upload();
+            upload(maxRetries);
         }
         else {
             // Determine if the upload should be resumable if it's over the threshold.
@@ -53680,7 +53825,7 @@ class Bucket extends common_1.ServiceObject {
                     // Only disable resumable uploads so createWriteStream still attempts them and falls back to simple upload.
                     options.resumable = false;
                 }
-                upload();
+                upload(maxRetries);
             });
         }
     }
@@ -53759,6 +53904,29 @@ class Bucket extends common_1.ServiceObject {
     }
     getId() {
         return this.id;
+    }
+    disableAutoRetryConditionallyIdempotent_(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    coreOpts, methodType) {
+        var _a, _b, _c, _d;
+        if (typeof coreOpts === 'object' &&
+            ((_b = (_a = coreOpts === null || coreOpts === void 0 ? void 0 : coreOpts.reqOpts) === null || _a === void 0 ? void 0 : _a.qs) === null || _b === void 0 ? void 0 : _b.ifMetagenerationMatch) === undefined &&
+            methodType === AvailableServiceObjectMethods.setMetadata &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) {
+            this.storage.retryOptions.autoRetry = false;
+        }
+        else if (typeof coreOpts === 'object' &&
+            ((_d = (_c = coreOpts === null || coreOpts === void 0 ? void 0 : coreOpts.reqOpts) === null || _c === void 0 ? void 0 : _c.qs) === null || _d === void 0 ? void 0 : _d.ifGenerationMatch) === undefined &&
+            methodType === AvailableServiceObjectMethods.delete &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) {
+            this.storage.retryOptions.autoRetry = false;
+        }
+        else if (this.storage.retryOptions.idempotencyStrategy ===
+            storage_1.IdempotencyStrategy.RetryNever) {
+            this.storage.retryOptions.autoRetry = false;
+        }
     }
 }
 exports.Bucket = Bucket;
@@ -58113,63 +58281,7 @@ exports.default = promisify;
 /***/ }),
 /* 721 */,
 /* 722 */,
-/* 723 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-const mimicFn = __webpack_require__(750);
-
-const calledFunctions = new WeakMap();
-
-const oneTime = (fn, options = {}) => {
-	if (typeof fn !== 'function') {
-		throw new TypeError('Expected a function');
-	}
-
-	let ret;
-	let isCalled = false;
-	let callCount = 0;
-	const functionName = fn.displayName || fn.name || '<anonymous>';
-
-	const onetime = function (...args) {
-		calledFunctions.set(onetime, ++callCount);
-
-		if (isCalled) {
-			if (options.throw === true) {
-				throw new Error(`Function \`${functionName}\` can only be called once`);
-			}
-
-			return ret;
-		}
-
-		isCalled = true;
-		ret = fn.apply(this, args);
-		fn = null;
-
-		return ret;
-	};
-
-	mimicFn(onetime, fn);
-	calledFunctions.set(onetime, callCount);
-
-	return onetime;
-};
-
-module.exports = oneTime;
-// TODO: Remove this for the next major release
-module.exports.default = oneTime;
-
-module.exports.callCount = fn => {
-	if (!calledFunctions.has(fn)) {
-		throw new Error(`The given function \`${fn.name}\` is not wrapped by the \`onetime\` package`);
-	}
-
-	return calledFunctions.get(fn);
-};
-
-
-/***/ }),
+/* 723 */,
 /* 724 */
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -59323,26 +59435,7 @@ module.exports = require("fs");
 /***/ }),
 /* 748 */,
 /* 749 */,
-/* 750 */
-/***/ (function(module) {
-
-"use strict";
-
-
-const mimicFn = (to, from) => {
-	for (const prop of Reflect.ownKeys(from)) {
-		Object.defineProperty(to, prop, Object.getOwnPropertyDescriptor(from, prop));
-	}
-
-	return to;
-};
-
-module.exports = mimicFn;
-// TODO: Remove this for the next major release
-module.exports.default = mimicFn;
-
-
-/***/ }),
+/* 750 */,
 /* 751 */,
 /* 752 */,
 /* 753 */,
@@ -60942,7 +61035,7 @@ module.exports = require("zlib");
 // See the License for the specific language governing permissions and
 // limitations under the License.
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Storage = exports.PROTOCOL_REGEX = void 0;
+exports.Storage = exports.PROTOCOL_REGEX = exports.IdempotencyStrategy = void 0;
 const common_1 = __webpack_require__(915);
 const paginator_1 = __webpack_require__(643);
 const promisify_1 = __webpack_require__(452);
@@ -60952,6 +61045,12 @@ const channel_1 = __webpack_require__(111);
 const file_1 = __webpack_require__(930);
 const util_1 = __webpack_require__(903);
 const hmacKey_1 = __webpack_require__(932);
+var IdempotencyStrategy;
+(function (IdempotencyStrategy) {
+    IdempotencyStrategy[IdempotencyStrategy["RetryAlways"] = 0] = "RetryAlways";
+    IdempotencyStrategy[IdempotencyStrategy["RetryConditional"] = 1] = "RetryConditional";
+    IdempotencyStrategy[IdempotencyStrategy["RetryNever"] = 2] = "RetryNever";
+})(IdempotencyStrategy = exports.IdempotencyStrategy || (exports.IdempotencyStrategy = {}));
 exports.PROTOCOL_REGEX = /^(\w*):\/\//;
 /**
  * Default behavior: Automatically retry retriable server errors.
@@ -60989,6 +61088,13 @@ const TOTAL_TIMEOUT_DEFAULT = 600;
  * @private
  */
 const MAX_RETRY_DELAY_DEFAULT = 64;
+/**
+ * Default behavior: Retry conditionally idempotent operations if correct preconditions are set.
+ *
+ * @const {enum}
+ * @private
+ */
+const IDEMPOTENCY_STRATEGY_DEFAULT = IdempotencyStrategy.RetryConditional;
 /**
  * Returns true if the API request should be retried, given the error that was
  * given the first time the request was attempted.
@@ -61188,8 +61294,17 @@ class Storage extends common_1.Service {
      *     attempted before returning the error.
      * @property {function} [retryOptions.retryableErrorFn] Function that returns true if a given
      *     error should be retried and false otherwise.
+     * @property {enum} [retryOptions.idempotencyStrategy=IdempotencyStrategy.RetryConditional] Enumeration
+     *     controls how conditionally idempotent operations are retried. Possible values are: RetryAlways -
+     *     will respect other retry settings and attempt to retry conditionally idempotent operations. RetryConditional -
+     *     will retry conditionally idempotent operations if the correct preconditions are set. RetryNever - never
+     *     retry a conditionally idempotent operation.
      * @property {string} [userAgent] The value to be prepended to the User-Agent
      *     header in API requests.
+     * @property {object} [authClient] GoogleAuth client to reuse instead of creating a new one.
+     * @property {number} [timeout] The amount of time in milliseconds to wait per http request before timing out.
+     * @property {object[]} [interceptors_] Array of custom request interceptors to be returned in the order they were assigned.
+     * @property {string} [apiEndpoint = storage.google.com] The API endpoint of the service used to make requests.
      */
     /**
      * Constructs the Storage client.
@@ -61208,7 +61323,7 @@ class Storage extends common_1.Service {
      * @param {StorageOptions} [options] Configuration options.
      */
     constructor(options = {}) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         let apiEndpoint = 'https://storage.googleapis.com';
         let customEndpoint = false;
         // Note: EMULATOR_HOST is an experimental configuration variable. Use apiEndpoint instead.
@@ -61254,6 +61369,8 @@ class Storage extends common_1.Service {
                 totalTimeout: ((_g = options.retryOptions) === null || _g === void 0 ? void 0 : _g.totalTimeout) ? (_h = options.retryOptions) === null || _h === void 0 ? void 0 : _h.totalTimeout : TOTAL_TIMEOUT_DEFAULT,
                 maxRetryDelay: ((_j = options.retryOptions) === null || _j === void 0 ? void 0 : _j.maxRetryDelay) ? (_k = options.retryOptions) === null || _k === void 0 ? void 0 : _k.maxRetryDelay : MAX_RETRY_DELAY_DEFAULT,
                 retryableErrorFn: ((_l = options.retryOptions) === null || _l === void 0 ? void 0 : _l.retryableErrorFn) ? (_m = options.retryOptions) === null || _m === void 0 ? void 0 : _m.retryableErrorFn : RETRYABLE_ERR_FN_DEFAULT,
+                idempotencyStrategy: ((_o = options.retryOptions) === null || _o === void 0 ? void 0 : _o.idempotencyStrategy) !== undefined
+                    ? (_p = options.retryOptions) === null || _p === void 0 ? void 0 : _p.idempotencyStrategy : IDEMPOTENCY_STRATEGY_DEFAULT,
             },
             baseUrl,
             customEndpoint,
@@ -61578,6 +61695,7 @@ class Storage extends common_1.Service {
             method: 'POST',
             uri: `/projects/${projectId}/hmacKeys`,
             qs: query,
+            maxRetries: 0,
         }, (err, resp) => {
             if (err) {
                 callback(err, null, null, resp);
@@ -69839,7 +69957,6 @@ const fs = __webpack_require__(747);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const hashStreamValidation = __webpack_require__(999);
 const mime = __webpack_require__(352);
-const once = __webpack_require__(723);
 const os = __webpack_require__(87);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pumpify = __webpack_require__(746);
@@ -69848,6 +69965,7 @@ const stream_1 = __webpack_require__(413);
 const streamEvents = __webpack_require__(998);
 const xdgBasedir = __webpack_require__(8);
 const zlib = __webpack_require__(761);
+const storage_1 = __webpack_require__(762);
 const bucket_1 = __webpack_require__(604);
 const acl_1 = __webpack_require__(572);
 const signer_1 = __webpack_require__(517);
@@ -69975,6 +70093,7 @@ class File extends common_1.ServiceObject {
      * const file = myBucket.file('my-file');
      */
     constructor(bucket, name, options = {}) {
+        var _a, _b, _c, _d, _e, _f;
         const requestQueryObject = {};
         let generation;
         if (options.generation !== null) {
@@ -69987,6 +70106,22 @@ class File extends common_1.ServiceObject {
             if (!isNaN(generation)) {
                 requestQueryObject.generation = generation;
             }
+        }
+        if ((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifGenerationMatch) {
+            requestQueryObject.ifGenerationMatch =
+                options.preconditionOpts.ifGenerationMatch;
+        }
+        if ((_b = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _b === void 0 ? void 0 : _b.ifGenerationNotMatch) {
+            requestQueryObject.ifGenerationNotMatch =
+                options.preconditionOpts.ifGenerationNotMatch;
+        }
+        if ((_c = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _c === void 0 ? void 0 : _c.ifMetagenerationMatch) {
+            requestQueryObject.ifMetagenerationMatch =
+                options.preconditionOpts.ifMetagenerationMatch;
+        }
+        if ((_d = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _d === void 0 ? void 0 : _d.ifMetagenerationNotMatch) {
+            requestQueryObject.ifMetagenerationNotMatch =
+                options.preconditionOpts.ifMetagenerationNotMatch;
         }
         const userProject = options.userProject || bucket.userProject;
         if (typeof userProject === 'string') {
@@ -70298,6 +70433,7 @@ class File extends common_1.ServiceObject {
             request: this.request.bind(this),
             pathPrefix: '/acl',
         });
+        this.instanceRetryValue = (_f = (_e = this.storage) === null || _e === void 0 ? void 0 : _e.retryOptions) === null || _f === void 0 ? void 0 : _f.autoRetry;
     }
     /**
      * @typedef {array} CopyResponse
@@ -70430,6 +70566,7 @@ class File extends common_1.ServiceObject {
      * Another example:
      */
     copy(destination, optionsOrCallback, callback) {
+        var _a, _b, _c, _d, _e;
         const noDestinationError = new Error('Destination file should have a name.');
         if (!destination) {
             throw noDestinationError;
@@ -70484,6 +70621,25 @@ class File extends common_1.ServiceObject {
             query.destinationPredefinedAcl = options.predefinedAcl;
             delete options.predefinedAcl;
         }
+        if ((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifGenerationMatch) {
+            query.ifGenerationMatch = options.preconditionOpts.ifGenerationMatch;
+            delete options.preconditionOpts.ifGenerationMatch;
+        }
+        if ((_b = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _b === void 0 ? void 0 : _b.ifGenerationNotMatch) {
+            query.ifGenerationNotMatch =
+                options.preconditionOpts.ifGenerationNotMatch;
+            delete options.preconditionOpts.ifGenerationNotMatch;
+        }
+        if ((_c = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _c === void 0 ? void 0 : _c.ifMetagenerationMatch) {
+            query.ifMetagenerationMatch =
+                options.preconditionOpts.ifMetagenerationMatch;
+            delete options.preconditionOpts.ifMetagenerationMatch;
+        }
+        if ((_d = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _d === void 0 ? void 0 : _d.ifMetagenerationNotMatch) {
+            query.ifMetagenerationNotMatch =
+                options.preconditionOpts.ifMetagenerationNotMatch;
+            delete options.preconditionOpts.ifMetagenerationNotMatch;
+        }
         newFile = newFile || destBucket.file(destName);
         const headers = {};
         if (this.encryptionKey !== undefined) {
@@ -70508,6 +70664,13 @@ class File extends common_1.ServiceObject {
             if (keyIndex > -1) {
                 this.interceptors.splice(keyIndex, 1);
             }
+        }
+        if ((((_e = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _e === void 0 ? void 0 : _e.ifGenerationMatch) === undefined &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) ||
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryNever) {
+            this.storage.retryOptions.autoRetry = false;
         }
         this.request({
             method: 'POST',
@@ -70535,6 +70698,7 @@ class File extends common_1.ServiceObject {
             }
             callback(null, newFile, resp);
         });
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * @typedef {object} CreateReadStreamOptions Configuration options for File#createReadStream.
@@ -70909,9 +71073,18 @@ class File extends common_1.ServiceObject {
      * });
      */
     createResumableUpload(optionsOrCallback, callback) {
+        var _a;
         const options = typeof optionsOrCallback === 'object' ? optionsOrCallback : {};
         callback =
             typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        const retryOptions = this.storage.retryOptions;
+        if ((((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifMetagenerationMatch) === undefined &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) ||
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryNever) {
+            retryOptions.autoRetry = false;
+        }
         resumableUpload.createURI({
             authClient: this.storage.authClient,
             apiEndpoint: this.storage.apiEndpoint,
@@ -70928,7 +71101,8 @@ class File extends common_1.ServiceObject {
             private: options.private,
             public: options.public,
             userProject: options.userProject || this.userProject,
-            retryOptions: this.storage.retryOptions,
+            retryOptions: retryOptions,
+            params: options.preconditionOpts,
         }, callback);
     }
     /**
@@ -71360,16 +71534,21 @@ class File extends common_1.ServiceObject {
      * region_tag:storage_download_file_requester_pays
      * Example of downloading a file where the requester pays:
      */
-    download(optionsOrCallback, callback) {
+    download(optionsOrCallback, cb) {
         let options;
         if (typeof optionsOrCallback === 'function') {
-            callback = optionsOrCallback;
+            cb = optionsOrCallback;
             options = {};
         }
         else {
             options = optionsOrCallback;
         }
-        callback = once(callback);
+        let called = false;
+        const callback = ((...args) => {
+            if (!called)
+                cb(...args);
+            called = true;
+        });
         const destination = options.destination;
         delete options.destination;
         const fileStream = this.createReadStream(options);
@@ -71523,6 +71702,7 @@ class File extends common_1.ServiceObject {
      *     Currently, this method is an alias to `getSignedPolicyV2()`,
      *     and will be removed in a future major release.
      *     We recommend signing new policies using v4.
+     * @internal
      *
      * @throws {Error} If an expiration timestamp from the past is given.
      * @throws {Error} If options.equals has an array with less or more than two
@@ -72266,11 +72446,13 @@ class File extends common_1.ServiceObject {
         if (options.userProject) {
             query.userProject = options.userProject;
         }
+        this.disableAutoRetryConditionallyIdempotent_(this.methods.setMetadata, bucket_1.AvailableServiceObjectMethods.setMetadata);
         // You aren't allowed to set both predefinedAcl & acl properties on a file,
         // so acl must explicitly be nullified, destroying all previous acls on the
         // file.
         const metadata = extend({}, options.metadata, { acl: null });
         this.setMetadata(metadata, query, callback);
+        this.storage.retryOptions.autoRetry = this.instanceRetryValue;
     }
     /**
      * @typedef {array} MakeFilePublicResponse
@@ -72693,17 +72875,25 @@ class File extends common_1.ServiceObject {
      * file.save(contents).then(function() {});
      */
     save(data, optionsOrCallback, callback) {
+        var _a;
         // tslint:enable:no-any
         callback =
             typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
         const options = typeof optionsOrCallback === 'object' ? optionsOrCallback : {};
-        const isMultipart = options.resumable === false;
+        // Do not retry if precondition option ifMetagenerationMatch is not set
+        let maxRetries = this.storage.retryOptions.maxRetries;
+        if ((((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifMetagenerationMatch) === undefined &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) ||
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryNever) {
+            maxRetries = 0;
+        }
         const returnValue = retry(async (bail) => {
             await new Promise((resolve, reject) => {
                 const writable = this.createWriteStream(options)
                     .on('error', err => {
-                    if (isMultipart &&
-                        this.storage.retryOptions.autoRetry &&
+                    if (this.storage.retryOptions.autoRetry &&
                         this.storage.retryOptions.retryableErrorFn(err)) {
                         return reject(err);
                     }
@@ -72720,7 +72910,7 @@ class File extends common_1.ServiceObject {
                 writable.end(data);
             });
         }, {
-            retries: this.storage.retryOptions.maxRetries,
+            retries: maxRetries,
             factor: this.storage.retryOptions.retryDelayMultiplier,
             maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000,
             maxRetryTime: this.storage.retryOptions.totalTimeout * 1000,
@@ -72831,9 +73021,19 @@ class File extends common_1.ServiceObject {
      * @private
      */
     startResumableUpload_(dup, options) {
+        var _a;
         options = Object.assign({
             metadata: {},
         }, options);
+        // Do not retry if precondition option ifMetagenerationMatch is not set
+        const retryOptions = this.storage.retryOptions;
+        if ((((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifMetagenerationMatch) === undefined &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) ||
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryNever) {
+            retryOptions.autoRetry = false;
+        }
         const uploadStream = resumableUpload.upload({
             authClient: this.storage.authClient,
             apiEndpoint: this.storage.apiEndpoint,
@@ -72851,7 +73051,8 @@ class File extends common_1.ServiceObject {
             public: options.public,
             uri: options.uri,
             userProject: options.userProject || this.userProject,
-            retryOptions: this.storage.retryOptions,
+            retryOptions: retryOptions,
+            params: options.preconditionOpts,
         });
         uploadStream
             .on('response', resp => {
@@ -72877,6 +73078,7 @@ class File extends common_1.ServiceObject {
      * @private
      */
     startSimpleUpload_(dup, options) {
+        var _a, _b, _c, _d;
         options = Object.assign({
             metadata: {},
         }, options);
@@ -72910,6 +73112,21 @@ class File extends common_1.ServiceObject {
         else if (options.public) {
             reqOpts.qs.predefinedAcl = 'publicRead';
         }
+        if ((_a = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifGenerationMatch) {
+            reqOpts.qs.ifGenerationMatch = options.preconditionOpts.ifGenerationMatch;
+        }
+        if ((_b = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _b === void 0 ? void 0 : _b.ifGenerationNotMatch) {
+            reqOpts.qs.ifGenerationNotMatch =
+                options.preconditionOpts.ifGenerationNotMatch;
+        }
+        if ((_c = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _c === void 0 ? void 0 : _c.ifMetagenerationMatch) {
+            reqOpts.qs.ifMetagenerationMatch =
+                options.preconditionOpts.ifMetagenerationMatch;
+        }
+        if ((_d = options === null || options === void 0 ? void 0 : options.preconditionOpts) === null || _d === void 0 ? void 0 : _d.ifMetagenerationNotMatch) {
+            reqOpts.qs.ifMetagenerationNotMatch =
+                options.preconditionOpts.ifMetagenerationNotMatch;
+        }
         common_1.util.makeWritableStream(dup, {
             makeAuthenticatedRequest: (reqOpts) => {
                 this.request(reqOpts, (err, body, resp) => {
@@ -72925,6 +73142,20 @@ class File extends common_1.ServiceObject {
             metadata: options.metadata,
             request: reqOpts,
         });
+    }
+    disableAutoRetryConditionallyIdempotent_(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    coreOpts, methodType) {
+        var _a, _b;
+        if ((typeof coreOpts === 'object' &&
+            ((_b = (_a = coreOpts === null || coreOpts === void 0 ? void 0 : coreOpts.reqOpts) === null || _a === void 0 ? void 0 : _a.qs) === null || _b === void 0 ? void 0 : _b.ifMetagenerationMatch) === undefined &&
+            methodType === bucket_1.AvailableServiceObjectMethods.setMetadata &&
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryConditional) ||
+            this.storage.retryOptions.idempotencyStrategy ===
+                storage_1.IdempotencyStrategy.RetryNever) {
+            this.storage.retryOptions.autoRetry = false;
+        }
     }
 }
 exports.File = File;
