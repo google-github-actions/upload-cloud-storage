@@ -47,8 +47,18 @@ async function run(): Promise<void> {
     });
     const metadata =
       headersInput === '' ? undefined : parseHeadersInput(headersInput);
-    const serviceAccountKey = core.getInput('credentials');
-    const client = new Client({ credentials: serviceAccountKey });
+    const credentials = core.getInput('credentials');
+
+    // Add warning if using credentials
+    if (credentials) {
+      core.warning(
+        '"credentials" input has been deprecated. ' +
+          'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
+          'For more details, see https://github.com/google-github-actions/upload-cloud-storage#authorization',
+      );
+    }
+
+    const client = new Client({ credentials: credentials });
     const uploadResponses = await client.upload(
       destination,
       path,

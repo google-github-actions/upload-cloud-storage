@@ -6,6 +6,10 @@ on:
     - 'main'
   pull_request:
 
+concurrency:
+  group: '${{ github.head_ref || github.ref }}-it'
+  cancel-in-progress: true
+
 jobs:
   gcloud:
     if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
@@ -114,3 +118,36 @@ jobs:
         env:
           UPLOAD_CLOUD_STORAGE_TEST_BUCKET: ${{ secrets.UPLOAD_CLOUD_STORAGE_TEST_BUCKET }}
           UPLOAD_CLOUD_STORAGE_TEST_PROJECT: ${{ secrets.UPLOAD_CLOUD_STORAGE_PROJECT }}
+
+  wif:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+    name: with wif
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: google-github-actions/auth@main
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER_NAME }}
+          service_account: ${{ secrets.UPLOAD_CLOUD_STORAGE_GCP_SA_EMAIL }}
+      - id: build
+        name: Build dist
+        run: |-
+          npm install
+          npm run build
+      - name: make temp folder and files
+        run: |
+          mkdir -p test
+          touch test/test1.txt
+          touch test/test2.txt
+      - id: upload
+        name: upload folder
+        uses: ./
+        with:
+          path: ./test
+          destination: ${{ secrets.UPLOAD_CLOUD_STORAGE_TEST_BUCKET }}/testprefix
+          credentials: ${{ secrets.UPLOAD_CLOUD_STORAGE_GCP_SA_KEY_JSON }}
+      - name: get output
+        run: echo '${{ steps.upload.outputs.uploaded }}'
