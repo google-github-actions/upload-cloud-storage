@@ -34,8 +34,13 @@ used in subsequent steps.
 
 ```yaml
 steps:
+  - id: auth
+    uses: google-github-actions/auth@v0.4.0
+    with:
+      workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+      service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
   - id: upload-file
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: /path/to/file
       destination: bucket-name/file
@@ -53,8 +58,13 @@ The file will be uploaded to `gs://bucket-name/file`
 
 ```yaml
 steps:
+  - id: auth
+    uses: google-github-actions/auth@v0.4.0
+    with:
+      workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+      service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
   - id: upload-files
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: /path/to/folder
       destination: bucket-name
@@ -85,7 +95,7 @@ With default configuration
 ```yaml
 steps:
   - id: upload-files
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: myfolder
       destination: bucket-name
@@ -98,7 +108,7 @@ Optionally, you can also specify a prefix in destination.
 ```yaml
 steps:
   - id: upload-files
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: myfolder
       destination: bucket-name/myprefix
@@ -114,7 +124,7 @@ Setting `parent` to false will omit `path` when uploading to bucket.
 ```yaml
 steps:
   - id: upload-files
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: myfolder
       destination: bucket-name
@@ -130,7 +140,7 @@ Optionally, you can also specify a prefix in destination.
 ```yaml
 steps:
   - id: upload-files
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: myfolder
       destination: bucket-name/myprefix
@@ -146,7 +156,7 @@ You can specify a glob pattern like
 ```yaml
 steps:
   - id: upload-files
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: myfolder
       destination: bucket-name
@@ -227,10 +237,6 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
 
   All custom metadata fields must be prefixed with `x-goog-meta-`.
 
-- `credentials`: (Optional) [Google Service Account JSON][sa] credentials as JSON or base64 encoded string,
-  typically sourced from a [GitHub Secret][gh-secret]. If unspecified, other
-  authentication methods are attempted. See [Authorization](#Authorization) below.
-
 - `parent`: (Optional) Whether parent dir should be included in GCS destination, defaults to true.
 
   ```yaml
@@ -249,6 +255,11 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
   concurrency: 10
   ```
 
+- `credentials`:  (**Deprecated**) This input is deprecated. See [auth section](https://github.com/google-github-actions/upload-cloud-storage#via-google-github-actionsauth) for more details.
+ [Google Service Account JSON][sa] credentials as JSON or base64 encoded string,
+  typically sourced from a [GitHub Secret][gh-secret]. If unspecified, other
+  authentication methods are attempted. See [Authorization](#Authorization) below.
+
 ## Outputs
 
 List of successfully uploaded file(s).
@@ -258,7 +269,7 @@ For example:
 ```yaml
 steps:
   - id: upload-file
-    uses: google-github-actions/upload-cloud-storage@main
+    uses: google-github-actions/upload-cloud-storage@v0.4.0
     with:
       path: /path/to/file
       destination: bucket-name/file
@@ -278,36 +289,32 @@ will be available in future steps as the output "uploaded":
 There are a few ways to authenticate this action. The caller must have
 permissions to access the secrets being requested.
 
-### Via the setup-gcloud action
+### Via google-github-actions/auth
 
-You can provide credentials using the [setup-gcloud][setup-gcloud] action:
+Use [google-github-actions/auth](https://github.com/google-github-actions/auth) to authenticate the action. You can use [Workload Identity Federation][wif] or traditional [Service Account Key JSON][sa] authentication.
+by specifying the `credentials` input. This Action supports both the recommended [Workload Identity Federation][wif] based authentication and the traditional [Service Account Key JSON][sa] based auth.
+
+See [usage](https://github.com/google-github-actions/auth#usage) for more details.
+
+#### Authenticating via Workload Identity Federation
 
 ```yaml
-- uses: google-github-actions/setup-gcloud@master
+- id: auth
+  uses: google-github-actions/auth@v0.4.0
   with:
-    service_account_key: ${{ secrets.GCP_SA_KEY }}
-    export_default_credentials: true
-- uses: google-github-actions/upload-cloud-storage@main
+    workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+    service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+- uses: google-github-actions/upload-cloud-storage@v0.4.0
 ```
 
-The advantage of this approach is that it authenticates all future actions. A
-disadvantage of this approach is that downloading and installing gcloud may be
-heavy for some use cases.
-
-### Via credentials
-
-You can provide [Google Cloud Service Account JSON][sa] directly to the action
-by specifying the `credentials` input. First, create a [GitHub
-Secret][gh-secret] that contains the JSON content, then import it into the
-action:
+#### Authenticating via Service Account Key JSON
 
 ```yaml
-- id: upload-file
-  uses: google-github-actions/upload-cloud-storage@main
+- id: auth
+  uses: google-github-actions/auth@v0.4.0
   with:
-    credentials: ${{ secrets.gcp_credentials }}
-    path: /path/to/folder
-    destination: bucket-name/file
+    credentials_json: ${{ secrets.gcp_credentials }}
+- uses: google-github-actions/upload-cloud-storage@v0.4.0
 ```
 
 ### Via Application Default Credentials
@@ -319,13 +326,14 @@ only works using a custom runner hosted on GCP.**
 
 ```yaml
 - id: upload-file
-  uses: google-github-actions/upload-cloud-storage@main
+  uses: google-github-actions/upload-cloud-storage@v0.4.0
 ```
 
 The action will automatically detect and use the Application Default
 Credentials.
 
 [gcs]: https://cloud.google.com/storage
+[wif]: https://cloud.google.com/iam/docs/workload-identity-federation
 [sa]: https://cloud.google.com/iam/docs/creating-managing-service-accounts
 [gh-runners]: https://help.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners
 [gh-secret]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
