@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.4.0...v0.5.0) (2021-11-16)
+
+
+### Features
+
+* Add `headers` option ([#42](https://www.github.com/google-github-actions/upload-cloud-storage/issues/42)) ([#99](https://www.github.com/google-github-actions/upload-cloud-storage/issues/99)) ([531cbeb](https://www.github.com/google-github-actions/upload-cloud-storage/commit/531cbebb6f6d81d00018daceedd5d4ac33b5750a))
+* add WIF docs, add warning for credentials input ([#145](https://www.github.com/google-github-actions/upload-cloud-storage/issues/145)) ([cb8404f](https://www.github.com/google-github-actions/upload-cloud-storage/commit/cb8404f7f7e1b83eb7d9f5a55eff745fab90be97))
+
+
+### Bug Fixes
+
+* absolute path without parent dir ([#108](https://www.github.com/google-github-actions/upload-cloud-storage/issues/108)) ([205a73d](https://www.github.com/google-github-actions/upload-cloud-storage/commit/205a73d2c3105366722104e84f2ad1da16c2ad63))
+
 ## [0.4.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.3.0...v0.4.0) (2021-08-09)
 
 
