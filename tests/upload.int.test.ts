@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import 'mocha';
+import { expect } from 'chai';
+
 import { Client } from '../src/client';
 import * as tmp from 'tmp';
 import * as fs from 'fs';
@@ -40,11 +40,6 @@ const storage = new Storage({
 });
 const PERF_TEST_FILE_COUNT = 10000;
 
-// setup chai to use chaiAsPromised
-chai.use(chaiAsPromised);
-// eslint-disable-next-line
-const should = chai.should();
-const expect = chai.expect;
 // skip performance test and error message verification on Windows
 const isWin = os.platform() === 'win32';
 
@@ -362,19 +357,23 @@ describe('Integration Upload ', function () {
     if (isWin) {
       this.skip();
     }
-    const uploader = new Client();
-    return uploader
-      .upload(testBucket, EXAMPLE_DIR + '/nonexistent')
-      .should.eventually.be.rejectedWith(
-        "ENOENT: no such file or directory, stat './tests/testdata/nonexistent'",
-      );
+
+    try {
+      const uploader = new Client();
+      await uploader.upload(testBucket, EXAMPLE_DIR + '/nonexistent');
+      throw new Error(`error should have been thrown`);
+    } catch (err) {
+      expect(`${err}`).to.include('ENOENT');
+    }
   });
 
   it('throws an error for a non existent bucket', async function () {
-    const uploader = new Client();
-    // error message seems to be either The specified bucket does not exist or Not Found so checking for 404 error code
-    return uploader
-      .upload(testBucket + 'nonexistent', EXAMPLE_FILE)
-      .should.eventually.be.rejected.and.have.property('code', 404);
+    try {
+      const uploader = new Client();
+      await uploader.upload(testBucket + 'nonexistent', EXAMPLE_FILE);
+      throw new Error(`error should have been thrown`);
+    } catch (err) {
+      expect(err).to.be;
+    }
   });
 });

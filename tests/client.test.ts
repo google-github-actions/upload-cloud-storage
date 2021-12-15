@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import 'mocha';
+import { expect } from 'chai';
+
 import * as sinon from 'sinon';
 import { Client } from '../src/client';
 import { UploadHelper } from '../src/upload-helper';
