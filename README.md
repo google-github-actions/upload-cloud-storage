@@ -47,7 +47,7 @@ jobs:
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'upload-file'
-      uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+      uses: 'google-github-actions/upload-cloud-storage@v0'
       with:
         path: '/path/to/file'
         destination: 'bucket-name/file'
@@ -78,7 +78,7 @@ jobs:
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'upload-folder'
-      uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+      uses: 'google-github-actions/upload-cloud-storage@v0'
       with:
         path: '/path/to/folder'
         destination: 'bucket-name'
@@ -108,7 +108,7 @@ With default configuration
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+  uses: 'google-github-actions/upload-cloud-storage@v0'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -120,7 +120,7 @@ Optionally, you can also specify a prefix in destination.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+  uses: 'google-github-actions/upload-cloud-storage@v0'
   with:
     path: 'myfolder'
     destination: 'bucket-name/myprefix'
@@ -135,7 +135,7 @@ Setting `parent` to false will omit `path` when uploading to bucket.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+  uses: 'google-github-actions/upload-cloud-storage@v0'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -150,7 +150,7 @@ Optionally, you can also specify a prefix in destination.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+  uses: 'google-github-actions/upload-cloud-storage@v0'
   with:
     path: 'myfolder'
     destination: 'bucket-name/myprefix'
@@ -165,7 +165,7 @@ You can specify a glob pattern like
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+  uses: 'google-github-actions/upload-cloud-storage@v0'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -296,7 +296,7 @@ For example:
 
 ```yaml
 - id: 'upload-file'
-  uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+  uses: 'google-github-actions/upload-cloud-storage@v0'
   with:
     path: '/path/to/file'
     destination: 'bucket-name/file'
@@ -339,7 +339,7 @@ jobs:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
-    - uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+    - uses: 'google-github-actions/upload-cloud-storage@v0'
 ```
 
 #### Authenticating via Service Account Key JSON
@@ -353,7 +353,7 @@ jobs:
       with:
         credentials_json: '${{ secrets.gcp_credentials }}'
 
-    - uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+    - uses: 'google-github-actions/upload-cloud-storage@v0'
 ```
 
 ### Via Application Default Credentials
@@ -368,7 +368,7 @@ jobs:
   job_id:
     steps:
     - id: 'upload-file'
-      uses: 'google-github-actions/upload-cloud-storage@v0.4.0'
+      uses: 'google-github-actions/upload-cloud-storage@v0'
 ```
 
 The action will automatically detect and use the Application Default

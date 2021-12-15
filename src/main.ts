@@ -18,6 +18,7 @@ import * as core from '@actions/core';
 import { PredefinedAcl } from '@google-cloud/storage';
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
+import { errorMessage } from './util';
 
 async function run(): Promise<void> {
   try {
@@ -77,8 +78,11 @@ async function run(): Promise<void> {
         .map((uploadResponse) => uploadResponse[0].name)
         .toString(),
     );
-  } catch (error) {
-    core.setFailed(error.message);
+  } catch (err) {
+    const msg = errorMessage(err);
+    core.setFailed(
+      `google-github-actions/upload-cloud-storage failed with ${msg}`,
+    );
   }
 }
 
