@@ -36,7 +36,7 @@
     "@types/tmp": "^0.2.2",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
-    "@vercel/ncc": "^0.33.0",
+    "@vercel/ncc": "^0.33.1",
     "chai": "^4.3.4",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
