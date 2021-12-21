@@ -18,6 +18,7 @@ import 'mocha';
 import { expect } from 'chai';
 
 import * as sinon from 'sinon';
+
 import { Client } from '../src/client';
 import { UploadHelper } from '../src/upload-helper';
 import { FAKE_FILE, FAKE_METADATA } from './constants.test';

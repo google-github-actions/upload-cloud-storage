@@ -17,13 +17,13 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { Client } from '../src/client';
 import * as tmp from 'tmp';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Storage } from '@google-cloud/storage';
 import pMap from 'p-map';
+
 import {
   EXAMPLE_FILE,
   EXAMPLE_DIR,
@@ -34,6 +34,7 @@ import {
   TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR,
   TXT_FILES_IN_TOP_DIR,
 } from './constants.test';
+import { Client } from '../src/client';
 
 const storage = new Storage({
   projectId: process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT,

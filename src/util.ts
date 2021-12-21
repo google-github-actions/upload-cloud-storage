@@ -17,7 +17,8 @@
 import * as path from 'path';
 
 /**
- * Constructs a destination path in GCS from a given filepath
+ * getDestinationFromPath constructs a destination path in GCS from a given
+ * filepath.
  *
  * @param filePath The path to file.
  * @param directory  The parent dir specified.
@@ -25,7 +26,7 @@ import * as path from 'path';
  * @param prefix  Prefix any to be prefixed to destination path.
  * @returns The GCS destination for a given filepath
  */
-export async function GetDestinationFromPath(
+export async function getDestinationFromPath(
   filePath: string,
   directory: string,
   parent = true,
@@ -58,28 +59,4 @@ export async function GetDestinationFromPath(
     dest = path.posix.join(prefix, dest);
   }
   return dest;
-}
-
-/**
- * errorMessage extracts the error message from the given error.
- *
- * TODO(sethvargo): Candidate for centralization.
- *
- */
-export function errorMessage(err: unknown): string {
-  if (!err) {
-    return '';
-  }
-
-  let msg = err instanceof Error ? err.message : `${err}`;
-  msg = msg.trim();
-  msg = msg.replace('Error: ', '');
-  msg = msg.trim();
-
-  if (!msg) {
-    return '';
-  }
-
-  msg = msg[0].toLowerCase() + msg.slice(1);
-  return msg;
 }

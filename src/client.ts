@@ -16,14 +16,24 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { UploadHelper } from './upload-helper';
-import { Metadata } from './headers';
+
 import {
   Storage,
   UploadResponse,
   StorageOptions,
   PredefinedAcl,
 } from '@google-cloud/storage';
+import { parseCredential } from '@google-github-actions/actions-utils';
+
+import { UploadHelper } from './upload-helper';
+import { Metadata } from './headers';
+
+// Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version: appVersion } = require('../package.json');
+
+// userAgent is the default user agent.
+const userAgent = `google-github-actions:upload-cloud-storage/${appVersion}`;
 
 /**
  * Available options to create the client.
@@ -43,23 +53,16 @@ type ClientOptions = {
  */
 export class Client {
   readonly storage: Storage;
+
   constructor(opts?: ClientOptions) {
-    const options: StorageOptions = {
-      userAgent: 'github-actions-upload-cloud-storage/0.3.0',
-    };
+    const options: StorageOptions = { userAgent: userAgent };
+
     if (opts?.credentials) {
-      // If the credentials are not JSON, they are probably base64-encoded. Even
-      // though we don't instruct users to provide base64-encoded credentials,
-      // sometimes they still do.
-      if (!opts.credentials.trim().startsWith('{')) {
-        const creds = opts.credentials;
-        opts.credentials = Buffer.from(creds, 'base64').toString('utf8');
-      }
-      const creds = JSON.parse(opts.credentials);
-      options.credentials = creds;
+      options.credentials = parseCredential(opts.credentials);
     }
     this.storage = new Storage(options);
   }
+
   /**
    * Invokes GCS Helper for uploading file or directory.
    * @param destination Name of bucket and optional prefix to upload file/dir.

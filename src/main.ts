@@ -16,9 +16,10 @@
 
 import * as core from '@actions/core';
 import { PredefinedAcl } from '@google-cloud/storage';
+import { errorMessage } from '@google-github-actions/actions-utils';
+
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
-import { errorMessage } from './util';
 
 async function run(): Promise<void> {
   try {
