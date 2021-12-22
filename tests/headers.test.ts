@@ -19,6 +19,7 @@ import { expect } from 'chai';
 
 import * as core from '@actions/core';
 import * as sinon from 'sinon';
+
 import { parseHeadersInput } from '../src/headers';
 
 /**

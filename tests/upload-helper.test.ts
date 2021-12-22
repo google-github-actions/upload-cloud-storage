@@ -19,8 +19,8 @@ import { expect } from 'chai';
 
 import * as sinon from 'sinon';
 import * as path from 'path';
-import { UploadHelper } from '../src/upload-helper';
 import { Storage, Bucket } from '@google-cloud/storage';
+
 import {
   EXAMPLE_BUCKET,
   EXAMPLE_FILE,
@@ -33,6 +33,7 @@ import {
   TXT_FILES_IN_DIR,
   TXT_FILES_IN_TOP_DIR,
 } from './constants.test';
+import { UploadHelper } from '../src/upload-helper';
 /**
  * Unit Test uploadFile method in uploadHelper.
  */

@@ -25,7 +25,7 @@ import {
   UploadResponse,
 } from '@google-cloud/storage';
 import { Metadata } from './headers';
-import { GetDestinationFromPath } from './util';
+import { getDestinationFromPath } from './util';
 import globby from 'globby';
 import * as core from '@actions/core';
 import pMap from 'p-map';
@@ -125,7 +125,7 @@ export class UploadHelper {
     // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
     const filesList = await globby([path.posix.join(directoryPath, glob)]);
     const uploader = async (filePath: string): Promise<UploadResponse> => {
-      const destination = await GetDestinationFromPath(
+      const destination = await getDestinationFromPath(
         filePath,
         directoryPath,
         parent,

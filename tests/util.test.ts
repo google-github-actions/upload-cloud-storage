@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import 'mocha';
-import { GetDestinationFromPath } from '../src/util';
+import { expect } from 'chai';
+
+import { getDestinationFromPath } from '../src/util';
 
 /**
- * Unit Test GetDestinationFromPath method in utils.
+ * Unit Test getDestinationFromPath method in utils.
  */
-describe('Unit Test GetDestinationFromPath', function () {
-  const tests = [
+describe('Unit Test getDestinationFromPath', function () {
+  const cases = [
     {
       name: 'returns correct destination for a file',
       input: {
@@ -194,16 +195,17 @@ describe('Unit Test GetDestinationFromPath', function () {
       output: 'bar/bar.txt',
     },
   ];
-  tests.forEach((test) => {
-    it(test.name, async function () {
-      const { filePath, directory, parent, prefix } = test.input;
-      const destination = await GetDestinationFromPath(
+
+  cases.forEach((tc) => {
+    it(tc.name, async function () {
+      const { filePath, directory, parent, prefix } = tc.input;
+      const destination = await getDestinationFromPath(
         filePath,
         directory,
         parent,
         prefix,
       );
-      expect(destination).eq(test.output);
+      expect(destination).eq(tc.output);
     });
   });
 });
