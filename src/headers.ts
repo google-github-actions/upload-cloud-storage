@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as core from '@actions/core';
-
 const customMetadataPrefix = 'x-goog-meta-';
 
 interface CustomMetadata {
