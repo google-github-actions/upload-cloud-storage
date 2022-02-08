@@ -39,7 +39,7 @@ import { Client } from '../src/client';
 const storage = new Storage({
   projectId: process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT,
 });
-const PERF_TEST_FILE_COUNT = 10000;
+const PERF_TEST_FILE_COUNT = 1000;
 
 // skip performance test and error message verification on Windows
 const isWin = os.platform() === 'win32';
@@ -333,9 +333,7 @@ describe('Integration Upload ', function () {
   });
 
   it(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function () {
-    if (isWin) {
-      this.skip();
-    }
+    if (isWin) this.skip();
     tmp.setGracefulCleanup();
 
     const { name: tmpDirPath } = tmp.dirSync();
@@ -345,7 +343,7 @@ describe('Integration Upload ', function () {
         postfix: '.txt',
         dir: tmpDirPath,
       });
-      fs.writeFileSync(tmpFilePath, path.posix.basename(tmpFilePath));
+      fs.writeFileSync(tmpFilePath, path.basename(tmpFilePath));
     }
 
     const uploader = new Client();

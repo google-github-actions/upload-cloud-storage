@@ -26,7 +26,7 @@ import {
 } from '@google-cloud/storage';
 import { Metadata } from './headers';
 import { getDestinationFromPath } from './util';
-import globby from 'globby';
+import tinyglob from 'tiny-glob';
 import * as core from '@actions/core';
 import pMap from 'p-map';
 
@@ -122,7 +122,6 @@ export class UploadHelper {
     concurrency = 100,
     metadata?: Metadata,
   ): Promise<UploadResponse[]> {
-    // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
     const filesList = await expandGlob(directoryPath, glob);
     const uploader = async (filePath: string): Promise<UploadResponse> => {
       const destination = await getDestinationFromPath(
@@ -159,10 +158,23 @@ export async function expandGlob(
   directoryPath: string,
   glob: string,
 ): Promise<string[]> {
-  const pth = toPosixPath(path.posix.join(directoryPath, glob));
-  const filesList = await globby([pth], {
+  // Preserve backwards compatability and evaluate the empty glob to a
+  // recursive include-all.
+  if (!glob) {
+    glob = '**/*';
+  }
+
+  // tinyglob requires a posix path, but then the rest of our code wants a
+  // OS-specific path.
+  const pth = toPosixPath(path.join(directoryPath, glob));
+  const filesList = await tinyglob(pth, {
     dot: true,
+    filesOnly: true,
+    flush: true,
   });
+  for (let i = 0; i < filesList.length; i++) {
+    filesList[i] = toPosixPath(filesList[i]);
+  }
   return filesList.sort();
 }
 

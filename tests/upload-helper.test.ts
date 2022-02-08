@@ -22,6 +22,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
 
+import { errorMessage } from '@google-github-actions/actions-utils';
 import { Storage, Bucket } from '@google-cloud/storage';
 
 import {
@@ -292,9 +293,12 @@ describe('#expandGlob', () => {
         // TODO(sethvargo): switch to just fs.rm once we upgrade to Node 16
         // only. This function is deprecated in 16, but the replacement doesn't
         // exist in 12.
-        await fs.rmdir(this.tmpdir, { recursive: true });
+        await fs.rm(this.tmpdir, { recursive: true });
       } catch (err) {
-        console.error(`failed to remove directory: ${err}`);
+        const msg = errorMessage(err);
+        if (!msg.toUpperCase().includes('ENOENT')) {
+          console.error(`failed to remove directory: ${msg}`);
+        }
       }
     }
   });
