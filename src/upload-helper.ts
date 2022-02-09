@@ -122,8 +122,7 @@ export class UploadHelper {
     concurrency = 100,
     metadata?: Metadata,
   ): Promise<UploadResponse[]> {
-    // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
-    const filesList = await globby([path.posix.join(directoryPath, glob)]);
+    const filesList = await expandGlob(directoryPath, glob);
     const uploader = async (filePath: string): Promise<UploadResponse> => {
       const destination = await getDestinationFromPath(
         filePath,
@@ -131,6 +130,7 @@ export class UploadHelper {
         parent,
         prefix,
       );
+
       const uploadResp = await this.uploadFile(
         bucketName,
         filePath,
@@ -144,4 +144,22 @@ export class UploadHelper {
     };
     return await pMap(filesList, uploader, { concurrency });
   }
+}
+
+/**
+ * expandGlob compiles the list of all files in the given directory for
+ * the provided glob.
+ *
+ * @param directoryPath The path to the directory.
+ * @param glob Glob pattern to use for searching. If the empty string, a
+ * match-all pattern is used instead.
+ * @returns List of files.
+ */
+export async function expandGlob(
+  directoryPath: string,
+  glob: string,
+): Promise<string[]> {
+  // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
+  const filesList = await globby([path.posix.join(directoryPath, glob)]);
+  return filesList;
 }
