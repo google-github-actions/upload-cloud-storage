@@ -26,7 +26,7 @@ import {
 } from '@google-cloud/storage';
 import { Metadata } from './headers';
 import { getDestinationFromPath } from './util';
-import globby from 'globby';
+import tinyglob from 'tiny-glob';
 import * as core from '@actions/core';
 import pMap from 'p-map';
 
@@ -123,7 +123,12 @@ export class UploadHelper {
     metadata?: Metadata,
   ): Promise<UploadResponse[]> {
     // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
-    const filesList = await globby([path.posix.join(directoryPath, glob)]);
+    if (!glob) {
+      glob = '**/*';
+    }
+    const filesList = await tinyglob(path.posix.join(directoryPath, glob), {
+      filesOnly: true,
+    });
     const uploader = async (filePath: string): Promise<UploadResponse> => {
       const destination = await getDestinationFromPath(
         filePath,
