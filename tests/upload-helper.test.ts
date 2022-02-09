@@ -17,8 +17,11 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import * as sinon from 'sinon';
+import { promises as fs } from 'fs';
+import * as os from 'os';
 import * as path from 'path';
+import * as sinon from 'sinon';
+
 import { Storage, Bucket } from '@google-cloud/storage';
 
 import {
@@ -33,7 +36,7 @@ import {
   TXT_FILES_IN_DIR,
   TXT_FILES_IN_TOP_DIR,
 } from './constants.test';
-import { UploadHelper } from '../src/upload-helper';
+import { UploadHelper, expandGlob, toPosixPath } from '../src/upload-helper';
 /**
  * Unit Test uploadFile method in uploadHelper.
  */
@@ -216,6 +219,7 @@ describe('Unit Test uploadDir', function () {
       expect(destination.split('/')[0]).eq(EXAMPLE_PREFIX);
     });
   });
+
   it('uploads a dir at bucket root with globstar txt', async function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadDirectory(
@@ -270,5 +274,90 @@ describe('Unit Test uploadDir', function () {
     expect(filenames).to.have.members(TXT_FILES_IN_TOP_DIR);
     // Assert uploadDir called uploadFile with destination paths.
     expect(destinations).to.have.members(TXT_FILES_IN_TOP_DIR);
+  });
+});
+
+describe('#expandGlob', () => {
+  beforeEach(async function () {
+    // Make a temporary directory and make the path relative to cwd, then make
+    // it posix.
+    const tmp = os.tmpdir();
+    this.tmpdir = await fs.mkdtemp(path.join(tmp, 'gha-'));
+    this.tmpdir = path.relative(process.cwd(), this.tmpdir);
+  });
+
+  afterEach(async function () {
+    if (this.tmpdir) {
+      try {
+        // TODO(sethvargo): switch to just fs.rm once we upgrade to Node 16
+        // only. This function is deprecated in 16, but the replacement doesn't
+        // exist in 12.
+        await fs.rmdir(this.tmpdir, { recursive: true });
+      } catch (err) {
+        console.error(`failed to remove directory: ${err}`);
+      }
+    }
+  });
+
+  it('returns the empty list when the directory is empty', async function () {
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([]);
+  });
+
+  it('returns one file', async function () {
+    const a = path.join(this.tmpdir, 'a');
+    await fs.writeFile(a, 'test');
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath(a)]);
+  });
+
+  it('returns multiple files', async function () {
+    const a = path.join(this.tmpdir, 'a');
+    await fs.writeFile(a, 'test');
+
+    const b = path.join(this.tmpdir, 'b');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath(a), toPosixPath(b)]);
+  });
+
+  it('returns files in subdirectories', async function () {
+    const a = path.join(this.tmpdir, 'a');
+    await fs.writeFile(a, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+    const b = path.join(pth, 'b');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath(a), toPosixPath(b)]);
+  });
+
+  it('returns files beginning with a dot', async function () {
+    const a = path.join(this.tmpdir, '.a');
+    await fs.writeFile(a, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+    const b = path.join(pth, '.b');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath(a), toPosixPath(b)]);
+  });
+
+  it('returns files with non-ascii characters', async function () {
+    const a = path.join(this.tmpdir, '🚀');
+    await fs.writeFile(a, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+    const b = path.join(pth, '.🚀');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath(b), toPosixPath(a)]);
   });
 });
