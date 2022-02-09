@@ -123,7 +123,7 @@ export class UploadHelper {
     metadata?: Metadata,
   ): Promise<UploadResponse[]> {
     // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
-    const filesList = await globby([path.posix.join(directoryPath, glob)]);
+    const filesList = await expandGlob(directoryPath, glob);
     const uploader = async (filePath: string): Promise<UploadResponse> => {
       const destination = await getDestinationFromPath(
         filePath,
@@ -144,4 +144,35 @@ export class UploadHelper {
     };
     return await pMap(filesList, uploader, { concurrency });
   }
+}
+
+/**
+ * expandGlob compiles the list of all files in the given directory for
+ * the provided glob.
+ *
+ * @param directoryPath The path to the directory.
+ * @param glob Glob pattern to use for searching. If the empty string, a
+ * match-all pattern is used instead.
+ * @return Sorted list of files in posix form.
+ */
+export async function expandGlob(
+  directoryPath: string,
+  glob: string,
+): Promise<string[]> {
+  const pth = toPosixPath(path.posix.join(directoryPath, glob));
+  const filesList = await globby([pth], {
+    dot: true,
+  });
+  return filesList.sort();
+}
+
+/**
+ * toPosixPath converts the given path to the posix form. On Windows, \\ will be
+ * replaced with /.
+ *
+ * @param pth. Path to transform.
+ * @return Posix-path.
+ */
+export function toPosixPath(pth: string): string {
+  return pth.split(path.sep).join(path.posix.sep);
 }
