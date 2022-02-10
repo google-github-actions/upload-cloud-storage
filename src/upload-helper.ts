@@ -26,9 +26,9 @@ import {
 } from '@google-cloud/storage';
 import { Metadata } from './headers';
 import { getDestinationFromPath } from './util';
+import { WorkerPool } from './workerPool';
 import globby from 'globby';
 import * as core from '@actions/core';
-import pMap from 'p-map';
 
 /**
  * Wraps interactions with the the GCS library.
@@ -123,26 +123,32 @@ export class UploadHelper {
     metadata?: Metadata,
   ): Promise<UploadResponse[]> {
     // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
-    const filesList = await expandGlob(directoryPath, glob);
-    const uploader = async (filePath: string): Promise<UploadResponse> => {
-      const destination = await getDestinationFromPath(
-        filePath,
-        directoryPath,
-        parent,
-        prefix,
-      );
-      const uploadResp = await this.uploadFile(
-        bucketName,
-        filePath,
-        gzip,
-        resumable,
-        destination,
-        predefinedAcl,
-        Object.assign({}, metadata),
-      );
-      return uploadResp;
-    };
-    return await pMap(filesList, uploader, { concurrency });
+    const filesList = await globby([path.posix.join(directoryPath, glob)]);
+
+    const wp = new WorkerPool<UploadResponse>({
+      concurrency: concurrency,
+    });
+    for (const filePath of filesList) {
+      wp.queue(async (): Promise<UploadResponse> => {
+        const destination = await getDestinationFromPath(
+          filePath,
+          directoryPath,
+          parent,
+          prefix,
+        );
+        const uploadResp = await this.uploadFile(
+          bucketName,
+          filePath,
+          gzip,
+          resumable,
+          destination,
+          predefinedAcl,
+          Object.assign({}, metadata),
+        );
+        return uploadResp;
+      });
+    }
+    return await wp.process();
   }
 }
 

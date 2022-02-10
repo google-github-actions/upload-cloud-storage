@@ -22,7 +22,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Storage } from '@google-cloud/storage';
-import pMap from 'p-map';
+import { WorkerPool } from '../src/workerPool';
 
 import {
   EXAMPLE_FILE,
@@ -81,15 +81,18 @@ describe('Integration Upload ', function () {
   // remove all files in bucket before each test
   this.afterEach(async function () {
     const [files] = await storage.bucket(testBucket).getFiles();
-    const uploader = async (name: string): Promise<number> => {
-      const del = await storage.bucket(testBucket).file(name).delete();
-      return del[0].statusCode;
-    };
-    await pMap(
-      files.map((f) => f.name),
-      uploader,
-      { concurrency: 100 },
-    );
+
+    const wp = new WorkerPool<number>({
+      concurrency: 100,
+    });
+    for (const file of files) {
+      wp.queue(async (): Promise<number> => {
+        const del = await storage.bucket(testBucket).file(file.name).delete();
+        return del[0].statusCode;
+      });
+    }
+    await wp.process();
+
     const [checkFiles] = await storage.bucket(testBucket).getFiles();
     expect(checkFiles.length).eq(0);
   });
