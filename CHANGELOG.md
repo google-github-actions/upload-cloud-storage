@@ -2,6 +2,7 @@
 
 ## [0.6.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.5.0...v0.6.0) (2022-03-08)
 
+**⚠️ This is the last release that supports Node 12!**
 
 ### ⚠ BREAKING CHANGES
 
