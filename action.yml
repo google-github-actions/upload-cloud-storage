@@ -49,6 +49,10 @@ inputs:
       Set headers (object metadata).
     required: false
 
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+
 runs:
-  using: "node12"
-  main: "dist/index.js"
+  using: 'node16'
+  main: 'dist/index.js'
