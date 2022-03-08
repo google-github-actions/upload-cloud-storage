@@ -289,10 +289,7 @@ describe('#expandGlob', () => {
   afterEach(async function () {
     if (this.tmpdir) {
       try {
-        // TODO(sethvargo): switch to just fs.rm once we upgrade to Node 16
-        // only. This function is deprecated in 16, but the replacement doesn't
-        // exist in 12.
-        await fs.rmdir(this.tmpdir, { recursive: true });
+        await fs.rm(this.tmpdir, { recursive: true, force: true });
       } catch (err) {
         console.error(`failed to remove directory: ${err}`);
       }
