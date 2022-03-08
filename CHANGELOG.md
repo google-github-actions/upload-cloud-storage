@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.6.0...v0.7.0) (2022-03-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* require Node 16 (#227)
+
+### Miscellaneous Chores
+
+* require Node 16 ([#227](https://www.github.com/google-github-actions/upload-cloud-storage/issues/227)) ([15c0c05](https://www.github.com/google-github-actions/upload-cloud-storage/commit/15c0c0521e9a3a3eb74e73e4407ba11ea441d67d))
+
 ## [0.6.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.5.0...v0.6.0) (2022-03-08)
 
 **⚠️ This is the last release that supports Node 12!**
