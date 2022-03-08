@@ -15,6 +15,7 @@
 
 ### bug
 
+* also upload files and folders beginning with a dot ([#206](https://www.github.com/google-github-actions/upload-cloud-storage/issues/206))
 * throw an exception on invalid or duplicate headers ([#169](https://www.github.com/google-github-actions/upload-cloud-storage/issues/169)) ([7348133](https://www.github.com/google-github-actions/upload-cloud-storage/commit/7348133c56238ded37fcbb09c23fc8996481320f))
 
 ## [0.5.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.4.0...v0.5.0) (2021-11-16)
