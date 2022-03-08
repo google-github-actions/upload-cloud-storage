@@ -26,7 +26,7 @@
     "@actions/core": "^1.6.0",
     "@google-cloud/storage": "^5.18.1",
     "@google-github-actions/actions-utils": "^0.1.2",
-    "globby": "^11.0.4",
+    "globby": "^13.1.1",
     "p-map": "^4.0.0"
   },
   "devDependencies": {
