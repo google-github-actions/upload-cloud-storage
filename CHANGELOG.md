@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.5.0...v0.6.0) (2022-03-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* throw an exception on invalid or duplicate headers (#169)
+
+### Features
+
+* add support for files and folders beginning with a dot ([#206](https://www.github.com/google-github-actions/upload-cloud-storage/issues/206)) ([b5dd2b4](https://www.github.com/google-github-actions/upload-cloud-storage/commit/b5dd2b4bed766f174d8238b2269ff3ca8a50a0bb))
+* switch to using actions-utils ([#167](https://www.github.com/google-github-actions/upload-cloud-storage/issues/167)) ([7c418c5](https://www.github.com/google-github-actions/upload-cloud-storage/commit/7c418c5f23ef49794eba2e2b70d46dee5ee9d304))
+
+
+### bug
+
+* throw an exception on invalid or duplicate headers ([#169](https://www.github.com/google-github-actions/upload-cloud-storage/issues/169)) ([7348133](https://www.github.com/google-github-actions/upload-cloud-storage/commit/7348133c56238ded37fcbb09c23fc8996481320f))
+
 ## [0.5.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.4.0...v0.5.0) (2021-11-16)
 
 
