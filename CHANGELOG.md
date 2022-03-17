@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.7.0...v0.8.0) (2022-03-17)
+
+
+### Miscellaneous Chores
+
+* release 0.8.0 ([#233](https://www.github.com/google-github-actions/upload-cloud-storage/issues/233)) ([18d7842](https://www.github.com/google-github-actions/upload-cloud-storage/commit/18d78424cd0d52395d187cc82e3f13af4c0f018a))
+
 ## [0.7.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.6.0...v0.7.0) (2022-03-08)
 
 
