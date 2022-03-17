@@ -48,6 +48,12 @@ inputs:
     description: |-
       Set headers (object metadata).
     required: false
+  process_gcloudignore:
+    description: |-
+      Process the .gcloudignore file in the root of the repository and do not
+      upload files that match the patterns.
+    required: false
+    default: true
 
 branding:
   icon: 'upload-cloud'
