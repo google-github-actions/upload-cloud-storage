@@ -24,6 +24,7 @@ import {
   PredefinedAcl,
 } from '@google-cloud/storage';
 import { parseCredential } from '@google-github-actions/actions-utils';
+import { Ignore } from 'ignore';
 
 import { UploadHelper } from './upload-helper';
 import { Metadata } from './headers';
@@ -85,6 +86,7 @@ export class Client {
     predefinedAcl?: PredefinedAcl,
     concurrency = 100,
     metadata?: Metadata,
+    ignores?: Ignore,
   ): Promise<UploadResponse[]> {
     let bucketName = destination;
     let prefix = '';
@@ -111,8 +113,13 @@ export class Client {
         destination,
         predefinedAcl,
         metadata,
+        ignores,
       );
-      return [uploadedFile];
+
+      if (uploadedFile) {
+        return [uploadedFile];
+      }
+      return [];
     } else {
       const uploadedFiles = await uploader.uploadDirectory(
         bucketName,
@@ -125,6 +132,7 @@ export class Client {
         predefinedAcl,
         concurrency,
         metadata,
+        ignores,
       );
       return uploadedFiles;
     }

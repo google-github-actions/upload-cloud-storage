@@ -16,7 +16,11 @@
 
 import * as core from '@actions/core';
 import { PredefinedAcl } from '@google-cloud/storage';
-import { errorMessage } from '@google-github-actions/actions-utils';
+import {
+  errorMessage,
+  parseGcloudIgnore,
+} from '@google-github-actions/actions-utils';
+import ignore from 'ignore';
 
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
@@ -47,6 +51,7 @@ async function run(): Promise<void> {
     const headersInput = core.getInput('headers', {
       required: false,
     });
+    const processGcloudIgnore = core.getBooleanInput('process_gcloudignore');
     const metadata =
       headersInput === '' ? undefined : parseHeadersInput(headersInput);
     const credentials = core.getInput('credentials');
@@ -54,10 +59,16 @@ async function run(): Promise<void> {
     // Add warning if using credentials
     if (credentials) {
       core.warning(
-        '"credentials" input has been deprecated. ' +
+        'The "credentials" input is deprecated. ' +
           'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
           'For more details, see https://github.com/google-github-actions/upload-cloud-storage#authorization',
       );
+    }
+
+    const ignores = ignore();
+    if (processGcloudIgnore) {
+      const ignoreList = await parseGcloudIgnore('.gcloudignore');
+      ignores.add(ignoreList);
     }
 
     const client = new Client({ credentials: credentials });
@@ -71,6 +82,7 @@ async function run(): Promise<void> {
       predefinedAcl,
       concurrency,
       metadata,
+      ignores,
     );
 
     core.setOutput(

@@ -22,6 +22,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
 
+import ignore from 'ignore';
 import { Storage, Bucket } from '@google-cloud/storage';
 
 import {
@@ -94,6 +95,23 @@ describe('Unit Test uploadFile', function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, false, false);
     expect(this.uploadStub.firstCall.args[1].gzip).to.be.false;
+  });
+
+  it('does not upload ignored file', async function () {
+    const rel = path.posix.relative('.', EXAMPLE_FILE);
+    const ignores = ignore().add(rel);
+    const uploader = new UploadHelper(new Storage());
+    const result = await uploader.uploadFile(
+      EXAMPLE_BUCKET,
+      EXAMPLE_FILE,
+      false,
+      false,
+      undefined,
+      undefined,
+      undefined,
+      ignores,
+    );
+    expect(result).to.eq(null);
   });
 });
 
@@ -274,6 +292,30 @@ describe('Unit Test uploadDir', function () {
     expect(filenames).to.have.members(TXT_FILES_IN_TOP_DIR);
     // Assert uploadDir called uploadFile with destination paths.
     expect(destinations).to.have.members(TXT_FILES_IN_TOP_DIR);
+  });
+
+  it('uploads a dir honoring ignores', async function () {
+    // Unstub so the ignore logic is actually triggered.
+    sinon.restore();
+
+    const ignores = ignore().add('*.txt');
+    const uploader = new UploadHelper(new Storage());
+
+    const result = await uploader.uploadDirectory(
+      EXAMPLE_BUCKET,
+      EXAMPLE_DIR,
+      '*.txt',
+      true,
+      true,
+      '',
+      true,
+      undefined,
+      undefined,
+      undefined,
+      ignores,
+    );
+
+    expect(result).to.eql([]);
   });
 });
 

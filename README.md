@@ -285,6 +285,15 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     concurrency: 10
     ```
 
+-   `process_gcloudignore` - (Optional) Process a `.gcloudignore` file present
+    in the top-level of the repository. If true, the file is parsed and any
+    filepaths that match are not uploaded to the storage bucket. Defaults to
+    true.
+
+    ```yaml
+    process_gcloudignore: true
+    ```
+
 - `credentials`:  (**Deprecated**) This input is deprecated. See [auth
   section](#via-google-github-actionsauth) for more details. [Google Service
   Account JSON][sa] credentials as JSON or base64 encoded string, typically
