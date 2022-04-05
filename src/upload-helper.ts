@@ -50,7 +50,7 @@ export class UploadHelper {
 
   /**
    * Uploads a file to a bucket. Based on
-   * https://github.com/googleapis/nodejs-storage/blob/master/samples/uploadFile.js
+   * https://github.com/googleapis/nodejs-storage/blob/main/samples/uploadFile.js
    *
    * @param bucketName The name of the bucket.
    * @param filename The file path.
