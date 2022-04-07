@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.8.0...v0.9.0) (2022-04-07)
+
+
+### Features
+
+* parse .gcloudignore files during upload ([#237](https://www.github.com/google-github-actions/upload-cloud-storage/issues/237)) ([0715ae5](https://www.github.com/google-github-actions/upload-cloud-storage/commit/0715ae527180418bb29f3055035821805f8b3344))
+
 ## [0.8.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.7.0...v0.8.0) (2022-03-17)
 
 
