@@ -301,7 +301,7 @@ describe('Integration Upload ', function () {
     expect(filesInBucket).to.have.members(TXT_FILES_IN_TOP_DIR);
   });
 
-  it(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function () {
+  it.skip(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function () {
     if (isWin) {
       this.skip();
     }
