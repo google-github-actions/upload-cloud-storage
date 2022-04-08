@@ -44,11 +44,9 @@ describe('Unit Test Client', function () {
   });
 
   it('calls uploadFile', async function () {
-    const uploadFileStub = sinon
-      .stub(UploadHelper.prototype, 'uploadFile')
-      .callsFake(() => {
-        return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
-      });
+    const uploadFileStub = sinon.stub(UploadHelper.prototype, 'uploadFile').callsFake(() => {
+      return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
+    });
     const client = new Client();
     const filePath = './tests/testdata/test1.txt';
     const bucketName = 'foo';

@@ -48,9 +48,7 @@ describe('Integration Upload ', function () {
   let testBucket: string;
   // helper function to create a new bucket
   async function getNewBucket(): Promise<string> {
-    const bucketName = `test-${Math.round(Math.random() * 1000)}${
-      process.env.GITHUB_SHA
-    }`;
+    const bucketName = `test-${Math.round(Math.random() * 1000)}${process.env.GITHUB_SHA}`;
     const [bucket] = await storage.createBucket(bucketName, {
       location: 'US',
     });
@@ -102,10 +100,7 @@ describe('Integration Upload ', function () {
 
   it('uploads a single file', async function () {
     const uploader = new Client();
-    const uploadResponse = await uploader.upload(
-      testBucket,
-      './tests/testdata/test1.txt',
-    );
+    const uploadResponse = await uploader.upload(testBucket, './tests/testdata/test1.txt');
     expect(uploadResponse[0][0].name).eql('test1.txt');
     const filesInBucket = await getFilesInBucket();
     expect(filesInBucket.length).eq(1);
@@ -209,9 +204,7 @@ describe('Integration Upload ', function () {
     const uploader = new Client();
     await uploader.upload(`${testBucket}/${EXAMPLE_PREFIX}`, EXAMPLE_DIR);
     const filesInBucket = await getFilesInBucket();
-    const filesInDirWithPrefix = FILES_IN_DIR.map(
-      (f) => `${EXAMPLE_PREFIX}/${f}`,
-    );
+    const filesInDirWithPrefix = FILES_IN_DIR.map((f) => `${EXAMPLE_PREFIX}/${f}`);
     expect(filesInBucket.length).eq(filesInDirWithPrefix.length);
     expect(filesInBucket).to.have.members(filesInDirWithPrefix);
   });
@@ -226,21 +219,11 @@ describe('Integration Upload ', function () {
 
   it('uploads a directory with custom metadata', async function () {
     const uploader = new Client();
-    await uploader.upload(
-      testBucket,
-      EXAMPLE_DIR,
-      '',
-      true,
-      true,
-      true,
-      undefined,
-      100,
-      {
-        metadata: {
-          foo: 'bar',
-        },
+    await uploader.upload(testBucket, EXAMPLE_DIR, '', true, true, true, undefined, 100, {
+      metadata: {
+        foo: 'bar',
       },
-    );
+    });
     const filesInBucket = await getFilesInBucket();
     expect(filesInBucket.length).eq(FILES_IN_DIR.length);
     expect(filesInBucket).to.have.members(FILES_IN_DIR);
@@ -267,14 +250,7 @@ describe('Integration Upload ', function () {
 
   it('uploads a directory with prefix without parentDir', async function () {
     const uploader = new Client();
-    await uploader.upload(
-      `${testBucket}/${EXAMPLE_PREFIX}`,
-      EXAMPLE_DIR,
-      '',
-      true,
-      true,
-      false,
-    );
+    await uploader.upload(`${testBucket}/${EXAMPLE_PREFIX}`, EXAMPLE_DIR, '', true, true, false);
     const filesInBucket = await getFilesInBucket();
     const filesInDirWithPrefix = FILES_IN_DIR_WITHOUT_PARENT_DIR.map(
       (f) => `${EXAMPLE_PREFIX}/${f}`,
@@ -293,14 +269,7 @@ describe('Integration Upload ', function () {
 
   it('uploads a directory with globstar txt without parentDir', async function () {
     const uploader = new Client();
-    await uploader.upload(
-      testBucket,
-      EXAMPLE_DIR,
-      '**/*.txt',
-      true,
-      true,
-      false,
-    );
+    await uploader.upload(testBucket, EXAMPLE_DIR, '**/*.txt', true, true, false);
     const filesInBucket = await getFilesInBucket();
     expect(filesInBucket.length).eq(TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR.length);
     expect(filesInBucket).to.have.members(TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR);
@@ -332,7 +301,7 @@ describe('Integration Upload ', function () {
     expect(filesInBucket).to.have.members(TXT_FILES_IN_TOP_DIR);
   });
 
-  it(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function () {
+  it.skip(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function () {
     if (isWin) {
       this.skip();
     }
