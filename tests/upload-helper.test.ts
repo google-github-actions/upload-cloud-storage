@@ -85,6 +85,44 @@ describe('Unit Test uploadFile', function () {
     expect(this.uploadStub.firstCall.args[1].gzip).to.be.false;
   });
 
+  it('uploads a file with an absolute path', async function () {
+    const filepath = path.posix.resolve(EXAMPLE_FILE);
+
+    const ignores = ignore();
+    const uploader = new UploadHelper(new Storage());
+    const result = await uploader.uploadFile(
+      EXAMPLE_BUCKET,
+      filepath,
+      false,
+      false,
+      undefined,
+      undefined,
+      undefined,
+      ignores,
+    );
+    expect(result).to.be;
+  });
+
+  it('ignores a file with an absolute path resolved locally', async function () {
+    const filepath = path.posix.resolve(EXAMPLE_FILE);
+
+    const rel = path.posix.relative('.', EXAMPLE_FILE);
+    const ignores = ignore().add(rel);
+
+    const uploader = new UploadHelper(new Storage());
+    const result = await uploader.uploadFile(
+      EXAMPLE_BUCKET,
+      filepath,
+      false,
+      false,
+      undefined,
+      undefined,
+      undefined,
+      ignores,
+    );
+    expect(result).to.eq(null);
+  });
+
   it('does not upload ignored file', async function () {
     const rel = path.posix.relative('.', EXAMPLE_FILE);
     const ignores = ignore().add(rel);

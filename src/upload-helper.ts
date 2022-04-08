@@ -68,9 +68,10 @@ export class UploadHelper {
   ): Promise<UploadResponse | null> {
     const options: UploadOptions = { gzip, predefinedAcl };
     const normalizedFilePath = path.posix.normalize(filename);
+    const relativeFilePath = path.posix.relative('.', normalizedFilePath);
 
     // check ignores
-    if (ignores?.ignores(normalizedFilePath)) {
+    if (ignores?.ignores(relativeFilePath)) {
       core.info(`Ignoring file: ${normalizedFilePath}`);
       return null;
     }
