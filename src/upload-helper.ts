@@ -18,12 +18,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as process from 'process';
 
-import {
-  PredefinedAcl,
-  Storage,
-  UploadOptions,
-  UploadResponse,
-} from '@google-cloud/storage';
+import { PredefinedAcl, Storage, UploadOptions, UploadResponse } from '@google-cloud/storage';
 import { Ignore } from 'ignore';
 import globby from 'globby';
 import * as core from '@actions/core';
@@ -102,9 +97,7 @@ export class UploadHelper {
       options.metadata = metadata;
     }
 
-    const uploadedFile = await this.storage
-      .bucket(bucketName)
-      .upload(normalizedFilePath, options);
+    const uploadedFile = await this.storage.bucket(bucketName).upload(normalizedFilePath, options);
     return uploadedFile;
   }
 
@@ -136,15 +129,8 @@ export class UploadHelper {
   ): Promise<UploadResponse[]> {
     // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
     const filesList = await expandGlob(directoryPath, glob);
-    const uploader = async (
-      filePath: string,
-    ): Promise<UploadResponse | null> => {
-      const destination = await getDestinationFromPath(
-        filePath,
-        directoryPath,
-        parent,
-        prefix,
-      );
+    const uploader = async (filePath: string): Promise<UploadResponse | null> => {
+      const destination = await getDestinationFromPath(filePath, directoryPath, parent, prefix);
       const uploadResp = await this.uploadFile(
         bucketName,
         filePath,
@@ -181,10 +167,7 @@ export class UploadHelper {
  * match-all pattern is used instead.
  * @return Sorted list of files in posix form.
  */
-export async function expandGlob(
-  directoryPath: string,
-  glob: string,
-): Promise<string[]> {
+export async function expandGlob(directoryPath: string, glob: string): Promise<string[]> {
   const pth = toPosixPath(path.posix.join(directoryPath, glob));
   const filesList = await globby([pth], {
     dot: true,

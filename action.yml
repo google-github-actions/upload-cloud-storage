@@ -24,10 +24,12 @@ inputs:
     description: |-
       Upload file(s) with gzip content encoding, defaults to true.
     required: false
+    default: true
   resumable:
     description: |-
       Enable resumable uploads, defaults to true.
     required: false
+    default: true
   predefinedAcl:
     description: |-
       Apply a predefined set of access controls to the file(s).
@@ -36,6 +38,7 @@ inputs:
     description: |-
       Whether parent dir should be included in GCS destination, defaults to true.
     required: false
+    default: true
   glob:
     description: |-
       Optional glob pattern.

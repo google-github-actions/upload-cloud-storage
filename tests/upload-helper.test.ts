@@ -58,28 +58,16 @@ describe('Unit Test uploadFile', function () {
     const uploader = new UploadHelper(new Storage());
     await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, true);
     // Assert that upload method in storage library was called with right file.
-    expect(this.uploadStub.firstCall.args[0]).eq(
-      path.posix.normalize(EXAMPLE_FILE),
-    );
+    expect(this.uploadStub.firstCall.args[0]).eq(path.posix.normalize(EXAMPLE_FILE));
   });
 
   it('uploads a single file with prefix', async function () {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadFile(
-      EXAMPLE_BUCKET,
-      EXAMPLE_FILE,
-      true,
-      true,
-      EXAMPLE_PREFIX,
-    );
+    await uploader.uploadFile(EXAMPLE_BUCKET, EXAMPLE_FILE, true, true, EXAMPLE_PREFIX);
     // Assert that upload method in storage library was called with right file
     // and right prefix.
-    expect(this.uploadStub.firstCall.args[0]).eq(
-      path.posix.normalize(EXAMPLE_FILE),
-    );
-    expect(this.uploadStub.firstCall.args[1].destination.split('/')[0]).eq(
-      EXAMPLE_PREFIX,
-    );
+    expect(this.uploadStub.firstCall.args[0]).eq(path.posix.normalize(EXAMPLE_FILE));
+    expect(this.uploadStub.firstCall.args[1].destination.split('/')[0]).eq(EXAMPLE_PREFIX);
     expect(this.uploadStub.firstCall.args[1].resumable).to.be.true;
     expect(this.uploadStub.firstCall.args[1].configPath).to.exist;
   });
@@ -122,11 +110,9 @@ describe('Unit Test uploadDir', function () {
   beforeEach(function () {
     // Before each call is made to uploadDir stub uploadFile in UploadHelper to
     // return fake constant data.
-    this.uploadFileStub = sinon
-      .stub(UploadHelper.prototype, 'uploadFile')
-      .callsFake(() => {
-        return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
-      });
+    this.uploadFileStub = sinon.stub(UploadHelper.prototype, 'uploadFile').callsFake(() => {
+      return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
+    });
   });
 
   afterEach(function () {
@@ -149,14 +135,7 @@ describe('Unit Test uploadDir', function () {
 
   it('uploads a dir with prefix', async function () {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(
-      EXAMPLE_BUCKET,
-      EXAMPLE_DIR,
-      '',
-      true,
-      true,
-      EXAMPLE_PREFIX,
-    );
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, '', true, true, EXAMPLE_PREFIX);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -178,15 +157,7 @@ describe('Unit Test uploadDir', function () {
 
   it('uploads a dir at bucket root', async function () {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(
-      EXAMPLE_BUCKET,
-      EXAMPLE_DIR,
-      '',
-      true,
-      true,
-      '',
-      false,
-    );
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, '', true, true, '', false);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -240,15 +211,7 @@ describe('Unit Test uploadDir', function () {
 
   it('uploads a dir at bucket root with globstar txt', async function () {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(
-      EXAMPLE_BUCKET,
-      EXAMPLE_DIR,
-      '**/*.txt',
-      true,
-      true,
-      '',
-      true,
-    );
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, '**/*.txt', true, true, '', true);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(TXT_FILES_IN_DIR.length);
     // Capture filename arguments passed to uploadFile.
@@ -268,15 +231,7 @@ describe('Unit Test uploadDir', function () {
 
   it('uploads a dir at bucket root with glob txt in top dir', async function () {
     const uploader = new UploadHelper(new Storage());
-    await uploader.uploadDirectory(
-      EXAMPLE_BUCKET,
-      EXAMPLE_DIR,
-      '*.txt',
-      true,
-      true,
-      '',
-      true,
-    );
+    await uploader.uploadDirectory(EXAMPLE_BUCKET, EXAMPLE_DIR, '*.txt', true, true, '', true);
     // Assert that uploadFile was called for each file in directory.
     expect(this.uploadFileStub.callCount).eq(TXT_FILES_IN_TOP_DIR.length);
     // Capture filename arguments passed to uploadFile.

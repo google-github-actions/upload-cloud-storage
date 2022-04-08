@@ -43,22 +43,17 @@ function parseHeaderLines(input: string): Map<string, string> {
     const idx = line.indexOf(':');
     if (idx === -1) {
       throw new Error(
-        `Failed to parse header line ${i} ("${line}") - the expected format is ` +
-          `"key: value"`,
+        `Failed to parse header line ${i} ("${line}") - the expected format is "key: value"`,
       );
     }
 
     const key = (line.substring(0, idx) || '').trim();
     const value = (line.substring(idx + 1) || '').trim();
     if (!key) {
-      throw new Error(
-        `Failed to parse header line ${i} ("${line}") - missing key`,
-      );
+      throw new Error(`Failed to parse header line ${i} ("${line}") - missing key`);
     }
     if (!value) {
-      throw new Error(
-        `Failed to parse header line ${i} ("${line}") - missing value`,
-      );
+      throw new Error(`Failed to parse header line ${i} ("${line}") - missing value`);
     }
 
     if (map.has(key)) {

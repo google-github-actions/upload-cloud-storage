@@ -17,12 +17,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {
-  Storage,
-  UploadResponse,
-  StorageOptions,
-  PredefinedAcl,
-} from '@google-cloud/storage';
+import { Storage, UploadResponse, StorageOptions, PredefinedAcl } from '@google-cloud/storage';
 import { parseCredential } from '@google-github-actions/actions-utils';
 import { Ignore } from 'ignore';
 

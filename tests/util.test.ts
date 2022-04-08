@@ -199,12 +199,7 @@ describe('Unit Test getDestinationFromPath', function () {
   cases.forEach((tc) => {
     it(tc.name, async function () {
       const { filePath, directory, parent, prefix } = tc.input;
-      const destination = await getDestinationFromPath(
-        filePath,
-        directory,
-        parent,
-        prefix,
-      );
+      const destination = await getDestinationFromPath(filePath, directory, parent, prefix);
       expect(destination).eq(tc.output);
     });
   });

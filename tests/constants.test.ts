@@ -24,10 +24,7 @@ export const EXAMPLE_FILE = './tests/testdata/test1.txt';
 export const EXAMPLE_DIR = './tests/testdata';
 export const EXAMPLE_PREFIX = 'testprefix';
 export const FAKE_METADATA = { name: 'foo' };
-export const FAKE_FILE: File = new File(
-  new Bucket(new Storage(), 'foo'),
-  'foo',
-);
+export const FAKE_FILE: File = new File(new Bucket(new Storage(), 'foo'), 'foo');
 export const FILES_IN_DIR = [
   'tests/testdata/nested1/nested2/test3.txt',
   'tests/testdata/nested1/test1.txt',
@@ -38,10 +35,7 @@ export const FILES_IN_DIR = [
   'tests/testdata/test.json',
 ];
 
-export const TXT_FILES_IN_TOP_DIR = [
-  'tests/testdata/test1.txt',
-  'tests/testdata/test2.txt',
-];
+export const TXT_FILES_IN_TOP_DIR = ['tests/testdata/test1.txt', 'tests/testdata/test2.txt'];
 
 export const TXT_FILES_IN_DIR = [
   'tests/testdata/nested1/nested2/test3.txt',
