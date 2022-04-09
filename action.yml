@@ -45,8 +45,9 @@ inputs:
     required: false
   concurrency:
     description: |-
-      Number of files to simultaneously upload, defaults to 100.
+      Number of files to simultaneously upload.
     required: false
+    default: 100
   headers:
     description: |-
       Set headers (object metadata).

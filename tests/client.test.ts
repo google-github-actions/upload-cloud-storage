@@ -16,64 +16,98 @@
 
 import 'mocha';
 import { expect } from 'chai';
-
 import * as sinon from 'sinon';
 
-import { Client } from '../src/client';
-import { UploadHelper } from '../src/upload-helper';
-import { FAKE_FILE, FAKE_METADATA } from './constants.test';
+import * as path from 'path';
 
-/**
- * Unit Test upload method in Client.
- */
-describe('Unit Test Client', function () {
-  afterEach(function () {
+import { Client } from '../src/client';
+import { stubUpload } from './util.test';
+
+describe('Client', () => {
+  afterEach(() => {
     sinon.restore();
   });
 
-  it('initializes with JSON creds', function () {
-    const client = new Client({
-      credentials: `{"foo":"bar"}`,
+  describe('#new', () => {
+    it('initializes with JSON creds', function () {
+      const client = new Client({
+        credentials: `{"foo":"bar"}`,
+      });
+      expect(client.storage.authClient.jsonContent).eql({ foo: 'bar' });
     });
-    expect(client.storage.authClient.jsonContent).eql({ foo: 'bar' });
+
+    it('initializes with ADC', function () {
+      const client = new Client();
+      expect(client.storage.authClient.jsonContent).eql(null);
+    });
   });
 
-  it('initializes with ADC', function () {
-    const client = new Client();
-    expect(client.storage.authClient.jsonContent).eql(null);
-  });
+  describe('#upload', () => {
+    it('calls uploadFile', async () => {
+      const stub = stubUpload();
 
-  it('calls uploadFile', async function () {
-    const uploadFileStub = sinon.stub(UploadHelper.prototype, 'uploadFile').callsFake(() => {
-      return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
-    });
-    const client = new Client();
-    const filePath = './tests/testdata/test1.txt';
-    const bucketName = 'foo';
-    const prefix = 'test-prefix';
-    await client.upload(`${bucketName}/${prefix}`, filePath);
-    expect(uploadFileStub.calledOnce);
-    expect(uploadFileStub.firstCall.args[0]).to.equal(bucketName);
-    expect(uploadFileStub.firstCall.args[1]).to.equal(filePath);
-    expect(uploadFileStub.firstCall.args[2]).to.equal(true);
-    expect(uploadFileStub.firstCall.args[3]).to.equal(true);
-    expect(uploadFileStub.firstCall.args[4]).to.equal(`${prefix}/test1.txt`);
-  });
+      // Do the upload
+      const client = new Client();
+      await client.upload({
+        destination: 'bucket/prefix/sub',
+        root: 'my-root',
+        files: ['file1', 'file2', 'nested/file3'],
+        concurrency: 10,
+        includeParent: true,
+        metadata: {
+          contentType: 'application/json',
+        },
+        gzip: true,
+        resumable: true,
+        predefinedAcl: 'authenticatedRead',
+      });
 
-  it('calls uploadDirectory', async function () {
-    sinon.stub(UploadHelper.prototype, 'uploadFile').callsFake(() => {
-      return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
+      // Check call sites
+      const uploadedFiles = stub.getCalls().map((call) => call.args[0]);
+      expect(uploadedFiles).to.eql([
+        path.join(process.cwd(), 'my-root', 'nested', 'file3'),
+        path.join(process.cwd(), 'my-root', 'file2'),
+        path.join(process.cwd(), 'my-root', 'file1'),
+      ]);
+
+      const call = stub.getCall(0).args[1];
+      if (!call) {
+        throw new Error('expected first call to be defined');
+      }
+      expect(call.destination).to.eql('prefix/sub/my-root/nested/file3');
+      expect(call.metadata).to.eql({ contentType: 'application/json' });
+      expect(call.gzip).to.eql(true);
+      expect(call.predefinedAcl).to.eql('authenticatedRead');
+      expect(call.resumable).to.eql(true);
+      expect(call.configPath).to.be;
     });
-    const uploadDirSpy = sinon.spy(UploadHelper.prototype, 'uploadDirectory');
-    const client = new Client();
-    const filePath = './tests/testdata';
-    const bucketName = 'foo';
-    await client.upload(bucketName, filePath);
-    expect(uploadDirSpy.calledOnce);
-    expect(uploadDirSpy.firstCall.args[0]).to.equal(bucketName);
-    expect(uploadDirSpy.firstCall.args[1]).to.equal(filePath);
-    expect(uploadDirSpy.firstCall.args[2]).to.equal('');
-    expect(uploadDirSpy.firstCall.args[3]).to.equal(true);
-    expect(uploadDirSpy.firstCall.args[4]).to.equal(true);
+
+    it('respects includeParent as false', async () => {
+      const stub = stubUpload();
+
+      // Do the upload
+      const client = new Client();
+      await client.upload({
+        destination: 'bucket',
+        root: 'my-root',
+        files: ['file1', 'file2', 'nested/file3'],
+        concurrency: 10,
+        includeParent: false,
+      });
+
+      // Check call sites
+      const uploadedFiles = stub.getCalls().map((call) => call.args[0]);
+      expect(uploadedFiles).to.eql([
+        path.join(process.cwd(), 'my-root', 'nested', 'file3'),
+        path.join(process.cwd(), 'my-root', 'file2'),
+        path.join(process.cwd(), 'my-root', 'file1'),
+      ]);
+
+      const call = stub.getCall(0).args[1];
+      if (!call) {
+        throw new Error('expected first call to be defined');
+      }
+      expect(call.destination).to.eql('nested/file3');
+    });
   });
 });
