@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import 'mocha';
+import { expect } from 'chai';
+
 import * as sinon from 'sinon';
+
 import { Client } from '../src/client';
 import { UploadHelper } from '../src/upload-helper';
 import { FAKE_FILE, FAKE_METADATA } from './constants.test';
@@ -42,11 +44,9 @@ describe('Unit Test Client', function () {
   });
 
   it('calls uploadFile', async function () {
-    const uploadFileStub = sinon
-      .stub(UploadHelper.prototype, 'uploadFile')
-      .callsFake(() => {
-        return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
-      });
+    const uploadFileStub = sinon.stub(UploadHelper.prototype, 'uploadFile').callsFake(() => {
+      return Promise.resolve([FAKE_FILE, FAKE_METADATA]);
+    });
     const client = new Client();
     const filePath = './tests/testdata/test1.txt';
     const bucketName = 'foo';

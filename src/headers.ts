@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as core from '@actions/core';
-
 const customMetadataPrefix = 'x-goog-meta-';
 
 interface CustomMetadata {
@@ -32,19 +30,43 @@ export interface Metadata {
   metadata?: CustomMetadata;
 }
 
-function parseSingleHeaderLine(input: string): [string, string] {
-  const parts = input.split(':');
-  const name = parts[0].trim().toLowerCase();
-  const value = parts.splice(1).join(':').trim();
-  return [name, value];
-}
-
 function parseHeaderLines(input: string): Map<string, string> {
-  const headerPairs = input
-    .split(/\r?\n/)
-    .filter((line) => line.trim())
-    .map((line) => parseSingleHeaderLine(line));
-  return new Map<string, string>(headerPairs);
+  const map = new Map<string, string>();
+
+  const lines = input.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = (lines[i] || '').trim();
+    if (!line) {
+      continue;
+    }
+
+    const idx = line.indexOf(':');
+    if (idx === -1) {
+      throw new Error(
+        `Failed to parse header line ${i} ("${line}") - the expected format is "key: value"`,
+      );
+    }
+
+    const key = (line.substring(0, idx) || '').trim();
+    const value = (line.substring(idx + 1) || '').trim();
+    if (!key) {
+      throw new Error(`Failed to parse header line ${i} ("${line}") - missing key`);
+    }
+    if (!value) {
+      throw new Error(`Failed to parse header line ${i} ("${line}") - missing value`);
+    }
+
+    if (map.has(key)) {
+      throw new Error(
+        `Failed to parse header line ${i} ("${line}") - key "${key}" already ` +
+          `exists, possibly from a previous line`,
+      );
+    }
+
+    map.set(key, value);
+  }
+
+  return map;
 }
 
 /**
@@ -87,8 +109,10 @@ export function parseHeadersInput(input: string): Metadata {
           metadata.customTime = value;
           break;
         default:
-          core.warning(`Invalid header specified: ${key}`);
-          break;
+          throw new Error(
+            `Invalid header key "${key}" - custom header keys must be ` +
+              `prefixed with "x-goog-meta-"`,
+          );
       }
     }
   });

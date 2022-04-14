@@ -1,0 +1,62 @@
+name: 'unit'
+
+on:
+  push:
+    branches:
+    - 'main'
+  pull_request:
+    branches:
+    - 'main'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: 'unit'
+    runs-on: '${{ matrix.os }}'
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - 'ubuntu-latest'
+        - 'windows-latest'
+        - 'macos-latest'
+
+    steps:
+    - uses: 'actions/checkout@v3'
+
+    - uses: 'actions/setup-node@v3'
+      with:
+        node-version: '16.x'
+
+    - name: 'npm build'
+      run: 'npm ci && npm run build'
+
+    - name: 'npm lint'
+      # There's no need to run the linter for each operating system, since it
+      # will find the same thing 3x and clog up the PR review.
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: 'npm run lint'
+
+    # Only authenticate if this is a full CI run.
+    - uses: 'google-github-actions/auth@main'
+      with:
+        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
+        service_account: '${{ secrets.UPLOAD_CLOUD_STORAGE_GCP_SA_EMAIL }}'
+      if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+
+    # The secrets will only be injected in pushes to main or from maintainers.
+    # If they aren't present, the associated steps are skipped.
+    - name: 'npm test'
+      run: 'npm run test'
+      env:
+        UPLOAD_CLOUD_STORAGE_TEST_BUCKET: '${{ secrets.UPLOAD_CLOUD_STORAGE_TEST_BUCKET }}'
+        UPLOAD_CLOUD_STORAGE_TEST_PROJECT: '${{ secrets.UPLOAD_CLOUD_STORAGE_PROJECT }}'

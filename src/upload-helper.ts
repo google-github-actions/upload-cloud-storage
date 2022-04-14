@@ -18,17 +18,14 @@ import * as os from 'os';
 import * as path from 'path';
 import * as process from 'process';
 
-import {
-  PredefinedAcl,
-  Storage,
-  UploadOptions,
-  UploadResponse,
-} from '@google-cloud/storage';
-import { Metadata } from './headers';
-import { GetDestinationFromPath } from './util';
+import { PredefinedAcl, Storage, UploadOptions, UploadResponse } from '@google-cloud/storage';
+import { Ignore } from 'ignore';
 import globby from 'globby';
 import * as core from '@actions/core';
 import pMap from 'p-map';
+
+import { Metadata } from './headers';
+import { getDestinationFromPath } from './util';
 
 /**
  * Wraps interactions with the the GCS library.
@@ -48,7 +45,7 @@ export class UploadHelper {
 
   /**
    * Uploads a file to a bucket. Based on
-   * https://github.com/googleapis/nodejs-storage/blob/master/samples/uploadFile.js
+   * https://github.com/googleapis/nodejs-storage/blob/main/samples/uploadFile.js
    *
    * @param bucketName The name of the bucket.
    * @param filename The file path.
@@ -56,7 +53,8 @@ export class UploadHelper {
    * @param resumable Allow resuming uploads.
    * @param destination The destination in GCS to upload file to.
    * @param predefinedAcl Predefined ACL config.
-   * @returns The UploadResponse which contains the file and metadata.
+   * @returns The UploadResponse which contains the file and metadata, or null
+   * if the file was ignored.
    */
   async uploadFile(
     bucketName: string,
@@ -66,9 +64,17 @@ export class UploadHelper {
     destination?: string,
     predefinedAcl?: PredefinedAcl,
     metadata?: Metadata,
-  ): Promise<UploadResponse> {
+    ignores?: Ignore,
+  ): Promise<UploadResponse | null> {
     const options: UploadOptions = { gzip, predefinedAcl };
     const normalizedFilePath = path.posix.normalize(filename);
+
+    // check ignores
+    if (ignores?.ignores(normalizedFilePath)) {
+      core.info(`Ignoring file: ${normalizedFilePath}`);
+      return null;
+    }
+
     // set destination if defined
     if (destination) {
       options.destination = destination;
@@ -91,9 +97,7 @@ export class UploadHelper {
       options.metadata = metadata;
     }
 
-    const uploadedFile = await this.storage
-      .bucket(bucketName)
-      .upload(normalizedFilePath, options);
+    const uploadedFile = await this.storage.bucket(bucketName).upload(normalizedFilePath, options);
     return uploadedFile;
   }
 
@@ -121,16 +125,12 @@ export class UploadHelper {
     predefinedAcl?: PredefinedAcl,
     concurrency = 100,
     metadata?: Metadata,
+    ignores?: Ignore,
   ): Promise<UploadResponse[]> {
     // by default we just use directoryPath with empty glob '', which globby evaluates to directory/**/*
-    const filesList = await globby([path.posix.join(directoryPath, glob)]);
-    const uploader = async (filePath: string): Promise<UploadResponse> => {
-      const destination = await GetDestinationFromPath(
-        filePath,
-        directoryPath,
-        parent,
-        prefix,
-      );
+    const filesList = await expandGlob(directoryPath, glob);
+    const uploader = async (filePath: string): Promise<UploadResponse | null> => {
+      const destination = await getDestinationFromPath(filePath, directoryPath, parent, prefix);
       const uploadResp = await this.uploadFile(
         bucketName,
         filePath,
@@ -139,9 +139,49 @@ export class UploadHelper {
         destination,
         predefinedAcl,
         Object.assign({}, metadata),
+        ignores,
       );
       return uploadResp;
     };
-    return await pMap(filesList, uploader, { concurrency });
+
+    const resp = await pMap(filesList, uploader, { concurrency });
+
+    // Remove nulls
+    const result: UploadResponse[] = [];
+    for (let i = 0; i < resp.length; i++) {
+      const val = resp[i];
+      if (val) {
+        result.push(val);
+      }
+    }
+    return result;
   }
+}
+
+/**
+ * expandGlob compiles the list of all files in the given directory for
+ * the provided glob.
+ *
+ * @param directoryPath The path to the directory.
+ * @param glob Glob pattern to use for searching. If the empty string, a
+ * match-all pattern is used instead.
+ * @return Sorted list of files in posix form.
+ */
+export async function expandGlob(directoryPath: string, glob: string): Promise<string[]> {
+  const pth = toPosixPath(path.posix.join(directoryPath, glob));
+  const filesList = await globby([pth], {
+    dot: true,
+  });
+  return filesList.sort();
+}
+
+/**
+ * toPosixPath converts the given path to the posix form. On Windows, \\ will be
+ * replaced with /.
+ *
+ * @param pth. Path to transform.
+ * @return Posix-path.
+ */
+export function toPosixPath(pth: string): string {
+  return pth.split(path.sep).join(path.posix.sep);
 }

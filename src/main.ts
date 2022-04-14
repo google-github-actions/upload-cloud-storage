@@ -16,6 +16,9 @@
 
 import * as core from '@actions/core';
 import { PredefinedAcl } from '@google-cloud/storage';
+import { errorMessage, parseGcloudIgnore } from '@google-github-actions/actions-utils';
+import ignore from 'ignore';
+
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
 
@@ -23,39 +26,32 @@ async function run(): Promise<void> {
   try {
     const path = core.getInput('path', { required: true });
     const destination = core.getInput('destination', { required: true });
-    const gzip =
-      core.getInput('gzip', { required: false }) === 'false' ? false : true;
-    const resumable =
-      core.getInput('resumable', { required: false }) === 'false'
-        ? false
-        : true;
-    const predefinedAclInput = core.getInput('predefinedAcl', {
-      required: false,
-    });
-    const parent =
-      core.getInput('parent', { required: false }).toLowerCase() === 'false'
-        ? false
-        : true;
+    const gzip = core.getBooleanInput('gzip');
+    const resumable = core.getBooleanInput('resumable');
+    const parent = core.getBooleanInput('parent');
     const glob = core.getInput('glob');
     const concurrency = Number(core.getInput('concurrency')) || 100;
+    const predefinedAclInput = core.getInput('predefinedAcl');
     const predefinedAcl =
-      predefinedAclInput === ''
-        ? undefined
-        : (predefinedAclInput as PredefinedAcl);
-    const headersInput = core.getInput('headers', {
-      required: false,
-    });
-    const metadata =
-      headersInput === '' ? undefined : parseHeadersInput(headersInput);
+      predefinedAclInput === '' ? undefined : (predefinedAclInput as PredefinedAcl);
+    const headersInput = core.getInput('headers');
+    const processGcloudIgnore = core.getBooleanInput('process_gcloudignore');
+    const metadata = headersInput === '' ? undefined : parseHeadersInput(headersInput);
     const credentials = core.getInput('credentials');
 
     // Add warning if using credentials
     if (credentials) {
       core.warning(
-        '"credentials" input has been deprecated. ' +
+        'The "credentials" input is deprecated. ' +
           'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
           'For more details, see https://github.com/google-github-actions/upload-cloud-storage#authorization',
       );
+    }
+
+    const ignores = ignore();
+    if (processGcloudIgnore) {
+      const ignoreList = await parseGcloudIgnore('.gcloudignore');
+      ignores.add(ignoreList);
     }
 
     const client = new Client({ credentials: credentials });
@@ -69,16 +65,16 @@ async function run(): Promise<void> {
       predefinedAcl,
       concurrency,
       metadata,
+      ignores,
     );
 
     core.setOutput(
       'uploaded',
-      uploadResponses
-        .map((uploadResponse) => uploadResponse[0].name)
-        .toString(),
+      uploadResponses.map((uploadResponse) => uploadResponse[0].name).toString(),
     );
-  } catch (error) {
-    core.setFailed(error.message);
+  } catch (err) {
+    const msg = errorMessage(err);
+    core.setFailed(`google-github-actions/upload-cloud-storage failed with: ${msg}`);
   }
 }
 

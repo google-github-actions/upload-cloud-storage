@@ -14,66 +14,104 @@
  * limitations under the License.
  */
 
-import * as core from '@actions/core';
-import { expect } from 'chai';
 import 'mocha';
-import * as sinon from 'sinon';
+import { expect } from 'chai';
+
 import { parseHeadersInput } from '../src/headers';
 
-/**
- * Unit Test parseHeadersInput method in headers.
- */
-describe('Unit Test parseHeadersInput', function () {
-  afterEach(function () {
-    sinon.restore();
-  });
+describe('#parseHeadersInput', () => {
+  const cases = [
+    {
+      name: 'empty string',
+      input: ``,
+      expected: {},
+    },
+    {
+      name: 'empty string padded',
+      input: `
 
-  it('parse settable fields', async function () {
-    const warningStub = sinon.stub(core, 'warning');
-    const input = `
-            cache-control: public, max-age=3600
-            content-disposition: attachment; filename=file.json;
-            content-encoding: gzip
-            content-language: en
-            content-type: application/json
-            custom-time: 1985-04-12T23:20:50.52Z
-        `;
-    const metadata = parseHeadersInput(input);
-    expect(metadata.cacheControl).eq('public, max-age=3600');
-    expect(metadata.contentDisposition).eq('attachment; filename=file.json;');
-    expect(metadata.contentEncoding).eq('gzip');
-    expect(metadata.contentLanguage).eq('en');
-    expect(metadata.contentType).eq('application/json');
-    expect(metadata.customTime).eq('1985-04-12T23:20:50.52Z');
-    expect(warningStub.notCalled);
-  });
+      `,
+      expected: {},
+    },
+    {
+      name: 'empty string padded',
+      input: `
+        cache-control: public, max-age=3600
+        content-disposition: attachment; filename=file.json;
+        content-encoding: gzip
+        content-language: en
+        content-type: application/json
+        custom-time: 1985-04-12T23:20:50.52Z
+      `,
+      expected: {
+        cacheControl: 'public, max-age=3600',
+        contentDisposition: 'attachment; filename=file.json;',
+        contentEncoding: 'gzip',
+        contentLanguage: 'en',
+        contentType: 'application/json',
+        customTime: '1985-04-12T23:20:50.52Z',
+      },
+    },
+    {
+      name: 'custom data',
+      input: `
+        x-goog-meta-foo: value1
+        x-goog-meta-bar: value2
+        x-goog-meta-baz: 🚀:to:the:moon
+      `,
+      expected: {
+        metadata: {
+          foo: 'value1',
+          bar: 'value2',
+          baz: '🚀:to:the:moon',
+        },
+      },
+    },
+    {
+      name: 'value multiple colons',
+      input: `
+        x-goog-meta-foo: it::has:::fun
+      `,
+      expected: {
+        metadata: {
+          foo: 'it::has:::fun',
+        },
+      },
+    },
+    {
+      name: 'no key',
+      input: 'value',
+      error: 'Failed to parse header',
+    },
+    {
+      name: 'no value',
+      input: 'value',
+      error: 'Failed to parse header',
+    },
+    {
+      name: 'duplicate',
+      input: `
+        one: two
+        one: three
+      `,
+      error: 'key "one" already exists',
+    },
+    {
+      name: 'invalid custom',
+      input: 'invalid: value',
+      error: 'must be prefixed with',
+    },
+  ];
 
-  it('parse custom metadata', async function () {
-    const warningStub = sinon.stub(core, 'warning');
-    const input = `
-            x-goog-meta-foo: value1
-            x-goog-meta-bar: value2
-            x-goog-meta-baz: 🚀:to:the:moon
-        `;
-
-    const metadata = parseHeadersInput(input);
-    expect(metadata.metadata).not.undefined;
-    if (metadata.metadata) {
-      expect(metadata.metadata.foo).eq('value1');
-      expect(metadata.metadata.bar).eq('value2');
-      expect(metadata.metadata.baz).eq('🚀:to:the:moon');
-    }
-    expect(warningStub.notCalled);
-  });
-
-  it('invalid fields are ignored', async function () {
-    const warningStub = sinon.stub(core, 'warning');
-    const input = `
-            invalid: value
-            Content-Length: 123
-        `;
-    const metadata = parseHeadersInput(input);
-    expect(metadata.metadata).undefined;
-    expect(warningStub.calledTwice);
+  cases.forEach((tc) => {
+    it(tc.name, () => {
+      if (tc.expected) {
+        expect(parseHeadersInput(tc.input)).to.eql(tc.expected);
+      } else if (tc.error) {
+        expect(() => {
+          parseHeadersInput(tc.input);
+        }).to.throw(tc.error);
+      }
+    });
   });
 });

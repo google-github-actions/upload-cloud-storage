@@ -1,7 +1,7 @@
 # Dependency directory
 node_modules
 
-# Rest pulled from https://github.com/github/gitignore/blob/master/Node.gitignore
+# Rest pulled from https://github.com/github/gitignore/blob/main/Node.gitignore
 # Logs
 logs
 *.log
