@@ -17,11 +17,7 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import { promises as fs } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-
-import { errorMessage, forceRemove, inParallel } from '@google-github-actions/actions-utils';
+import { errorMessage, inParallel } from '@google-github-actions/actions-utils';
 import { randomBytes } from 'crypto';
 import { Storage, File } from '@google-cloud/storage';
 
@@ -269,16 +265,5 @@ describe('integration', () => {
       'prefix/testdata/test1.txt',
       'prefix/testdata/🚀',
     ]);
-  });
-
-  describe('performance test', function () {
-    before(async function () {
-      const tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
-      this.tmpdir = tmpdir;
-    });
-
-    after(async function () {
-      await forceRemove(this.tmpdir);
-    });
   });
 });
