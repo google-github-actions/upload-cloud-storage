@@ -17,333 +17,253 @@
 import 'mocha';
 import { expect } from 'chai';
 
-import * as tmp from 'tmp';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import { Storage } from '@google-cloud/storage';
-import pMap from 'p-map';
+import { errorMessage, inParallel } from '@google-github-actions/actions-utils';
+import { randomBytes } from 'crypto';
+import { Storage, File } from '@google-cloud/storage';
 
-import {
-  EXAMPLE_FILE,
-  EXAMPLE_DIR,
-  FILES_IN_DIR,
-  EXAMPLE_PREFIX,
-  FILES_IN_DIR_WITHOUT_PARENT_DIR,
-  TXT_FILES_IN_DIR,
-  TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR,
-  TXT_FILES_IN_TOP_DIR,
-} from './constants.test';
 import { Client } from '../src/client';
 
-const storage = new Storage({
-  projectId: process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT,
-});
-const PERF_TEST_FILE_COUNT = 10000;
+const projectID = process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT;
 
-// skip performance test and error message verification on Windows
-const isWin = os.platform() === 'win32';
+/**
+ * getFilesInBucket returns the names of the files in the bucket.
+ */
+const getFilesInBucket = async (storage: Storage, bucketName: string): Promise<File[]> => {
+  const [files] = await storage.bucket(bucketName).getFiles();
+  return files;
+};
 
-describe('Integration Upload ', function () {
-  let testBucket: string;
-  // helper function to create a new bucket
-  async function getNewBucket(): Promise<string> {
-    const bucketName = `test-${Math.round(Math.random() * 1000)}${process.env.GITHUB_SHA}`;
-    const [bucket] = await storage.createBucket(bucketName, {
+/**
+ * getFileNamesInBucket returns the names of the files in the bucket.
+ */
+const getFileNamesInBucket = async (storage: Storage, bucketName: string): Promise<string[]> => {
+  return (await getFilesInBucket(storage, bucketName)).map((file) => file.name);
+};
+
+describe('integration', () => {
+  before(async function () {
+    if (!projectID) this.skip();
+
+    // Create storage handler.
+    const storage = new Storage({
+      projectId: projectID,
+    });
+    this.storage = storage;
+
+    // Create a dedicated bucket for each run.
+    const testBucketName = `test-${randomBytes(6).toString('hex')}-${
+      process.env.GITHUB_SHA || 'unknown'
+    }`;
+    const [bucket] = await this.storage.createBucket(testBucketName, {
       location: 'US',
     });
-    return bucket.name;
-  }
-  // helper func to get all files in test bucket
-  async function getFilesInBucket(): Promise<string[]> {
-    if (testBucket) {
-      const [files] = await storage.bucket(testBucket).getFiles();
-      return files.map((f) => f.name);
-    }
-    return [];
-  }
-  // create a new bucket for tests
-  this.beforeAll(async function () {
-    if (!process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT) {
-      this.skip();
-    }
-    testBucket = await getNewBucket();
-    process.env.UPLOAD_ACTION_NO_LOG = 'true';
+    this.testBucket = bucket.name;
   });
-  // skip test if no bucket is set
-  this.beforeEach(function () {
-    if (!process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT) {
-      this.skip();
-    }
+
+  beforeEach(async function () {
+    if (!projectID) this.skip();
   });
-  // remove all files in bucket before each test
-  this.afterEach(async function () {
-    const [files] = await storage.bucket(testBucket).getFiles();
-    const uploader = async (name: string): Promise<number> => {
-      const del = await storage.bucket(testBucket).file(name).delete();
-      return del[0].statusCode;
+
+  afterEach(async function () {
+    if (!projectID) this.skip();
+
+    const storage: Storage = this.storage;
+    const bucket = storage.bucket(this.testBucket);
+    const [files] = await bucket.getFiles();
+    const deleteOne = async (name: string): Promise<void> => {
+      await bucket.file(name).delete();
     };
-    await pMap(
-      files.map((f) => f.name),
-      uploader,
-      { concurrency: 100 },
-    );
-    const [checkFiles] = await storage.bucket(testBucket).getFiles();
-    expect(checkFiles.length).eq(0);
+
+    const args: [name: string][] = files.map((file) => [file.name]);
+    await inParallel(deleteOne, args);
   });
-  // delete bucket after all tests
-  this.afterAll(async function () {
-    if (testBucket) {
-      await storage.bucket(testBucket).delete();
+
+  after(async function () {
+    if (!projectID) return;
+
+    const storage: Storage = this.storage;
+    const bucket = storage.bucket(this.testBucket);
+    await bucket.delete();
+  });
+
+  it('throws an error on a non-existent bucket', async function () {
+    const client = new Client({ projectID: projectID });
+
+    try {
+      await client.upload({
+        root: './tests/testdata',
+        files: ['test1.txt'],
+        destination: 'definitely-not-a-real-bucket',
+      });
+      throw new Error('expected error');
+    } catch (err: unknown) {
+      const msg = errorMessage(err);
+      expect(msg).to.include('bucket does not exist');
+    }
+  });
+
+  it('throws an error on a non-existent directory', async function () {
+    const client = new Client({ projectID: projectID });
+
+    try {
+      await client.upload({
+        root: '/not/a/real/path',
+        files: ['test1.txt'],
+        destination: this.testBucket,
+      });
+      throw new Error('expected error');
+    } catch (err: unknown) {
+      const msg = errorMessage(err);
+      expect(msg).to.include('ENOENT');
+    }
+  });
+
+  it('throws an error on a non-existent file', async function () {
+    const client = new Client({ projectID: projectID });
+
+    try {
+      await client.upload({
+        root: './tests/testdata',
+        files: ['not-a-real-file.txt'],
+        destination: this.testBucket,
+      });
+      throw new Error('expected error');
+    } catch (err: unknown) {
+      const msg = errorMessage(err);
+      expect(msg).to.include('ENOENT');
     }
   });
 
   it('uploads a single file', async function () {
-    const uploader = new Client();
-    const uploadResponse = await uploader.upload(testBucket, './tests/testdata/test1.txt');
-    expect(uploadResponse[0][0].name).eql('test1.txt');
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(1);
-    expect(filesInBucket).to.have.members(['test1.txt']);
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test1.txt'],
+      destination: this.testBucket,
+    });
+
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql(['test1.txt']);
   });
 
-  it('uploads a single file with prefix no gzip', async function () {
-    const uploader = new Client();
-    const uploadResponse = await uploader.upload(
-      `${testBucket}/${EXAMPLE_PREFIX}`,
-      './tests/testdata/test1.txt',
-      '',
-      false,
-    );
-    const expectedFile = `${EXAMPLE_PREFIX}/test1.txt`;
-    expect(uploadResponse[0][0].name).eql(expectedFile);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(1);
-    expect(filesInBucket).to.have.members([expectedFile]);
+  it('uploads a single file with prefix', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test1.txt'],
+      destination: `${this.testBucket}/my/prefix`,
+    });
+
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql(['my/prefix/test1.txt']);
+  });
+
+  it('uploads a single file without an extension', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['testfile'],
+      destination: this.testBucket,
+    });
+
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql(['testfile']);
+  });
+
+  it('uploads a single file with special characters in the filename', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['🚀'],
+      destination: this.testBucket,
+    });
+
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql(['🚀']);
   });
 
   it('uploads a single file with metadata', async function () {
-    const uploader = new Client();
-    const uploadResponse = await uploader.upload(
-      testBucket,
-      './tests/testdata/test1.txt',
-      '',
-      true,
-      true,
-      true,
-      undefined,
-      100,
-      {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test1.txt'],
+      destination: this.testBucket,
+      metadata: {
         contentType: 'application/json',
         metadata: {
           foo: 'bar',
         },
       },
-    );
-    expect(uploadResponse[0][0].name).eql('test1.txt');
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(1);
-    expect(filesInBucket).to.have.members(['test1.txt']);
-    const metadata = uploadResponse[0][0].metadata;
-    expect(metadata.contentType).eql('application/json');
-    expect(Object.keys(metadata.metadata).length).eq(1);
-    expect(metadata.metadata.foo).eql('bar');
-  });
-
-  it('uploads a single file with prefix without resumeable', async function () {
-    const uploader = new Client();
-    const uploadResponse = await uploader.upload(
-      `${testBucket}/${EXAMPLE_PREFIX}`,
-      './tests/testdata/test1.txt',
-      '',
-      false,
-      false,
-    );
-    const expectedFile = `${EXAMPLE_PREFIX}/test1.txt`;
-    expect(uploadResponse[0][0].name).eql(expectedFile);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(1);
-    expect(filesInBucket).to.have.members([expectedFile]);
-  });
-
-  it('uploads a single file without extension', async function () {
-    const uploader = new Client();
-    const uploadResponse = await uploader.upload(
-      `${testBucket}/${EXAMPLE_PREFIX}`,
-      './tests/testdata/testfile',
-    );
-    const expectedFile = `${EXAMPLE_PREFIX}/testfile`;
-    expect(uploadResponse[0][0].name).eql(expectedFile);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(1);
-    expect(filesInBucket).to.have.members([expectedFile]);
-  });
-
-  it('uploads a single file with non ascii filename 🚀', async function () {
-    const uploader = new Client();
-    const uploadResponse = await uploader.upload(
-      `${testBucket}/${EXAMPLE_PREFIX}`,
-      './tests/testdata/🚀',
-    );
-    const expectedFile = `${EXAMPLE_PREFIX}/🚀`;
-    expect(uploadResponse[0][0].name).eql(expectedFile);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(1);
-    expect(filesInBucket).to.have.members([expectedFile]);
-  });
-
-  it('uploads a directory', async function () {
-    const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(FILES_IN_DIR.length);
-    expect(filesInBucket).to.have.members(FILES_IN_DIR);
-  });
-
-  it('uploads a directory with prefix', async function () {
-    const uploader = new Client();
-    await uploader.upload(`${testBucket}/${EXAMPLE_PREFIX}`, EXAMPLE_DIR);
-    const filesInBucket = await getFilesInBucket();
-    const filesInDirWithPrefix = FILES_IN_DIR.map((f) => `${EXAMPLE_PREFIX}/${f}`);
-    expect(filesInBucket.length).eq(filesInDirWithPrefix.length);
-    expect(filesInBucket).to.have.members(filesInDirWithPrefix);
-  });
-
-  it('uploads a directory without parentDir', async function () {
-    const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR, '', true, true, false);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(FILES_IN_DIR_WITHOUT_PARENT_DIR.length);
-    expect(filesInBucket).to.have.members(FILES_IN_DIR_WITHOUT_PARENT_DIR);
-  });
-
-  it('uploads a directory with custom metadata', async function () {
-    const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR, '', true, true, true, undefined, 100, {
-      metadata: {
-        foo: 'bar',
-      },
     });
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(FILES_IN_DIR.length);
-    expect(filesInBucket).to.have.members(FILES_IN_DIR);
-    const [files] = await storage.bucket(testBucket).getFiles();
-    files.forEach((f) => {
-      switch (path.extname(f.name)) {
-        case '.json': {
-          expect(f.metadata.contentType).eql('application/json');
-          break;
-        }
-        case '.txt': {
-          expect(f.metadata.contentType).eql('text/plain');
-          break;
-        }
-        default: {
-          expect(f.metadata.contentType).to.be.undefined;
-          break;
-        }
-      }
-      expect(Object.keys(f.metadata.metadata).length).eq(1);
-      expect(f.metadata.metadata.foo).eql('bar');
+
+    const list = await getFilesInBucket(this.storage, this.testBucket);
+    const metadata = list[0]?.metadata;
+    expect(metadata?.contentType).to.eql('application/json');
+    expect(metadata?.metadata?.foo).to.eql('bar');
+  });
+
+  it('uploads multiple files', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
+      destination: this.testBucket,
     });
+
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql(['nested1/nested2/test3.txt', 'nested1/test1.txt', 'test1.txt', '🚀']);
   });
 
-  it('uploads a directory with prefix without parentDir', async function () {
-    const uploader = new Client();
-    await uploader.upload(`${testBucket}/${EXAMPLE_PREFIX}`, EXAMPLE_DIR, '', true, true, false);
-    const filesInBucket = await getFilesInBucket();
-    const filesInDirWithPrefix = FILES_IN_DIR_WITHOUT_PARENT_DIR.map(
-      (f) => `${EXAMPLE_PREFIX}/${f}`,
-    );
-    expect(filesInBucket.length).eq(filesInDirWithPrefix.length);
-    expect(filesInBucket).to.have.members(filesInDirWithPrefix);
+  it('uploads multiple files with parent set', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
+      destination: this.testBucket,
+      includeParent: true,
+    });
+
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql([
+      'testdata/nested1/nested2/test3.txt',
+      'testdata/nested1/test1.txt',
+      'testdata/test1.txt',
+      'testdata/🚀',
+    ]);
   });
 
-  it('uploads a directory with globstar txt', async function () {
-    const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR, '**/*.txt');
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(TXT_FILES_IN_DIR.length);
-    expect(filesInBucket).to.have.members(TXT_FILES_IN_DIR);
+  it('uploads multiple files with a prefix', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
+      destination: `${this.testBucket}/prefix`,
+    });
+
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql([
+      'prefix/nested1/nested2/test3.txt',
+      'prefix/nested1/test1.txt',
+      'prefix/test1.txt',
+      'prefix/🚀',
+    ]);
   });
 
-  it('uploads a directory with globstar txt without parentDir', async function () {
-    const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR, '**/*.txt', true, true, false);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR.length);
-    expect(filesInBucket).to.have.members(TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR);
-  });
+  it('uploads multiple files with parent set and a prefix', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
+      destination: `${this.testBucket}/prefix`,
+      includeParent: true,
+    });
 
-  it('uploads a directory with prefix with globstar txt without parentDir', async function () {
-    const uploader = new Client();
-    await uploader.upload(
-      `${testBucket}/${EXAMPLE_PREFIX}`,
-      EXAMPLE_DIR,
-      '**/*.txt',
-      true,
-      true,
-      false,
-    );
-    const filesInBucket = await getFilesInBucket();
-    const filesInDirWithPrefix = TXT_FILES_IN_DIR_WITHOUT_PARENT_DIR.map(
-      (f) => `${EXAMPLE_PREFIX}/${f}`,
-    );
-    expect(filesInBucket.length).eq(filesInDirWithPrefix.length);
-    expect(filesInBucket).to.have.members(filesInDirWithPrefix);
-  });
-
-  it('uploads a directory with top level txt glob', async function () {
-    const uploader = new Client();
-    await uploader.upload(testBucket, EXAMPLE_DIR, '*.txt');
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(TXT_FILES_IN_TOP_DIR.length);
-    expect(filesInBucket).to.have.members(TXT_FILES_IN_TOP_DIR);
-  });
-
-  it.skip(`performance test with ${PERF_TEST_FILE_COUNT} files`, async function () {
-    if (isWin) {
-      this.skip();
-    }
-    tmp.setGracefulCleanup();
-
-    const { name: tmpDirPath } = tmp.dirSync();
-    for (let i = 0; i < PERF_TEST_FILE_COUNT; i++) {
-      const { name: tmpFilePath } = tmp.fileSync({
-        prefix: 'upload-act-test-',
-        postfix: '.txt',
-        dir: tmpDirPath,
-      });
-      fs.writeFileSync(tmpFilePath, path.posix.basename(tmpFilePath));
-    }
-
-    const uploader = new Client();
-    await uploader.upload(testBucket, tmpDirPath, '', true, false);
-    const filesInBucket = await getFilesInBucket();
-    expect(filesInBucket.length).eq(PERF_TEST_FILE_COUNT);
-  });
-
-  it('throws an error for a non existent dir', async function () {
-    if (isWin) {
-      this.skip();
-    }
-
-    try {
-      const uploader = new Client();
-      await uploader.upload(testBucket, EXAMPLE_DIR + '/nonexistent');
-      throw new Error(`error should have been thrown`);
-    } catch (err) {
-      expect(`${err}`).to.include('ENOENT');
-    }
-  });
-
-  it('throws an error for a non existent bucket', async function () {
-    try {
-      const uploader = new Client();
-      await uploader.upload(testBucket + 'nonexistent', EXAMPLE_FILE);
-      throw new Error(`error should have been thrown`);
-    } catch (err) {
-      expect(err).to.be;
-    }
+    const list = await getFileNamesInBucket(this.storage, this.testBucket);
+    expect(list).to.eql([
+      'prefix/testdata/nested1/nested2/test3.txt',
+      'prefix/testdata/nested1/test1.txt',
+      'prefix/testdata/test1.txt',
+      'prefix/testdata/🚀',
+    ]);
   });
 });

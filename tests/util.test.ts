@@ -16,191 +16,318 @@
 
 import 'mocha';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 
-import { getDestinationFromPath } from '../src/util';
+import { promises as fs } from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+import { forceRemove, toPosixPath, toWin32Path } from '@google-github-actions/actions-utils';
+import { Bucket, File, Storage, UploadOptions, UploadResponse } from '@google-cloud/storage';
+
+import { absoluteRootAndComputedGlob, expandGlob, parseBucketNameAndPrefix } from '../src/util';
 
 /**
- * Unit Test getDestinationFromPath method in utils.
+ * stubUpload stubs out the storage.bucket.upload API calls.
  */
-describe('Unit Test getDestinationFromPath', function () {
-  const cases = [
+export const stubUpload = (): sinon.SinonStub<
+  [string, UploadOptions?],
+  Promise<UploadResponse>
+> => {
+  const stub = (
+    sinon.stub<Bucket, 'upload'>(Bucket.prototype, 'upload') as unknown as sinon.SinonStub<
+      [string, UploadOptions?],
+      Promise<UploadResponse>
+    >
+  ).callsFake((p: string, opts?: UploadOptions): Promise<UploadResponse> => {
+    const bucket = new Bucket(new Storage(), 'bucket');
+    const file = new File(bucket, p);
+    return Promise.resolve([file, opts]);
+  });
+  return stub;
+};
+
+describe('#absoluteRootAndComputedGlob', () => {
+  beforeEach(async function () {
+    // Make a temporary directory for each test.
+    this.tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
+    process.env.GITHUB_WORKSPACE = this.tmpdir;
+  });
+
+  afterEach(async function () {
+    delete process.env.GITHUB_WORKSPACE;
+    if (this.tmpdir) {
+      await forceRemove(this.tmpdir);
+    }
+  });
+
+  it('throws an error when GITHUB_WORKSPACE is unset', async function () {
+    delete process.env.GITHUB_WORKSPACE;
+
+    try {
+      await absoluteRootAndComputedGlob('/not/a/real/path', '');
+      throw new Error('expected error, got nothing');
+    } catch (err: unknown) {
+      expect(`${err}`).to.include('$GITHUB_WORKSPACE is not set');
+    }
+  });
+
+  it('throws an error if input path does not exist', async function () {
+    try {
+      await absoluteRootAndComputedGlob('/not/a/real/path', '');
+      throw new Error('expected error, got nothing');
+    } catch (err: unknown) {
+      expect(`${err}`).to.include('ENOENT');
+    }
+  });
+
+  it('throws an error if the input is a file and glob is defined', async function () {
+    const file = path.join(this.tmpdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    try {
+      await absoluteRootAndComputedGlob(file, '*.md');
+      throw new Error('expected error, got nothing');
+    } catch (err: unknown) {
+      expect(`${err}`).to.include('root "path" points to a file');
+    }
+  });
+
+  it('modifies the directory and glob when given a relative file', async function () {
+    const file = path.join(this.tmpdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    const result = await absoluteRootAndComputedGlob(path.basename(file), '');
+    expect(result).to.eql([path.dirname(file), 'my-file']);
+  });
+
+  it('modifies the directory and glob when given an absolute file', async function () {
+    const file = path.join(this.tmpdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    const result = await absoluteRootAndComputedGlob(file, '');
+    expect(result).to.eql([path.dirname(file), 'my-file']);
+  });
+
+  it('resolves a relative directory', async function () {
+    const subdir = await fs.mkdtemp(path.join(this.tmpdir, 'sub-'));
+    const rel = path.basename(subdir);
+
+    const result = await absoluteRootAndComputedGlob(rel, '*.md');
+    expect(result).to.eql([subdir, '*.md']);
+  });
+
+  it('does not resolve an absolute directory', async function () {
+    const subdir = await fs.mkdtemp(path.join(this.tmpdir, 'sub-'));
+
+    const result = await absoluteRootAndComputedGlob(subdir, '*.md');
+    expect(result).to.eql([subdir, '*.md']);
+  });
+
+  it('always returns a posix glob', async function () {
+    const result = await absoluteRootAndComputedGlob(this.tmpdir, 'foo\\bar\\*.txt');
+    expect(result).to.eql([this.tmpdir, 'foo/bar/*.txt']);
+  });
+
+  it('resolves a win32-style absolute root', async function () {
+    const file = path.join(this.tmpdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    const result = await absoluteRootAndComputedGlob(toWin32Path(file), '');
+    expect(result).to.eql([path.dirname(file), 'my-file']);
+  });
+
+  it('resolves a win32-style relative root', async function () {
+    const file = path.join(this.tmpdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    const result = await absoluteRootAndComputedGlob(toWin32Path(path.basename(file)), '');
+    expect(result).to.eql([path.dirname(file), 'my-file']);
+  });
+
+  it('resolves a posix-style absolute root', async function () {
+    const file = path.join(this.tmpdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    const result = await absoluteRootAndComputedGlob(toPosixPath(file), '');
+    expect(result).to.eql([path.dirname(file), 'my-file']);
+  });
+
+  it('resolves a posix-style relative root', async function () {
+    const file = path.join(this.tmpdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    const result = await absoluteRootAndComputedGlob(toPosixPath(path.basename(file)), '');
+    expect(result).to.eql([path.dirname(file), 'my-file']);
+  });
+});
+
+describe('#expandGlob', () => {
+  beforeEach(async function () {
+    // Make a temporary directory for each test.
+    this.tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
+  });
+
+  afterEach(async function () {
+    if (this.tmpdir) {
+      await forceRemove(this.tmpdir);
+    }
+  });
+
+  it('returns an empty array when the directory does not exist', async function () {
+    const list = await expandGlob(path.join('dir', 'does', 'not', 'exist'), '');
+    expect(list).to.eql([]);
+  });
+
+  it('returns an empty array when the directory is empty', async function () {
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([]);
+  });
+
+  it('returns one file in a directory', async function () {
+    const a = path.join(this.tmpdir, 'a');
+    await fs.writeFile(a, 'test');
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath('a')]);
+  });
+
+  it('returns multiple files in a directory', async function () {
+    const a = path.join(this.tmpdir, 'a');
+    await fs.writeFile(a, 'test');
+
+    const b = path.join(this.tmpdir, 'b');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath('a'), toPosixPath('b')]);
+  });
+
+  it('returns files in subdirectories', async function () {
+    const a = path.join(this.tmpdir, 'a');
+    await fs.writeFile(a, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+    const b = path.join(pth, 'b');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath('a'), toPosixPath('sub/directory/b')]);
+  });
+
+  it('returns files beginning with a dot', async function () {
+    const a = path.join(this.tmpdir, '.a');
+    await fs.writeFile(a, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+    const b = path.join(pth, '.b');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath('.a'), toPosixPath('sub/directory/.b')]);
+  });
+
+  it('returns files with non-ascii characters', async function () {
+    const a = path.join(this.tmpdir, '🚀');
+    await fs.writeFile(a, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+    const b = path.join(pth, '.🚀');
+    await fs.writeFile(b, 'test');
+
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath('sub/directory/.🚀'), toPosixPath('🚀')]);
+  });
+
+  it('returns files when given a relative path', async function () {
+    const a = path.join(this.tmpdir, 'a');
+    await fs.writeFile(a, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+    const b = path.join(pth, 'b');
+    await fs.writeFile(b, 'test');
+
+    const rel = path.relative(process.cwd(), this.tmpdir);
+    const list = await expandGlob(rel, '');
+    expect(list).to.eql([toPosixPath('a'), toPosixPath('sub/directory/b')]);
+  });
+
+  it('only returns files', async function () {
+    const a = path.join(this.tmpdir, '.a');
+    await fs.writeFile(a, 'test');
+
+    const b = path.join(this.tmpdir, 'b');
+    await fs.writeFile(b, 'test');
+
+    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    await fs.mkdir(pth, { recursive: true });
+
+    // "sub/directory" should not be included because it has no files.
+    const list = await expandGlob(this.tmpdir, '');
+    expect(list).to.eql([toPosixPath('.a'), toPosixPath('b')]);
+  });
+
+  it('honors the glob pattern', async function () {
+    const a = path.join(this.tmpdir, '.a');
+    await fs.writeFile(a, 'test');
+
+    const b = path.join(this.tmpdir, 'b');
+    await fs.writeFile(b, 'test');
+
+    // The list should only contain a, since the glob only includes files
+    // starting with a ".".
+    const list = await expandGlob(this.tmpdir, '.*');
+    expect(list).to.eql([toPosixPath('.a')]);
+  });
+});
+
+describe('#parseBucketNameAndPrefix', () => {
+  const cases: {
+    only?: boolean;
+    name: string;
+    input: string;
+    expected: [bucket: string, prefix: string];
+  }[] = [
     {
-      name: 'returns correct destination for a file',
-      input: {
-        filePath: 'foo/bar.txt',
-        directory: 'foo',
-        parent: true,
-        prefix: '',
-      },
-      output: 'foo/bar.txt',
+      name: 'empty string',
+      input: '',
+      expected: ['', ''],
     },
     {
-      name: 'returns correct destination for a file within dir',
-      input: {
-        filePath: 'foo/bar/bar.txt',
-        directory: 'foo',
-        parent: true,
-        prefix: '',
-      },
-      output: 'foo/bar/bar.txt',
+      name: 'spaces',
+      input: '   ',
+      expected: ['', ''],
     },
     {
-      name: 'returns correct destination for a file with two dirs in path',
-      input: {
-        filePath: 'foo/bar/bar.txt',
-        directory: 'foo/bar',
-        parent: true,
-        prefix: '',
-      },
-      output: 'foo/bar/bar.txt',
+      name: 'spaces slash',
+      input: '   /   ',
+      expected: ['', ''],
     },
     {
-      name: 'returns correct destination for a file with prefix',
-      input: {
-        filePath: 'foo/bar.txt',
-        directory: 'foo',
-        parent: true,
-        prefix: 'prfx',
-      },
-      output: 'prfx/foo/bar.txt',
+      name: 'only bucket name',
+      input: 'foobar',
+      expected: ['foobar', ''],
     },
     {
-      name: 'returns correct destination for a file with two prefixes',
-      input: {
-        filePath: 'foo/bar.txt',
-        directory: 'foo',
-        parent: true,
-        prefix: 'prfx1/prfx2',
-      },
-      output: 'prfx1/prfx2/foo/bar.txt',
+      name: 'bucket and prefix',
+      input: 'foo/bar',
+      expected: ['foo', 'bar'],
     },
     {
-      name: 'returns correct destination for a file with relative path with two prefixes',
-      input: {
-        filePath: './foo/bar.txt',
-        directory: 'foo',
-        parent: true,
-        prefix: 'prfx1/prfx2',
-      },
-      output: 'prfx1/prfx2/foo/bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file without parent',
-      input: {
-        filePath: 'foo/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: '',
-      },
-      output: 'bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file without parent within dir',
-      input: {
-        filePath: 'foo/bar/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: '',
-      },
-      output: 'bar/bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file without parent with two dirs in path',
-      input: {
-        filePath: 'foo/bar/bar.txt',
-        directory: 'foo/bar',
-        parent: false,
-        prefix: '',
-      },
-      output: 'bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file with relative path without parent with two dirs in path',
-      input: {
-        filePath: './foo/bar/bar.txt',
-        directory: 'foo/bar',
-        parent: false,
-        prefix: '',
-      },
-      output: 'bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file without parent with prefix',
-      input: {
-        filePath: 'foo/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: 'prfx',
-      },
-      output: 'prfx/bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file without parent with two prefixes',
-      input: {
-        filePath: 'foo/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: 'prfx1/prfx2',
-      },
-      output: 'prfx1/prfx2/bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file with relative path without parent with two prefixes',
-      input: {
-        filePath: './foo/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: 'prfx1/prfx2',
-      },
-      output: 'prfx1/prfx2/bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file without parent with absolute filepath',
-      input: {
-        filePath: '/foo/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: '',
-      },
-      output: 'bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file with relative path without parent with two prefixes with absolute filepath',
-      input: {
-        filePath: '/foo/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: 'prfx1/prfx2',
-      },
-      output: 'prfx1/prfx2/bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file with relative path without parent with two dirs in path with absolute filepath',
-      input: {
-        filePath: '/foo/bar/bar.txt',
-        directory: 'foo/bar',
-        parent: false,
-        prefix: '',
-      },
-      output: 'bar.txt',
-    },
-    {
-      name: 'returns correct destination for a file without parent within dir with absolute filepath',
-      input: {
-        filePath: '/foo/bar/bar.txt',
-        directory: 'foo',
-        parent: false,
-        prefix: '',
-      },
-      output: 'bar/bar.txt',
+      name: 'bucket and long prefix',
+      input: 'foo/bar/baz/zip/zap',
+      expected: ['foo', 'bar/baz/zip/zap'],
     },
   ];
 
   cases.forEach((tc) => {
-    it(tc.name, async function () {
-      const { filePath, directory, parent, prefix } = tc.input;
-      const destination = await getDestinationFromPath(filePath, directory, parent, prefix);
-      expect(destination).eq(tc.output);
+    const fn = tc.only ? it.only : it;
+    fn(tc.name, () => {
+      const result = parseBucketNameAndPrefix(tc.input);
+      expect(result).to.eql(tc.expected);
     });
   });
 });

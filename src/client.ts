@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs';
 import * as path from 'path';
 
-import { Storage, UploadResponse, StorageOptions, PredefinedAcl } from '@google-cloud/storage';
-import { parseCredential } from '@google-github-actions/actions-utils';
-import { Ignore } from 'ignore';
+import { Storage, StorageOptions, PredefinedAcl } from '@google-cloud/storage';
+import {
+  parseCredential,
+  randomFilepath,
+  inParallel,
+  toPlatformPath,
+} from '@google-github-actions/actions-utils';
 
-import { UploadHelper } from './upload-helper';
 import { Metadata } from './headers';
+import { parseBucketNameAndPrefix } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -36,10 +39,80 @@ const userAgent = `google-github-actions:upload-cloud-storage/${appVersion}`;
  *
  * @param credentials GCP JSON credentials (default uses ADC).
  */
-
 type ClientOptions = {
   credentials?: string;
+  projectID?: string;
 };
+
+/**
+ * ClientUploadOptions is the list of available options during file upload.
+ */
+export interface ClientUploadOptions {
+  /**
+   * destination is the name of the bucket and optionally the path within the
+   * bucket in which to upload. This value is split on the first instance of a
+   * slash character. Everything preceeding of the first slash is the bucket
+   * name, everything following the first slash is the path.
+   */
+  destination: string;
+
+  /**
+   * root is the parent directory from which all files originated on local disk.
+   * This must be the platform-specific path separators.
+   */
+  root: string;
+
+  /**
+   * files is the list of absolute file paths on local disk to upload. This list
+   * must use posix path separators for files.
+   */
+  files: string[];
+
+  /**
+   * concurrency is the maximum number of parallel upload operations that will
+   * take place.
+   */
+  concurrency?: number;
+
+  /**
+   * includeParent indicates whether the local directory parent name (dirname of
+   * root) should be included in the destination path in the bucket.
+   */
+  includeParent?: boolean;
+
+  /**
+   * metadata is object metadata to set. These are usually populated from
+   * headers.
+   */
+  metadata?: Metadata;
+
+  /**
+   * gzip indicates whether to gzip the object when uploading.
+   */
+  gzip?: boolean;
+
+  /**
+   * resumable indicates whether the upload should be resumable after interrupt.
+   */
+  resumable?: boolean;
+
+  /**
+   * predefinedAcl defines the default ACL to apply to new objects.
+   */
+  predefinedAcl?: PredefinedAcl;
+
+  /**
+   * onUploadObject is called each time an object upload begins.
+   **/
+  onUploadObject?: FOnUploadObject;
+}
+
+/**
+ * FOnUploadObject is the function interface for the upload callback signature.
+ */
+interface FOnUploadObject {
+  (source: string, destination: string, opts?: Record<string, unknown>): void;
+}
 
 /**
  * Handles credential lookup, registration and wraps interactions with the GCS
@@ -51,7 +124,10 @@ export class Client {
   readonly storage: Storage;
 
   constructor(opts?: ClientOptions) {
-    const options: StorageOptions = { userAgent: userAgent };
+    const options: StorageOptions = {
+      projectId: opts?.projectID,
+      userAgent: userAgent,
+    };
 
     if (opts?.credentials) {
       options.credentials = parseCredential(opts.credentials);
@@ -60,76 +136,52 @@ export class Client {
   }
 
   /**
-   * Invokes GCS Helper for uploading file or directory.
-   * @param destination Name of bucket and optional prefix to upload file/dir.
-   * @param filePath FilePath of the file/dir to upload.
-   * @param glob Glob pattern if any.
-   * @param gzip Gzip files on upload.
-   * @param resumable Allow resuming uploads.
-   * @param parent Flag to enable parent dir in destination path.
-   * @param predefinedAcl Predefined ACL config.
-   * @param concurrency Number of files to simultaneously upload.
-   * @returns List of uploaded file(s).
+   * upload puts the given collection of files into the bucket. It will
+   * overwrite any existing objects with the same name and create any new
+   * objects. It does not delete any existing objects.
+   *
+   * @param opts ClientUploadOptions
+   *
+   * @return The list of files uploaded.
    */
-  async upload(
-    destination: string,
-    filePath: string,
-    glob = '',
-    gzip = true,
-    resumable = true,
-    parent = true,
-    predefinedAcl?: PredefinedAcl,
-    concurrency = 100,
-    metadata?: Metadata,
-    ignores?: Ignore,
-  ): Promise<UploadResponse[]> {
-    let bucketName = destination;
-    let prefix = '';
-    // If destination of the form my-bucket/subfolder get bucket and prefix.
-    const idx = destination.indexOf('/');
-    if (idx > -1) {
-      bucketName = destination.substring(0, idx);
-      prefix = destination.substring(idx + 1);
-    }
+  async upload(opts: ClientUploadOptions): Promise<string[]> {
+    const [bucket, prefix] = parseBucketNameAndPrefix(opts.destination);
 
-    const stat = await fs.promises.stat(filePath);
-    const uploader = new UploadHelper(this.storage);
-    if (stat.isFile()) {
-      destination = '';
-      // If obj prefix is set, then extract filename and append to prefix to create destination
-      if (prefix) {
-        destination = path.posix.join(prefix, path.posix.basename(filePath));
-      }
-      const uploadedFile = await uploader.uploadFile(
-        bucketName,
-        filePath,
-        gzip,
-        resumable,
-        destination,
-        predefinedAcl,
-        metadata,
-        ignores,
-      );
+    const storageBucket = this.storage.bucket(bucket);
 
-      if (uploadedFile) {
-        return [uploadedFile];
+    const uploadOne = async (file: string): Promise<string> => {
+      // Calculate destination by joining the prefix (if one exists), the parent
+      // directory name (if includeParent is true), and the file name. path.join
+      // ignores empty strings.
+      const base = opts.includeParent ? path.basename(opts.root) : '';
+      const destination = path.posix.join(prefix, base, file);
+
+      // Build options
+      const abs = path.resolve(opts.root, toPlatformPath(file));
+      const uploadOpts = {
+        destination: destination,
+        metadata: opts.metadata || {},
+        gzip: opts.gzip,
+        predefinedAcl: opts.predefinedAcl,
+        resumable: opts.resumable,
+        configPath: randomFilepath(),
+      };
+
+      // Execute callback if defined
+      if (opts.onUploadObject) {
+        opts.onUploadObject(abs, path.posix.join(bucket, destination), uploadOpts);
       }
-      return [];
-    } else {
-      const uploadedFiles = await uploader.uploadDirectory(
-        bucketName,
-        filePath,
-        glob,
-        gzip,
-        resumable,
-        prefix,
-        parent,
-        predefinedAcl,
-        concurrency,
-        metadata,
-        ignores,
-      );
-      return uploadedFiles;
-    }
+
+      // Do the upload
+      const response = await storageBucket.upload(abs, uploadOpts);
+      const name = response[0].name;
+      return name;
+    };
+
+    const args: [file: string][] = opts.files.map((file) => [file]);
+    const results = await inParallel(uploadOne, args, {
+      concurrency: opts.concurrency,
+    });
+    return results;
   }
 }
