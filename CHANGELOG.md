@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.9.0...v0.10.0) (2022-04-26)
+
+
+### Features
+
+* refactor uploading and ignore processing ([#255](https://www.github.com/google-github-actions/upload-cloud-storage/issues/255)) ([6c467dd](https://www.github.com/google-github-actions/upload-cloud-storage/commit/6c467ddf4d1706392602ca12bdb604c635c9f571))
+
 ## [0.9.0](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.8.0...v0.9.0) (2022-04-07)
 
 
