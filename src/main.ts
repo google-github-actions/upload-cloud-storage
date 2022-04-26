@@ -75,9 +75,12 @@ export async function run(): Promise<void> {
 
     // Compute the absolute root and compute the glob.
     const [absoluteRoot, computedGlob] = await absoluteRootAndComputedGlob(root, glob);
+    core.debug(`computed absoluteRoot from "${root}" to "${absoluteRoot}"`);
+    core.debug(`computed computedGlob from "${glob}" to "${computedGlob}"`);
 
     // Build complete file list.
     const files = await expandGlob(absoluteRoot, computedGlob);
+    core.debug(`found ${files.length} files: ${JSON.stringify(files)}`);
 
     // Process ignores:
     //
@@ -85,6 +88,8 @@ export async function run(): Promise<void> {
     // - Format all files to be posix relative to input.path
     // - Filter out items that match
     if (processGcloudIgnore) {
+      core.debug(`processing gcloudignore`);
+
       const ignores = ignore();
 
       // Look for a .gcloudignore in the repository root.
@@ -93,27 +98,29 @@ export async function run(): Promise<void> {
         const ignoreList = await parseGcloudIgnore(gcloudIgnorePath);
 
         if (ignoreList.length) {
-          core.debug(`Used .gcloudignore at: ${gcloudIgnorePath}`);
+          core.debug(`using .gcloudignore at: ${gcloudIgnorePath}`);
           core.debug(`parsed ignore list: ${JSON.stringify(ignoreList)}`);
 
           ignores.add(ignoreList);
         }
-      }
 
-      for (let i = 0; i < files.length; i++) {
-        const name = files[i];
-        try {
-          if (ignores.ignores(name)) {
-            core.debug(`Ignoring ${name} because of ignore file`);
-            files.splice(i, 1);
-            i--;
+        for (let i = 0; i < files.length; i++) {
+          const name = files[i];
+          try {
+            if (ignores.ignores(name)) {
+              core.debug(`ignoring ${name} because of ignore file`);
+              files.splice(i, 1);
+              i--;
+            }
+          } catch (err) {
+            const msg = errorMessage(err);
+            core.error(`failed to process ignore for ${name}, skipping: ${msg}`);
           }
-        } catch (err) {
-          const msg = errorMessage(err);
-          core.error(`failed to process ignore for ${name}, skipping: ${msg}`);
         }
       }
     }
+
+    core.debug(`uploading ${files.length} files: ${JSON.stringify(files)}`);
 
     // Emit a helpful warning in case people specify the wrong directory.
     if (files.length === 0) {

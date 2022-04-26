@@ -22,9 +22,9 @@ import { toPlatformPath, toPosixPath } from '@google-github-actions/actions-util
 
 /**
  * absoluteRootAndComputedGlob expands the root to an absolute path. If the
- * result points to a file, the root is modified to be the parent directory and
- * the glob is updated to match only the file. Otherwise, the absolute path and
- * glob are returned.
+ * result points to a file, the root is modified to be the absolute parent
+ * directory and the glob is updated to match only the file. Otherwise, the
+ * absolute path and glob are returned.
  *
  * If the file/directory does not exist, it throws an error.
  *
@@ -32,7 +32,7 @@ import { toPlatformPath, toPosixPath } from '@google-github-actions/actions-util
  *
  * @param root The root path to expand.
  * @param glob The glob to compute.
- * @return [string, string] The expanded root and computed glob.
+ * @return [string, string] The absolute and expanded root and computed glob.
  */
 export async function absoluteRootAndComputedGlob(
   root: string,

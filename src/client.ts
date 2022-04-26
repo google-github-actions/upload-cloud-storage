@@ -45,9 +45,9 @@ type ClientOptions = {
 };
 
 /**
- * UploadOptions is the list of available options during file upload.
+ * ClientUploadOptions is the list of available options during file upload.
  */
-export interface UploadOptions {
+export interface ClientUploadOptions {
   /**
    * destination is the name of the bucket and optionally the path within the
    * bucket in which to upload. This value is split on the first instance of a
@@ -140,11 +140,11 @@ export class Client {
    * overwrite any existing objects with the same name and create any new
    * objects. It does not delete any existing objects.
    *
-   * @param opts UploadOptions
+   * @param opts ClientUploadOptions
    *
    * @return The list of files uploaded.
    */
-  async upload(opts: UploadOptions): Promise<string[]> {
+  async upload(opts: ClientUploadOptions): Promise<string[]> {
     const [bucket, prefix] = parseBucketNameAndPrefix(opts.destination);
 
     const storageBucket = this.storage.bucket(bucket);
