@@ -146,6 +146,31 @@ describe('integration', () => {
     expect(list).to.eql(['test1.txt']);
   });
 
+  it('uploads files with the correct mime type', async function () {
+    const client = new Client({ projectID: projectID });
+    await client.upload({
+      root: './tests/testdata',
+      files: ['test.css', 'test.js', 'test.json', 'test1.txt'],
+      destination: this.testBucket,
+    });
+
+    const list = await getFilesInBucket(this.storage, this.testBucket);
+    const names = list.map((file) => file.name);
+    expect(names).to.eql(['test.css', 'test.js', 'test.json', 'test1.txt']);
+
+    const css = list[0];
+    expect(css?.metadata.contentType).to.eql('text/css');
+
+    const js = list[1];
+    expect(js?.metadata.contentType).to.eql('application/javascript');
+
+    const json = list[2];
+    expect(json?.metadata.contentType).to.eql('application/json');
+
+    const txt = list[3];
+    expect(txt?.metadata.contentType).to.eql('text/plain');
+  });
+
   it('uploads a single file with prefix', async function () {
     const client = new Client({ projectID: projectID });
     await client.upload({

@@ -90,6 +90,8 @@ describe('#run', () => {
       path.join(this.githubWorkspace, 'testdata', 'test2.txt'),
       path.join(this.githubWorkspace, 'testdata', 'test1.txt'),
       path.join(this.githubWorkspace, 'testdata', 'test.json'),
+      path.join(this.githubWorkspace, 'testdata', 'test.js'),
+      path.join(this.githubWorkspace, 'testdata', 'test.css'),
       path.join(this.githubWorkspace, 'testdata', 'nested1', 'test1.txt'),
       path.join(this.githubWorkspace, 'testdata', 'nested1', 'nested2', 'test3.txt'),
     ]);
@@ -131,6 +133,8 @@ describe('#run', () => {
       path.join(this.githubWorkspace, 'testdata', '🚀'),
       path.join(this.githubWorkspace, 'testdata', 'testfile'),
       path.join(this.githubWorkspace, 'testdata', 'test.json'),
+      path.join(this.githubWorkspace, 'testdata', 'test.js'),
+      path.join(this.githubWorkspace, 'testdata', 'test.css'),
     ]);
 
     // Check arguments
