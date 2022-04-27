@@ -127,6 +127,8 @@ export async function run(): Promise<void> {
       core.warning(NO_FILES_WARNING);
     }
 
+    core.info(`metadata: ${JSON.stringify(metadata)}`);
+
     // Create the client and upload files.
     const client = new Client({ credentials: credentials });
     const uploadResponses = await client.upload({

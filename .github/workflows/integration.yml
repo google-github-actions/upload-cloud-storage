@@ -74,6 +74,8 @@ jobs:
         mkdir -p test
         touch test/test1.txt
         touch test/test2.txt
+        touch test/test3.json
+        touch test/test4.js
 
     - id: 'upload'
       name: 'Upload files'

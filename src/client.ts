@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as core from '@actions/core';
 import * as path from 'path';
 
 import { Storage, StorageOptions, PredefinedAcl } from '@google-cloud/storage';
@@ -145,7 +146,9 @@ export class Client {
    * @return The list of files uploaded.
    */
   async upload(opts: ClientUploadOptions): Promise<string[]> {
-    const [bucket, prefix] = parseBucketNameAndPrefix(opts.destination);
+    const clonedOpts = { ...opts };
+
+    const [bucket, prefix] = parseBucketNameAndPrefix(clonedOpts.destination);
 
     const storageBucket = this.storage.bucket(bucket);
 
@@ -153,34 +156,40 @@ export class Client {
       // Calculate destination by joining the prefix (if one exists), the parent
       // directory name (if includeParent is true), and the file name. path.join
       // ignores empty strings.
-      const base = opts.includeParent ? path.basename(opts.root) : '';
+      const base = clonedOpts.includeParent ? path.basename(clonedOpts.root) : '';
       const destination = path.posix.join(prefix, base, file);
 
       // Build options
-      const abs = path.resolve(opts.root, toPlatformPath(file));
-      const uploadOpts = {
-        destination: destination,
-        metadata: opts.metadata || {},
-        gzip: opts.gzip,
-        predefinedAcl: opts.predefinedAcl,
-        resumable: opts.resumable,
-        configPath: randomFilepath(),
-      };
+      const abs = path.resolve(clonedOpts.root, toPlatformPath(file));
+      const uploadOpts = JSON.parse(
+        JSON.stringify({
+          destination: destination,
+          metadata: clonedOpts.metadata || {},
+          gzip: clonedOpts.gzip,
+          predefinedAcl: clonedOpts.predefinedAcl,
+          resumable: clonedOpts.resumable,
+          configPath: randomFilepath(),
+        }),
+      );
 
       // Execute callback if defined
-      if (opts.onUploadObject) {
-        opts.onUploadObject(abs, path.posix.join(bucket, destination), uploadOpts);
+      if (clonedOpts.onUploadObject) {
+        clonedOpts.onUploadObject(abs, path.posix.join(bucket, destination), uploadOpts);
       }
+
+      core.info(`file: ${file}`);
+      core.info(`uploadOpts: ${JSON.stringify(uploadOpts, null, 2)}`);
 
       // Do the upload
       const response = await storageBucket.upload(abs, uploadOpts);
+      core.info(`response: ${JSON.stringify(response[0].metadata, null, 2)}`);
       const name = response[0].name;
       return name;
     };
 
-    const args: [file: string][] = opts.files.map((file) => [file]);
+    const args: [file: string][] = clonedOpts.files.map((file) => [file]);
     const results = await inParallel(uploadOne, args, {
-      concurrency: opts.concurrency,
+      concurrency: clonedOpts.concurrency,
     });
     return results;
   }
