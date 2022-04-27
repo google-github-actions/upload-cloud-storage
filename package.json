@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build -m src/main.ts",
-    "lint": "eslint src/ tests/ --ext .ts,.tsx",
+    "lint": "eslint src/ tests/ --ext .ts,.tsx --max-warnings 0",
     "format": "eslint src/ tests/ --ext .ts,.tsx --fix",
     "test": "mocha -r ts-node/register -t 600s 'tests/**/*.test.ts'"
   },

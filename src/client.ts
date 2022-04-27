@@ -25,7 +25,7 @@ import {
 } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
-import { parseBucketNameAndPrefix } from './util';
+import { deepClone, parseBucketNameAndPrefix } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -132,6 +132,7 @@ export class Client {
     if (opts?.credentials) {
       options.credentials = parseCredential(opts.credentials);
     }
+
     this.storage = new Storage(options);
   }
 
@@ -156,16 +157,20 @@ export class Client {
       const base = opts.includeParent ? path.basename(opts.root) : '';
       const destination = path.posix.join(prefix, base, file);
 
-      // Build options
+      // Build options.
       const abs = path.resolve(opts.root, toPlatformPath(file));
-      const uploadOpts = {
+
+      // Apparently the Cloud Storage SDK modifies this object, so we need to
+      // make our own deep copy before passing it to upload. See #258 for more
+      // information.
+      const uploadOpts = deepClone({
         destination: destination,
         metadata: opts.metadata || {},
         gzip: opts.gzip,
         predefinedAcl: opts.predefinedAcl,
         resumable: opts.resumable,
         configPath: randomFilepath(),
-      };
+      });
 
       // Execute callback if defined
       if (opts.onUploadObject) {

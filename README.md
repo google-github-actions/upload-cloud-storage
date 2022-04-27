@@ -294,6 +294,14 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     process_gcloudignore: true
     ```
 
+-   `project_id` - (Optional) Google Cloud project ID to use for billing and API
+    requests. By default, this is extracted from the credentials or the running
+    environment.
+
+    ```yaml
+    project_id: 'my-project'
+    ```
+
 - `credentials`:  (**Deprecated**) This input is deprecated. See [auth
   section](#via-google-github-actionsauth) for more details. [Google Service
   Account JSON][sa] credentials as JSON or base64 encoded string, typically

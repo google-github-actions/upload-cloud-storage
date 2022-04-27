@@ -9,6 +9,11 @@ inputs:
       formatted private key which can be exported from the Cloud Console. The
       value can be raw or base64-encoded.
     required: false
+  project_id:
+    description: |-
+      Project ID to use for making requests. By default, this is extracted from
+      the credentials or the running environment.
+    required: false
   path:
     description: |-
       The path to a file or folder inside the action's filesystem
