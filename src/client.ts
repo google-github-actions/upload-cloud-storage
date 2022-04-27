@@ -111,7 +111,7 @@ export interface ClientUploadOptions {
  * FOnUploadObject is the function interface for the upload callback signature.
  */
 interface FOnUploadObject {
-  (source: string, destination: string, opts?: Record<string, unknown>): void;
+  (source: string, destination: string, opts: Record<string, unknown>): void;
 }
 
 /**
