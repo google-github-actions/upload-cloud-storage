@@ -49,9 +49,11 @@ describe('#run', () => {
       /** do nothing */
     };
     sinon.stub(core, 'debug').callsFake(doNothing);
+    sinon.stub(core, 'endGroup').callsFake(doNothing);
     sinon.stub(core, 'info').callsFake(doNothing);
-    sinon.stub(core, 'warning').callsFake(doNothing);
     sinon.stub(core, 'setOutput').callsFake(doNothing);
+    sinon.stub(core, 'startGroup').callsFake(doNothing);
+    sinon.stub(core, 'warning').callsFake(doNothing);
   });
 
   afterEach(async function () {

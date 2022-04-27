@@ -28,7 +28,7 @@ import * as path from 'path';
 
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
-import { absoluteRootAndComputedGlob, expandGlob } from './util';
+import { absoluteRootAndComputedGlob, deepClone, expandGlob } from './util';
 
 const NO_FILES_WARNING =
   `There are no files to upload! Make sure the workflow uses the "checkout"` +
@@ -76,12 +76,12 @@ export async function run(): Promise<void> {
 
     // Compute the absolute root and compute the glob.
     const [absoluteRoot, computedGlob] = await absoluteRootAndComputedGlob(root, glob);
-    core.debug(`computed absoluteRoot from "${root}" to "${absoluteRoot}"`);
-    core.debug(`computed computedGlob from "${glob}" to "${computedGlob}"`);
+    core.debug(`Computed absoluteRoot from "${root}" to "${absoluteRoot}"`);
+    core.debug(`Computed computedGlob from "${glob}" to "${computedGlob}"`);
 
     // Build complete file list.
     const files = await expandGlob(absoluteRoot, computedGlob);
-    core.debug(`found ${files.length} files: ${JSON.stringify(files)}`);
+    core.debug(`Found ${files.length} files: ${JSON.stringify(files)}`);
 
     // Process ignores:
     //
@@ -129,6 +129,7 @@ export async function run(): Promise<void> {
     }
 
     // Create the client and upload files.
+    core.startGroup('Upload files');
     const client = new Client({
       credentials: credentials,
       projectID: projectID,
@@ -144,10 +145,19 @@ export async function run(): Promise<void> {
       resumable: resumable,
       predefinedAcl: predefinedAcl,
 
-      onUploadObject: (source: string, destination: string) => {
+      onUploadObject: (source: string, destination: string, opts: Record<string, unknown>) => {
         core.info(`Uploading ${source} to gs://${destination}`);
+
+        if (core.isDebug()) {
+          const data = deepClone(opts);
+          data['ts'] = Date.now();
+          data['source'] = source;
+          data['destination'] = destination;
+          core.debug(`Uploading: ${JSON.stringify(data)}`);
+        }
       },
     });
+    core.endGroup();
 
     core.setOutput('uploaded', uploadResponses.join(','));
   } catch (err) {
