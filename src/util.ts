@@ -16,6 +16,7 @@
 
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import * as v8 from 'v8';
 
 import globby from 'globby';
 import { toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
@@ -105,4 +106,14 @@ export async function expandGlob(directoryPath: string, glob: string): Promise<s
   }
 
   return filesList.sort();
+}
+
+/**
+ * deepClone makes a deep clone of the given object.
+ *
+ * @param obj T, object to clone
+ * @return T a copy of the object
+ */
+export function deepClone<T>(obj: T): T {
+  return v8.deserialize(v8.serialize(obj));
 }

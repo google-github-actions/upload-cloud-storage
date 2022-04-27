@@ -47,6 +47,24 @@ export const stubUpload = (): sinon.SinonStub<
   return stub;
 };
 
+/**
+ * getFilesInBucket returns the names of the files in the bucket.
+ */
+export const getFilesInBucket = async (storage: Storage, bucketName: string): Promise<File[]> => {
+  const [files] = await storage.bucket(bucketName).getFiles();
+  return files;
+};
+
+/**
+ * getFileNamesInBucket returns the names of the files in the bucket.
+ */
+export const getFileNamesInBucket = async (
+  storage: Storage,
+  bucketName: string,
+): Promise<string[]> => {
+  return (await getFilesInBucket(storage, bucketName)).map((file) => file.name);
+};
+
 describe('#absoluteRootAndComputedGlob', () => {
   beforeEach(async function () {
     // Make a temporary directory for each test.

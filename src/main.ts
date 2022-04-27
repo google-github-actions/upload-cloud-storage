@@ -63,6 +63,7 @@ export async function run(): Promise<void> {
     const processGcloudIgnore = core.getBooleanInput('process_gcloudignore');
     const metadata = headersInput === '' ? {} : parseHeadersInput(headersInput);
     const credentials = core.getInput('credentials');
+    const projectID = core.getInput('project_id');
 
     // Add warning if using credentials.
     if (credentials) {
@@ -88,7 +89,7 @@ export async function run(): Promise<void> {
     // - Format all files to be posix relative to input.path
     // - Filter out items that match
     if (processGcloudIgnore) {
-      core.debug(`processing gcloudignore`);
+      core.debug(`Processing gcloudignore`);
 
       const ignores = ignore();
 
@@ -98,8 +99,8 @@ export async function run(): Promise<void> {
         const ignoreList = await parseGcloudIgnore(gcloudIgnorePath);
 
         if (ignoreList.length) {
-          core.debug(`using .gcloudignore at: ${gcloudIgnorePath}`);
-          core.debug(`parsed ignore list: ${JSON.stringify(ignoreList)}`);
+          core.debug(`Using .gcloudignore at: ${gcloudIgnorePath}`);
+          core.debug(`Parsed ignore list: ${JSON.stringify(ignoreList)}`);
 
           ignores.add(ignoreList);
         }
@@ -108,19 +109,19 @@ export async function run(): Promise<void> {
           const name = files[i];
           try {
             if (ignores.ignores(name)) {
-              core.debug(`ignoring ${name} because of ignore file`);
+              core.debug(`Ignoring ${name} because of ignore file`);
               files.splice(i, 1);
               i--;
             }
           } catch (err) {
             const msg = errorMessage(err);
-            core.error(`failed to process ignore for ${name}, skipping: ${msg}`);
+            core.error(`Failed to process ignore for ${name}, skipping: ${msg}`);
           }
         }
       }
     }
 
-    core.debug(`uploading ${files.length} files: ${JSON.stringify(files)}`);
+    core.debug(`Uploading ${files.length} files: ${JSON.stringify(files)}`);
 
     // Emit a helpful warning in case people specify the wrong directory.
     if (files.length === 0) {
@@ -128,7 +129,10 @@ export async function run(): Promise<void> {
     }
 
     // Create the client and upload files.
-    const client = new Client({ credentials: credentials });
+    const client = new Client({
+      credentials: credentials,
+      projectID: projectID,
+    });
     const uploadResponses = await client.upload({
       destination: destination,
       root: absoluteRoot,
