@@ -22,10 +22,11 @@ import {
   randomFilepath,
   inParallel,
   toPlatformPath,
+  toPosixPath,
 } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
-import { deepClone, parseBucketNameAndPrefix } from './util';
+import { deepClone } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -39,9 +40,26 @@ const userAgent = `google-github-actions:upload-cloud-storage/${appVersion}`;
  *
  * @param credentials GCP JSON credentials (default uses ADC).
  */
-type ClientOptions = {
+export type ClientOptions = {
   credentials?: string;
   projectID?: string;
+};
+
+/**
+ * ClientFileUpload represents a file to upload. It keeps track of the local
+ * source path and remote destination.
+ */
+export type ClientFileUpload = {
+  /**
+   * source is the absolute, local path on disk to the file.
+   */
+  source: string;
+
+  /**
+   * destination is the remote location for the file, relative to the bucket
+   * root.
+   */
+  destination: string;
 };
 
 /**
@@ -49,36 +67,21 @@ type ClientOptions = {
  */
 export interface ClientUploadOptions {
   /**
-   * destination is the name of the bucket and optionally the path within the
-   * bucket in which to upload. This value is split on the first instance of a
-   * slash character. Everything preceeding of the first slash is the bucket
-   * name, everything following the first slash is the path.
+   * bucket is the name of the bucket in which to upload.
    */
-  destination: string;
-
-  /**
-   * root is the parent directory from which all files originated on local disk.
-   * This must be the platform-specific path separators.
-   */
-  root: string;
+  bucket: string;
 
   /**
    * files is the list of absolute file paths on local disk to upload. This list
    * must use posix path separators for files.
    */
-  files: string[];
+  files: ClientFileUpload[];
 
   /**
    * concurrency is the maximum number of parallel upload operations that will
    * take place.
    */
   concurrency?: number;
-
-  /**
-   * includeParent indicates whether the local directory parent name (dirname of
-   * root) should be included in the destination path in the bucket.
-   */
-  includeParent?: boolean;
 
   /**
    * metadata is object metadata to set. These are usually populated from
@@ -110,8 +113,41 @@ export interface ClientUploadOptions {
 /**
  * FOnUploadObject is the function interface for the upload callback signature.
  */
-interface FOnUploadObject {
+export interface FOnUploadObject {
   (source: string, destination: string, opts: Record<string, unknown>): void;
+}
+
+/**
+ * ClientComputeDestinationOptions is the list of options to compute file
+ * destinations in a target bucket.
+ */
+export interface ClientComputeDestinationOptions {
+  /**
+   * givenRoot is the root given by the input to the function.
+   */
+  givenRoot: string;
+
+  /**
+   * absoluteRoot is the absolute root path, used for resolving the files.
+   */
+  absoluteRoot: string;
+
+  /**
+   * files is a list of filenames, for a glob expansion. All files are relative
+   * to absoluteRoot.
+   */
+  files: string[];
+
+  /**
+   * prefix is an optional prefix to predicate on all paths.
+   */
+  prefix?: string;
+
+  /**
+   * includeParent indicates whether the local directory parent name (dirname of
+   * givenRoot) should be included in the destination path in the bucket.
+   */
+  includeParent?: boolean;
 }
 
 /**
@@ -137,6 +173,37 @@ export class Client {
   }
 
   /**
+   * computeDestinations builds a collection of files to their intended upload
+   * paths in a Cloud Storage bucket, based on the given options.
+   *
+   * @param opts List of inputs and files to compute.
+   * @return List of files to upload with the source as a local file path and
+   * the remote destination path.
+   */
+  static computeDestinations(opts: ClientComputeDestinationOptions): ClientFileUpload[] {
+    const list: ClientFileUpload[] = [];
+    for (let i = 0; i < opts.files.length; i++) {
+      const name = opts.files[i];
+
+      // Calculate destination by joining the prefix (if one exists), the parent
+      // directory name (if includeParent is true), and the file name. path.join
+      // ignores empty strings. We only want to do this if
+      const base = opts.includeParent ? path.posix.basename(toPosixPath(opts.givenRoot)) : '';
+      const destination = path.posix.join(opts.prefix || '', base, name);
+
+      // Compute the absolute path of the file.
+      const source = path.resolve(opts.absoluteRoot, toPlatformPath(name));
+
+      list.push({
+        source: source,
+        destination: destination,
+      });
+    }
+
+    return list;
+  }
+
+  /**
    * upload puts the given collection of files into the bucket. It will
    * overwrite any existing objects with the same name and create any new
    * objects. It does not delete any existing objects.
@@ -146,19 +213,12 @@ export class Client {
    * @return The list of files uploaded.
    */
   async upload(opts: ClientUploadOptions): Promise<string[]> {
-    const [bucket, prefix] = parseBucketNameAndPrefix(opts.destination);
-
+    const bucket = opts.bucket;
     const storageBucket = this.storage.bucket(bucket);
 
-    const uploadOne = async (file: string): Promise<string> => {
-      // Calculate destination by joining the prefix (if one exists), the parent
-      // directory name (if includeParent is true), and the file name. path.join
-      // ignores empty strings.
-      const base = opts.includeParent ? path.basename(opts.root) : '';
-      const destination = path.posix.join(prefix, base, file);
-
-      // Build options.
-      const abs = path.resolve(opts.root, toPlatformPath(file));
+    const uploadOne = async (file: ClientFileUpload): Promise<string> => {
+      const source = file.source;
+      const destination = file.destination;
 
       // Apparently the Cloud Storage SDK modifies this object, so we need to
       // make our own deep copy before passing it to upload. See #258 for more
@@ -174,16 +234,16 @@ export class Client {
 
       // Execute callback if defined
       if (opts.onUploadObject) {
-        opts.onUploadObject(abs, path.posix.join(bucket, destination), uploadOpts);
+        opts.onUploadObject(source, path.posix.join(bucket, destination), uploadOpts);
       }
 
       // Do the upload
-      const response = await storageBucket.upload(abs, uploadOpts);
+      const response = await storageBucket.upload(source, uploadOpts);
       const name = response[0].name;
       return name;
     };
 
-    const args: [file: string][] = opts.files.map((file) => [file]);
+    const args: [file: ClientFileUpload][] = opts.files.map((file) => [file]);
     const results = await inParallel(uploadOne, args, {
       concurrency: opts.concurrency,
     });

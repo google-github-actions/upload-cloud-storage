@@ -33,12 +33,14 @@ import { toPlatformPath, toPosixPath } from '@google-github-actions/actions-util
  *
  * @param root The root path to expand.
  * @param glob The glob to compute.
- * @return [string, string] The absolute and expanded root and computed glob.
+ * @return [string, string, boolean] The absolute and expanded root, the
+ * computed glob, and a boolean indicating whether the given root was a
+ * directory.
  */
 export async function absoluteRootAndComputedGlob(
   root: string,
   glob: string,
-): Promise<[absoluteRoot: string, computedGlob: string]> {
+): Promise<[absoluteRoot: string, computedGlob: string, isFile: boolean]> {
   // Resolve the root input path, relative to the active workspace. If the
   // value was already an absolute path, this has no effect.
   const githubWorkspace = process.env.GITHUB_WORKSPACE;
@@ -57,10 +59,10 @@ export async function absoluteRootAndComputedGlob(
 
     const computedGlob = path.basename(resolvedRoot);
     const absoluteRoot = path.dirname(resolvedRoot);
-    return [absoluteRoot, toPosixPath(computedGlob)];
+    return [absoluteRoot, toPosixPath(computedGlob), false];
   }
 
-  return [resolvedRoot, toPosixPath(glob)];
+  return [resolvedRoot, toPosixPath(glob), true];
 }
 
 /**

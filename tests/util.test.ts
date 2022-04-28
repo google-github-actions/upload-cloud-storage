@@ -116,7 +116,17 @@ describe('#absoluteRootAndComputedGlob', () => {
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(path.basename(file), '');
-    expect(result).to.eql([path.dirname(file), 'my-file']);
+    expect(result).to.eql([path.dirname(file), 'my-file', false]);
+  });
+
+  it('modifies the directory and glob when given a relative file in a subpath', async function () {
+    const subdir = await fs.mkdtemp(path.join(this.tmpdir, 'sub-'));
+    const file = path.join(subdir, 'my-file');
+    await fs.writeFile(file, 'test');
+
+    const name = path.join(path.basename(subdir), path.basename(file));
+    const result = await absoluteRootAndComputedGlob(name, '');
+    expect(result).to.eql([path.dirname(file), 'my-file', false]);
   });
 
   it('modifies the directory and glob when given an absolute file', async function () {
@@ -124,7 +134,7 @@ describe('#absoluteRootAndComputedGlob', () => {
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(file, '');
-    expect(result).to.eql([path.dirname(file), 'my-file']);
+    expect(result).to.eql([path.dirname(file), 'my-file', false]);
   });
 
   it('resolves a relative directory', async function () {
@@ -132,19 +142,19 @@ describe('#absoluteRootAndComputedGlob', () => {
     const rel = path.basename(subdir);
 
     const result = await absoluteRootAndComputedGlob(rel, '*.md');
-    expect(result).to.eql([subdir, '*.md']);
+    expect(result).to.eql([subdir, '*.md', true]);
   });
 
   it('does not resolve an absolute directory', async function () {
     const subdir = await fs.mkdtemp(path.join(this.tmpdir, 'sub-'));
 
     const result = await absoluteRootAndComputedGlob(subdir, '*.md');
-    expect(result).to.eql([subdir, '*.md']);
+    expect(result).to.eql([subdir, '*.md', true]);
   });
 
   it('always returns a posix glob', async function () {
     const result = await absoluteRootAndComputedGlob(this.tmpdir, 'foo\\bar\\*.txt');
-    expect(result).to.eql([this.tmpdir, 'foo/bar/*.txt']);
+    expect(result).to.eql([this.tmpdir, 'foo/bar/*.txt', true]);
   });
 
   it('resolves a win32-style absolute root', async function () {
@@ -152,7 +162,7 @@ describe('#absoluteRootAndComputedGlob', () => {
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toWin32Path(file), '');
-    expect(result).to.eql([path.dirname(file), 'my-file']);
+    expect(result).to.eql([path.dirname(file), 'my-file', false]);
   });
 
   it('resolves a win32-style relative root', async function () {
@@ -160,7 +170,7 @@ describe('#absoluteRootAndComputedGlob', () => {
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toWin32Path(path.basename(file)), '');
-    expect(result).to.eql([path.dirname(file), 'my-file']);
+    expect(result).to.eql([path.dirname(file), 'my-file', false]);
   });
 
   it('resolves a posix-style absolute root', async function () {
@@ -168,7 +178,7 @@ describe('#absoluteRootAndComputedGlob', () => {
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toPosixPath(file), '');
-    expect(result).to.eql([path.dirname(file), 'my-file']);
+    expect(result).to.eql([path.dirname(file), 'my-file', false]);
   });
 
   it('resolves a posix-style relative root', async function () {
@@ -176,7 +186,7 @@ describe('#absoluteRootAndComputedGlob', () => {
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toPosixPath(path.basename(file)), '');
-    expect(result).to.eql([path.dirname(file), 'my-file']);
+    expect(result).to.eql([path.dirname(file), 'my-file', false]);
   });
 });
 

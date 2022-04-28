@@ -20,7 +20,7 @@ import * as sinon from 'sinon';
 
 import * as path from 'path';
 
-import { Client } from '../src/client';
+import { Client, ClientComputeDestinationOptions, ClientFileUpload } from '../src/client';
 import { stubUpload } from './util.test';
 
 describe('Client', () => {
@@ -42,6 +42,189 @@ describe('Client', () => {
     });
   });
 
+  describe('.computeDestinations', () => {
+    const cases: {
+      only?: boolean;
+      name: string;
+      input: ClientComputeDestinationOptions;
+      exp: ClientFileUpload[];
+    }[] = [
+      {
+        name: 'no files',
+        input: {
+          givenRoot: '',
+          absoluteRoot: '',
+          files: [],
+        },
+        exp: [],
+      },
+
+      // relative
+      {
+        name: 'relative given root',
+        input: {
+          givenRoot: 'foo/bar',
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'nested/sub/file2',
+          },
+        ],
+      },
+      {
+        name: 'relative given root with parent',
+        input: {
+          givenRoot: 'foo/bar',
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+          includeParent: true,
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'bar/file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'bar/nested/sub/file2',
+          },
+        ],
+      },
+      {
+        name: 'relative given root with prefix',
+        input: {
+          givenRoot: 'foo/bar',
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+          prefix: 'prefix',
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'prefix/file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'prefix/nested/sub/file2',
+          },
+        ],
+      },
+      {
+        name: 'relative given root with parent and prefix',
+        input: {
+          givenRoot: 'foo/bar',
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+          prefix: 'prefix',
+          includeParent: true,
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'prefix/bar/file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'prefix/bar/nested/sub/file2',
+          },
+        ],
+      },
+
+      // absolute
+      {
+        name: 'absolute given root',
+        input: {
+          givenRoot: path.join(process.cwd(), 'foo', 'bar'),
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'nested/sub/file2',
+          },
+        ],
+      },
+      {
+        name: 'absolute given root with parent',
+        input: {
+          givenRoot: path.join(process.cwd(), 'foo', 'bar'),
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+          includeParent: true,
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'bar/file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'bar/nested/sub/file2',
+          },
+        ],
+      },
+      {
+        name: 'absolute given root with prefix',
+        input: {
+          givenRoot: path.join(process.cwd(), 'foo', 'bar'),
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+          prefix: 'prefix',
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'prefix/file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'prefix/nested/sub/file2',
+          },
+        ],
+      },
+      {
+        name: 'absolute given root with parent and prefix',
+        input: {
+          givenRoot: path.join(process.cwd(), 'foo', 'bar'),
+          absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
+          files: ['file1', 'nested/sub/file2'],
+          prefix: 'prefix',
+          includeParent: true,
+        },
+        exp: [
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
+            destination: 'prefix/bar/file1',
+          },
+          {
+            source: path.join(process.cwd(), 'foo', 'bar', 'nested', 'sub', 'file2'),
+            destination: 'prefix/bar/nested/sub/file2',
+          },
+        ],
+      },
+    ];
+
+    cases.forEach((tc) => {
+      const fn = tc.only ? it.only : it;
+      fn(tc.name, () => {
+        const result = Client.computeDestinations(tc.input);
+        expect(result).to.eql(tc.exp);
+      });
+    });
+  });
+
   describe('#upload', () => {
     it('calls uploadFile', async () => {
       const stub = stubUpload();
@@ -49,11 +232,18 @@ describe('Client', () => {
       // Do the upload
       const client = new Client();
       await client.upload({
-        destination: 'bucket/prefix/sub',
-        root: 'my-root',
-        files: ['file1', 'file2', 'nested/file3'],
+        bucket: 'my-bucket',
+        files: [
+          {
+            source: path.join(process.cwd(), 'file1'),
+            destination: 'sub/path/to/file1',
+          },
+          {
+            source: path.join(process.cwd(), 'nested', 'file2'),
+            destination: 'sub/path/to/nested/file2',
+          },
+        ],
         concurrency: 10,
-        includeParent: true,
         metadata: {
           contentType: 'application/json',
         },
@@ -65,49 +255,20 @@ describe('Client', () => {
       // Check call sites
       const uploadedFiles = stub.getCalls().map((call) => call.args[0]);
       expect(uploadedFiles).to.eql([
-        path.join(process.cwd(), 'my-root', 'nested', 'file3'),
-        path.join(process.cwd(), 'my-root', 'file2'),
-        path.join(process.cwd(), 'my-root', 'file1'),
+        path.join(process.cwd(), 'nested', 'file2'),
+        path.join(process.cwd(), 'file1'),
       ]);
 
       const call = stub.getCall(0).args[1];
       if (!call) {
         throw new Error('expected first call to be defined');
       }
-      expect(call.destination).to.eql('prefix/sub/my-root/nested/file3');
+      expect(call.destination).to.eql('sub/path/to/nested/file2');
       expect(call.metadata).to.eql({ contentType: 'application/json' });
       expect(call.gzip).to.eql(true);
       expect(call.predefinedAcl).to.eql('authenticatedRead');
       expect(call.resumable).to.eql(true);
       expect(call.configPath).to.be;
-    });
-
-    it('respects includeParent as false', async () => {
-      const stub = stubUpload();
-
-      // Do the upload
-      const client = new Client();
-      await client.upload({
-        destination: 'bucket',
-        root: 'my-root',
-        files: ['file1', 'file2', 'nested/file3'],
-        concurrency: 10,
-        includeParent: false,
-      });
-
-      // Check call sites
-      const uploadedFiles = stub.getCalls().map((call) => call.args[0]);
-      expect(uploadedFiles).to.eql([
-        path.join(process.cwd(), 'my-root', 'nested', 'file3'),
-        path.join(process.cwd(), 'my-root', 'file2'),
-        path.join(process.cwd(), 'my-root', 'file1'),
-      ]);
-
-      const call = stub.getCall(0).args[1];
-      if (!call) {
-        throw new Error('expected first call to be defined');
-      }
-      expect(call.destination).to.eql('nested/file3');
     });
   });
 });
