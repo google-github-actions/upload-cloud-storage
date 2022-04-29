@@ -28,7 +28,12 @@ import * as path from 'path';
 
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
-import { absoluteRootAndComputedGlob, deepClone, expandGlob } from './util';
+import {
+  absoluteRootAndComputedGlob,
+  deepClone,
+  parseBucketNameAndPrefix,
+  expandGlob,
+} from './util';
 
 const NO_FILES_WARNING =
   `There are no files to upload! Make sure the workflow uses the "checkout"` +
@@ -53,7 +58,7 @@ export async function run(): Promise<void> {
     const destination = core.getInput('destination', { required: true });
     const gzip = core.getBooleanInput('gzip');
     const resumable = core.getBooleanInput('resumable');
-    const parent = core.getBooleanInput('parent');
+    const includeParent = core.getBooleanInput('parent');
     const glob = core.getInput('glob');
     const concurrency = Number(core.getInput('concurrency'));
     const predefinedAclInput = core.getInput('predefinedAcl');
@@ -75,8 +80,8 @@ export async function run(): Promise<void> {
     }
 
     // Compute the absolute root and compute the glob.
-    const [absoluteRoot, computedGlob] = await absoluteRootAndComputedGlob(root, glob);
-    core.debug(`Computed absoluteRoot from "${root}" to "${absoluteRoot}"`);
+    const [absoluteRoot, computedGlob, rootIsDir] = await absoluteRootAndComputedGlob(root, glob);
+    core.debug(`Computed absoluteRoot from "${root}" to "${absoluteRoot}" (isDir: ${rootIsDir})`);
     core.debug(`Computed computedGlob from "${glob}" to "${computedGlob}"`);
 
     // Build complete file list.
@@ -128,6 +133,25 @@ export async function run(): Promise<void> {
       core.warning(NO_FILES_WARNING);
     }
 
+    // Compute the bucket and prefix.
+    const [bucket, prefix] = parseBucketNameAndPrefix(destination);
+    core.debug(`Computed bucket as "${bucket}"`);
+    core.debug(`Computed prefix as "${prefix}"`);
+
+    // Compute the list of file destinations in the bucket based on given
+    // parameters.
+    const destinations = Client.computeDestinations({
+      givenRoot: root,
+      absoluteRoot: absoluteRoot,
+      files: files,
+      prefix: prefix,
+
+      // Only include the parent if the given root was a directory. Without
+      // this, uploading a single object will cause the object to be nested in
+      // its own name: google-github-actions/upload-cloud-storage#259.
+      includeParent: includeParent && rootIsDir,
+    });
+
     // Create the client and upload files.
     core.startGroup('Upload files');
     const client = new Client({
@@ -135,11 +159,9 @@ export async function run(): Promise<void> {
       projectID: projectID,
     });
     const uploadResponses = await client.upload({
-      destination: destination,
-      root: absoluteRoot,
-      files: files,
+      bucket: bucket,
+      files: destinations,
       concurrency: concurrency,
-      includeParent: parent,
       metadata: metadata,
       gzip: gzip,
       resumable: resumable,

@@ -78,9 +78,8 @@ describe('Client (integration)', () => {
 
       try {
         await client.upload({
-          root: './tests/testdata',
-          files: ['test1.txt'],
-          destination: 'definitely-not-a-real-bucket',
+          bucket: 'definitely-not-a-real-bucket',
+          files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
         });
         throw new Error('expected error');
       } catch (err: unknown) {
@@ -89,30 +88,13 @@ describe('Client (integration)', () => {
       }
     });
 
-    it('throws an error on a non-existent directory', async function () {
-      const client = new Client({ projectID: projectID });
-
-      try {
-        await client.upload({
-          root: '/not/a/real/path',
-          files: ['test1.txt'],
-          destination: this.testBucket,
-        });
-        throw new Error('expected error');
-      } catch (err: unknown) {
-        const msg = errorMessage(err);
-        expect(msg).to.include('ENOENT');
-      }
-    });
-
     it('throws an error on a non-existent file', async function () {
       const client = new Client({ projectID: projectID });
 
       try {
         await client.upload({
-          root: './tests/testdata',
-          files: ['not-a-real-file.txt'],
-          destination: this.testBucket,
+          bucket: this.testBucket,
+          files: [{ source: 'test1.txt', destination: 'test1.txt' }],
         });
         throw new Error('expected error');
       } catch (err: unknown) {
@@ -124,9 +106,8 @@ describe('Client (integration)', () => {
     it('uploads a single file', async function () {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        root: './tests/testdata',
-        files: ['test1.txt'],
-        destination: this.testBucket,
+        bucket: this.testBucket,
+        files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
       });
 
       const list = await getFileNamesInBucket(this.storage, this.testBucket);
@@ -136,9 +117,13 @@ describe('Client (integration)', () => {
     it('uploads files with the correct mime type', async function () {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        root: './tests/testdata',
-        files: ['test.css', 'test.js', 'test.json', 'test1.txt'],
-        destination: this.testBucket,
+        bucket: this.testBucket,
+        files: [
+          { source: './tests/testdata/test.css', destination: 'test.css' },
+          { source: './tests/testdata/test.js', destination: 'test.js' },
+          { source: './tests/testdata/test.json', destination: 'test.json' },
+          { source: './tests/testdata/test1.txt', destination: 'test1.txt' },
+        ],
       });
 
       const list = await getFilesInBucket(this.storage, this.testBucket);
@@ -161,9 +146,8 @@ describe('Client (integration)', () => {
     it('uploads a single file with prefix', async function () {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        root: './tests/testdata',
-        files: ['test1.txt'],
-        destination: `${this.testBucket}/my/prefix`,
+        bucket: this.testBucket,
+        files: [{ source: './tests/testdata/test1.txt', destination: 'my/prefix/test1.txt' }],
       });
 
       const list = await getFileNamesInBucket(this.storage, this.testBucket);
@@ -173,9 +157,8 @@ describe('Client (integration)', () => {
     it('uploads a single file without an extension', async function () {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        root: './tests/testdata',
-        files: ['testfile'],
-        destination: this.testBucket,
+        bucket: this.testBucket,
+        files: [{ source: './tests/testdata/testfile', destination: 'testfile' }],
       });
 
       const list = await getFileNamesInBucket(this.storage, this.testBucket);
@@ -185,9 +168,8 @@ describe('Client (integration)', () => {
     it('uploads a single file with special characters in the filename', async function () {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        root: './tests/testdata',
-        files: ['🚀'],
-        destination: this.testBucket,
+        bucket: this.testBucket,
+        files: [{ source: './tests/testdata/🚀', destination: '🚀' }],
       });
 
       const list = await getFileNamesInBucket(this.storage, this.testBucket);
@@ -197,9 +179,8 @@ describe('Client (integration)', () => {
     it('uploads a single file with metadata', async function () {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        root: './tests/testdata',
-        files: ['test1.txt'],
-        destination: this.testBucket,
+        bucket: this.testBucket,
+        files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
         metadata: {
           contentType: 'application/json',
           metadata: {
@@ -212,71 +193,6 @@ describe('Client (integration)', () => {
       const metadata = list[0]?.metadata;
       expect(metadata?.contentType).to.eql('application/json');
       expect(metadata?.metadata?.foo).to.eql('bar');
-    });
-
-    it('uploads multiple files', async function () {
-      const client = new Client({ projectID: projectID });
-      await client.upload({
-        root: './tests/testdata',
-        files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
-        destination: this.testBucket,
-      });
-
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql(['nested1/nested2/test3.txt', 'nested1/test1.txt', 'test1.txt', '🚀']);
-    });
-
-    it('uploads multiple files with parent set', async function () {
-      const client = new Client({ projectID: projectID });
-      await client.upload({
-        root: './tests/testdata',
-        files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
-        destination: this.testBucket,
-        includeParent: true,
-      });
-
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql([
-        'testdata/nested1/nested2/test3.txt',
-        'testdata/nested1/test1.txt',
-        'testdata/test1.txt',
-        'testdata/🚀',
-      ]);
-    });
-
-    it('uploads multiple files with a prefix', async function () {
-      const client = new Client({ projectID: projectID });
-      await client.upload({
-        root: './tests/testdata',
-        files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
-        destination: `${this.testBucket}/prefix`,
-      });
-
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql([
-        'prefix/nested1/nested2/test3.txt',
-        'prefix/nested1/test1.txt',
-        'prefix/test1.txt',
-        'prefix/🚀',
-      ]);
-    });
-
-    it('uploads multiple files with parent set and a prefix', async function () {
-      const client = new Client({ projectID: projectID });
-      await client.upload({
-        root: './tests/testdata',
-        files: ['test1.txt', '🚀', 'nested1/test1.txt', 'nested1/nested2/test3.txt'],
-        destination: `${this.testBucket}/prefix`,
-        includeParent: true,
-      });
-
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql([
-        'prefix/testdata/nested1/nested2/test3.txt',
-        'prefix/testdata/nested1/test1.txt',
-        'prefix/testdata/test1.txt',
-        'prefix/testdata/🚀',
-      ]);
     });
   });
 });

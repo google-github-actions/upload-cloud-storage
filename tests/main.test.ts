@@ -77,7 +77,7 @@ describe('#run', () => {
       parent: 'true',
       glob: '**/*',
       concurrency: '10',
-      process_gcloudignore: 'true',
+      process_gcloudignore: 'false',
       predefinedAcl: 'authenticatedRead',
       headers: 'content-type: application/json',
     });
@@ -109,6 +109,82 @@ describe('#run', () => {
     expect(call.predefinedAcl).to.eql('authenticatedRead');
     expect(call.resumable).to.eql(true);
     expect(call.configPath).to.be;
+  });
+
+  it('uploads all files without a parent', async function () {
+    const uploadStub = stubUpload();
+
+    setInputs({
+      path: './testdata',
+      destination: 'my-bucket/sub/path',
+      gzip: 'true',
+      resumable: 'true',
+      parent: 'false',
+      glob: '**/*',
+      concurrency: '10',
+      process_gcloudignore: 'false',
+      predefinedAcl: 'authenticatedRead',
+      headers: 'content-type: application/json',
+    });
+
+    await run();
+
+    // Check call sites
+    const uploadedFiles = uploadStub.getCalls().map((call) => call.args[0]);
+    expect(uploadedFiles).to.eql([
+      path.join(this.githubWorkspace, 'testdata', '🚀'),
+      path.join(this.githubWorkspace, 'testdata', 'testfile'),
+      path.join(this.githubWorkspace, 'testdata', 'test2.txt'),
+      path.join(this.githubWorkspace, 'testdata', 'test1.txt'),
+      path.join(this.githubWorkspace, 'testdata', 'test.json'),
+      path.join(this.githubWorkspace, 'testdata', 'test.js'),
+      path.join(this.githubWorkspace, 'testdata', 'test.css'),
+      path.join(this.githubWorkspace, 'testdata', 'nested1', 'test1.txt'),
+      path.join(this.githubWorkspace, 'testdata', 'nested1', 'nested2', 'test3.txt'),
+    ]);
+
+    // Check upload paths
+    const paths = uploadStub.getCalls().map((call) => call.args[1]?.destination);
+    expect(paths).to.eql([
+      'sub/path/🚀',
+      'sub/path/testfile',
+      'sub/path/test2.txt',
+      'sub/path/test1.txt',
+      'sub/path/test.json',
+      'sub/path/test.js',
+      'sub/path/test.css',
+      'sub/path/nested1/test1.txt',
+      'sub/path/nested1/nested2/test3.txt',
+    ]);
+  });
+
+  it('uploads a single file', async function () {
+    const uploadStub = stubUpload();
+
+    setInputs({
+      path: './testdata/test.css',
+      destination: 'my-bucket/sub/path',
+      gzip: 'true',
+      resumable: 'true',
+      // Even though this is true, the parent directory shouldn't be included
+      // for direct file paths.
+      parent: 'true',
+      concurrency: '10',
+      process_gcloudignore: 'false',
+    });
+
+    await run();
+
+    // Check call sites
+    const uploadedFiles = uploadStub.getCalls().map((call) => call.args[0]);
+    expect(uploadedFiles).to.eql([path.join(this.githubWorkspace, 'testdata', 'test.css')]);
+
+    // Check arguments
+    const call = uploadStub.getCall(0).args[1];
+    if (!call) {
+      throw new Error('expected first call to be defined');
+    }
+    expect(call.destination).to.eql('sub/path/test.css');
   });
 
   it('processes a gcloudignore', async function () {
