@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.10.2](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.10.1...v0.10.2) (2022-04-29)
+
+
+### Miscellaneous Chores
+
+* release 0.10.2 ([c8139e9](https://www.github.com/google-github-actions/upload-cloud-storage/commit/c8139e9af3fab69c9d73c7681be1405d7b591dd0))
+
 ### [0.10.1](https://www.github.com/google-github-actions/upload-cloud-storage/compare/v0.10.1...v0.10.1) (2022-04-27)
 
 
