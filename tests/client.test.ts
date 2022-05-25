@@ -268,7 +268,6 @@ describe('Client', () => {
       expect(call.gzip).to.eql(true);
       expect(call.predefinedAcl).to.eql('authenticatedRead');
       expect(call.resumable).to.eql(true);
-      expect(call.configPath).to.be;
     });
   });
 });
