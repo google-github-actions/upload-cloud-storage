@@ -108,7 +108,6 @@ describe('#run', () => {
     expect(call.gzip).to.eql(true);
     expect(call.predefinedAcl).to.eql('authenticatedRead');
     expect(call.resumable).to.eql(true);
-    expect(call.configPath).to.be;
   });
 
   it('uploads all files without a parent', async function () {
