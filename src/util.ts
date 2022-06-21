@@ -18,7 +18,7 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as v8 from 'v8';
 
-import globby from 'globby';
+import fg from 'fast-glob';
 import { toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
 
 /**
@@ -97,8 +97,10 @@ export function parseBucketNameAndPrefix(name: string): [bucket: string, prefix:
  */
 export async function expandGlob(directoryPath: string, glob: string): Promise<string[]> {
   const directoryPosix = toPosixPath(directoryPath);
-  const pth = toPosixPath(path.posix.join(directoryPosix, glob));
-  const filesList = await globby([pth], {
+  const search = toPosixPath(glob || '**/*');
+  const filesList = await fg(search, {
+    absolute: true,
+    cwd: directoryPath,
     dot: true,
   });
 
