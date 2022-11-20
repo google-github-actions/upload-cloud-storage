@@ -29,13 +29,6 @@ describe('Client', () => {
   });
 
   describe('#new', () => {
-    it('initializes with JSON creds', function () {
-      const client = new Client({
-        credentials: `{"foo":"bar"}`,
-      });
-      expect(client.storage.authClient.jsonContent).eql({ foo: 'bar' });
-    });
-
     it('initializes with ADC', function () {
       const client = new Client();
       expect(client.storage.authClient.jsonContent).eql(null);

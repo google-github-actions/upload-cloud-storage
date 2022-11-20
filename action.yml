@@ -3,12 +3,6 @@ description: Upload files or folders to GCS buckets
 author: Google LLC
 
 inputs:
-  credentials:
-    description: |-
-      Optional service account key to use for authentication to GCS. This should be the JSON
-      formatted private key which can be exported from the Cloud Console. The
-      value can be raw or base64-encoded.
-    required: false
   project_id:
     description: |-
       Project ID to use for making requests. By default, this is extracted from

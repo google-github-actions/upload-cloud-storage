@@ -302,13 +302,6 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     project_id: 'my-project'
     ```
 
-- `credentials`:  (**Deprecated**) This input is deprecated. See [auth
-  section](#via-google-github-actionsauth) for more details. [Google Service
-  Account JSON][sa] credentials as JSON or base64 encoded string, typically
-  sourced from a [GitHub Secret][gh-secret]. If unspecified, other
-  authentication methods are attempted. See [Authorization](#Authorization)
-  below.
-
 ## Outputs
 
 List of successfully uploaded file(s).
@@ -397,6 +390,3 @@ Credentials.
 [gcs]: https://cloud.google.com/storage
 [wif]: https://cloud.google.com/iam/docs/workload-identity-federation
 [sa]: https://cloud.google.com/iam/docs/creating-managing-service-accounts
-[gh-runners]: https://help.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners
-[gh-secret]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
-[setup-gcloud]: ../setup-gcloud
