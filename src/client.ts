@@ -18,7 +18,6 @@ import * as path from 'path';
 
 import { Storage, StorageOptions, PredefinedAcl } from '@google-cloud/storage';
 import {
-  parseCredential,
   randomFilepath,
   inParallel,
   toPlatformPath,
@@ -38,10 +37,9 @@ const userAgent = `google-github-actions:upload-cloud-storage/${appVersion}`;
 /**
  * Available options to create the client.
  *
- * @param credentials GCP JSON credentials (default uses ADC).
+ * @param projectID GCP Project ID.
  */
 export type ClientOptions = {
-  credentials?: string;
   projectID?: string;
 };
 
@@ -164,10 +162,6 @@ export class Client {
       projectId: opts?.projectID,
       userAgent: userAgent,
     };
-
-    if (opts?.credentials) {
-      options.credentials = parseCredential(opts.credentials);
-    }
 
     this.storage = new Storage(options);
   }

@@ -67,17 +67,7 @@ export async function run(): Promise<void> {
     const headersInput = core.getInput('headers');
     const processGcloudIgnore = core.getBooleanInput('process_gcloudignore');
     const metadata = headersInput === '' ? {} : parseHeadersInput(headersInput);
-    const credentials = core.getInput('credentials');
     const projectID = core.getInput('project_id');
-
-    // Add warning if using credentials.
-    if (credentials) {
-      core.warning(
-        'The "credentials" input is deprecated. ' +
-          'Please switch to using google-github-actions/auth which supports both Workload Identity Federation and JSON Key authentication. ' +
-          'For more details, see https://github.com/google-github-actions/upload-cloud-storage#authorization',
-      );
-    }
 
     // Compute the absolute root and compute the glob.
     const [absoluteRoot, computedGlob, rootIsDir] = await absoluteRootAndComputedGlob(root, glob);
@@ -155,7 +145,6 @@ export async function run(): Promise<void> {
     // Create the client and upload files.
     core.startGroup('Upload files');
     const client = new Client({
-      credentials: credentials,
       projectID: projectID,
     });
     const uploadResponses = await client.upload({
