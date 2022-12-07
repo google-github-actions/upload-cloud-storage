@@ -1,32 +1,16 @@
-<!--
-Copyright 2020 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
-
 # upload-cloud-storage
 
-This action uploads files/folders to a [Google Cloud Storage (GCS)][gcs] bucket. This is useful when
-you want upload build artifacts from your workflow.
+The `upload-cloud-storage` GitHub Action uploads files to a [Google Cloud
+Storage (GCS)][gcs] bucket.
 
-Paths to files that are successfully uploaded are set as output variables and can be
-used in subsequent steps.
+Paths to files that are successfully uploaded are set as output variables and
+can be used in subsequent steps.
 
 ## Prerequisites
 
 -   This action requires Google Cloud credentials that are authorized to upload
-    blobs to the specified bucket. See the Authorization section below for more
-    information.
+    blobs to the specified bucket. See the [Authorization](#authorization)
+    section below for more information.
 
 -   This action runs using Node 16. If you are using self-hosted GitHub Actions
     runners, you must use runner version [2.285.0](https://github.com/actions/virtual-environments)
@@ -295,8 +279,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     ```
 
 -   `project_id` - (Optional) Google Cloud project ID to use for billing and API
-    requests. By default, this is extracted from the credentials or the running
-    environment.
+    requests. By default, this is extracted from the running environment.
 
     ```yaml
     project_id: 'my-project'
@@ -332,11 +315,9 @@ permissions to access the secrets being requested.
 
 ### Via google-github-actions/auth
 
-Use [google-github-actions/auth](https://github.com/google-github-actions/auth) to authenticate the action. You can use [Workload Identity Federation][wif] or traditional [Service Account Key JSON][sa] authentication by specifying the `credentials` input. This Action supports both the recommended [Workload Identity Federation][wif] based authentication and the traditional [Service Account Key JSON][sa] based auth.
-
-See [usage](https://github.com/google-github-actions/auth#usage) for more details.
-
-#### Authenticating via Workload Identity Federation
+Use [google-github-actions/auth](https://github.com/google-github-actions/auth)
+to authenticate the action. You can use [Workload Identity Federation][wif] or
+traditional [Service Account Key JSON][sa] authentication.
 
 ```yaml
 jobs:
@@ -351,20 +332,6 @@ jobs:
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
-
-    - uses: 'google-github-actions/upload-cloud-storage@v1'
-```
-
-#### Authenticating via Service Account Key JSON
-
-```yaml
-jobs:
-  job_id:
-    steps:
-    - id: 'auth'
-      uses: 'google-github-actions/auth@v1'
-      with:
-        credentials_json: '${{ secrets.gcp_credentials }}'
 
     - uses: 'google-github-actions/upload-cloud-storage@v1'
 ```
