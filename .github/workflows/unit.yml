@@ -1,4 +1,4 @@
-name: 'unit'
+name: 'Unit'
 
 on:
   push:
@@ -15,7 +15,6 @@ concurrency:
 
 jobs:
   unit:
-    name: 'unit'
     runs-on: '${{ matrix.os }}'
 
     permissions:
