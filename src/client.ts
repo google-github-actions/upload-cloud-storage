@@ -16,13 +16,8 @@
 
 import * as path from 'path';
 
-import { Storage, StorageOptions, PredefinedAcl } from '@google-cloud/storage';
-import {
-  randomFilepath,
-  inParallel,
-  toPlatformPath,
-  toPosixPath,
-} from '@google-github-actions/actions-utils';
+import { Storage, StorageOptions, PredefinedAcl, UploadOptions } from '@google-cloud/storage';
+import { inParallel, toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
 import { deepClone } from './util';
@@ -112,7 +107,7 @@ export interface ClientUploadOptions {
  * FOnUploadObject is the function interface for the upload callback signature.
  */
 export interface FOnUploadObject {
-  (source: string, destination: string, opts: Record<string, unknown>): void;
+  (source: string, destination: string, opts: UploadOptions): void;
 }
 
 /**
@@ -217,14 +212,14 @@ export class Client {
       // Apparently the Cloud Storage SDK modifies this object, so we need to
       // make our own deep copy before passing it to upload. See #258 for more
       // information.
-      const uploadOpts = deepClone({
+      const shadowedUploadOpts: UploadOptions = {
         destination: destination,
         metadata: opts.metadata || {},
         gzip: opts.gzip,
         predefinedAcl: opts.predefinedAcl,
         resumable: opts.resumable,
-        configPath: randomFilepath(),
-      });
+      };
+      const uploadOpts = deepClone(shadowedUploadOpts);
 
       // Execute callback if defined
       if (opts.onUploadObject) {
