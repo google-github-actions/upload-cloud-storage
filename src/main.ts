@@ -15,7 +15,7 @@
  */
 
 import * as core from '@actions/core';
-import { PredefinedAcl } from '@google-cloud/storage';
+import { PredefinedAcl, UploadOptions } from '@google-cloud/storage';
 import {
   errorMessage,
   isPinnedToHead,
@@ -156,11 +156,11 @@ export async function run(): Promise<void> {
       resumable: resumable,
       predefinedAcl: predefinedAcl,
 
-      onUploadObject: (source: string, destination: string, opts: Record<string, unknown>) => {
+      onUploadObject: (source: string, destination: string, opts: UploadOptions) => {
         core.info(`Uploading ${source} to gs://${destination}`);
 
         if (core.isDebug()) {
-          const data = deepClone(opts);
+          const data = deepClone(opts) as Record<string, unknown>;
           data['ts'] = Date.now();
           data['source'] = source;
           data['destination'] = destination;
