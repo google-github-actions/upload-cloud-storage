@@ -241,8 +241,8 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     and custom metadata with key `custom-field` and value `custom-value` will be
     added to it.
 
-    Settable fields are: `Cache-Control`, `Content-Disposition`,
-    `Content-Encoding`, `Content-Language`, `Content-Type`, `Custom-Time`. See
+    Settable fields are: `cache-control`, `content-disposition`,
+    `content-encoding`, `content-language`, `content-type`, `custom-time`. See
     [the
     document](https://cloud.google.com/storage/docs/gsutil/addlhelp/WorkingWithObjectMetadata#settable-fields;-field-values)
     for details.
