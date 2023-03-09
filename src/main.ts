@@ -19,6 +19,7 @@ import { PredefinedAcl, UploadOptions } from '@google-cloud/storage';
 import {
   errorMessage,
   isPinnedToHead,
+  parseBoolean,
   parseGcloudIgnore,
   pinnedToHeadWarning,
 } from '@google-github-actions/actions-utils';
@@ -56,16 +57,16 @@ export async function run(): Promise<void> {
 
     const root = core.getInput('path', { required: true });
     const destination = core.getInput('destination', { required: true });
-    const gzip = core.getBooleanInput('gzip');
-    const resumable = core.getBooleanInput('resumable');
-    const includeParent = core.getBooleanInput('parent');
+    const gzip = parseBoolean(core.getInput('gzip'));
+    const resumable = parseBoolean(core.getInput('resumable'));
+    const includeParent = parseBoolean(core.getInput('parent'));
     const glob = core.getInput('glob');
     const concurrency = Number(core.getInput('concurrency'));
     const predefinedAclInput = core.getInput('predefinedAcl');
     const predefinedAcl =
       predefinedAclInput === '' ? undefined : (predefinedAclInput as PredefinedAcl);
     const headersInput = core.getInput('headers');
-    const processGcloudIgnore = core.getBooleanInput('process_gcloudignore');
+    const processGcloudIgnore = parseBoolean(core.getInput('process_gcloudignore'));
     const metadata = headersInput === '' ? {} : parseHeadersInput(headersInput);
     const projectID = core.getInput('project_id');
 
@@ -89,15 +90,22 @@ export async function run(): Promise<void> {
       const ignores = ignore();
 
       // Look for a .gcloudignore in the repository root.
-      if (process.env.GITHUB_WORKSPACE) {
-        const gcloudIgnorePath = path.join(process.env.GITHUB_WORKSPACE, '.gcloudignore');
+      const githubWorkspace = process.env.GITHUB_WORKSPACE;
+      if (githubWorkspace) {
+        const gcloudIgnorePath = path.join(githubWorkspace, '.gcloudignore');
         const ignoreList = await parseGcloudIgnore(gcloudIgnorePath);
 
-        if (ignoreList.length) {
+        if (ignoreList && ignoreList.length) {
           core.debug(`Using .gcloudignore at: ${gcloudIgnorePath}`);
           core.debug(`Parsed ignore list: ${JSON.stringify(ignoreList)}`);
 
           ignores.add(ignoreList);
+        } else {
+          core.warning(
+            `The "process_gcloudignore" option is true, but no .gcloudignore ` +
+              `file was found. If you do not intend to process a ` +
+              `gcloudignore file, set "process_gcloudignore" to false.`,
+          );
         }
 
         for (let i = 0; i < files.length; i++) {
@@ -113,6 +121,13 @@ export async function run(): Promise<void> {
             core.error(`Failed to process ignore for ${name}, skipping: ${msg}`);
           }
         }
+      } else {
+        core.warning(
+          `The "process_gcloudignore" option is true, but $GITHUB_WORKSPACE ` +
+            `is not set. Did you forget to use "actions/checkout" before ` +
+            `this step? If you do not intend to process a gcloudignore file, ` +
+            `set "process_gcloudignore" to false.`,
+        );
       }
     }
 
