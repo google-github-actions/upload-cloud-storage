@@ -48,8 +48,8 @@ jobs:
     # Only authenticate if this is a full CI run.
     - uses: 'google-github-actions/auth@main'
       with:
-        workload_identity_provider: '${{ secrets.WIF_PROVIDER_NAME }}'
-        service_account: '${{ secrets.SERVICE_ACCOUNT_EMAIL }}'
+        workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
+        service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
       if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
 
     # The secrets will only be injected in pushes to main or from maintainers.
@@ -57,5 +57,5 @@ jobs:
     - name: 'npm test'
       run: 'npm run test'
       env:
-        UPLOAD_CLOUD_STORAGE_TEST_BUCKET: '${{ secrets.BUCKET_NAME }}'
-        UPLOAD_CLOUD_STORAGE_TEST_PROJECT: '${{ secrets.PROJECT_ID }}'
+        UPLOAD_CLOUD_STORAGE_TEST_BUCKET: '${{ vars.BUCKET_NAME }}'
+        UPLOAD_CLOUD_STORAGE_TEST_PROJECT: '${{ vars.PROJECT_ID }}'
