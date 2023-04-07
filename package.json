@@ -34,8 +34,8 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.15.11",
     "@types/sinon": "^10.0.13",
-    "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.57.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
     "@vercel/ncc": "^0.36.1",
     "chai": "^4.3.7",
     "eslint-config-prettier": "^8.8.0",
@@ -45,6 +45,6 @@
     "prettier": "^2.8.7",
     "sinon": "^15.0.3",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.4"
   }
 }
