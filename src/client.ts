@@ -16,7 +16,13 @@
 
 import * as path from 'path';
 
-import { Storage, StorageOptions, PredefinedAcl, UploadOptions } from '@google-cloud/storage';
+import {
+  IdempotencyStrategy,
+  PredefinedAcl,
+  Storage,
+  StorageOptions,
+  UploadOptions,
+} from '@google-cloud/storage';
 import { inParallel, toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
@@ -156,6 +162,15 @@ export class Client {
     const options: StorageOptions = {
       projectId: opts?.projectID,
       userAgent: userAgent,
+
+      retryOptions: {
+        autoRetry: true,
+        idempotencyStrategy: IdempotencyStrategy.RetryAlways,
+        maxRetries: 5,
+        maxRetryDelay: 30,
+        retryDelayMultiplier: 2,
+        totalTimeout: 500,
+      },
     };
 
     this.storage = new Storage(options);
