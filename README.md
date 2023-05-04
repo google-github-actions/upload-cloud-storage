@@ -6,6 +6,11 @@ Storage (GCS)][gcs] bucket.
 Paths to files that are successfully uploaded are set as output variables and
 can be used in subsequent steps.
 
+**This is not an officially supported Google product, and it is not covered by a
+Google Cloud support contract. To report bugs or request features in a Google
+Cloud product, please contact [Google Cloud
+support](https://cloud.google.com/support).**
+
 ## Prerequisites
 
 -   This action requires Google Cloud credentials that are authorized to upload
