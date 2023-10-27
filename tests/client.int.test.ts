@@ -15,7 +15,11 @@
  */
 
 import 'mocha';
-import { expect } from 'chai';
+import 'chai';
+
+const chai = require('chai');
+const expect = chai.expect;
+chai.config.includeStack = true;
 
 import { errorMessage, inParallel } from '@google-github-actions/actions-utils';
 import { randomBytes } from 'crypto';
@@ -165,7 +169,7 @@ describe('Client (integration)', () => {
       expect(list).to.eql(['testfile']);
     });
 
-    it('uploads a single file with special characters in the filename', async function () {
+    it.only('uploads a single file with special characters in the filename', async function () {
       const client = new Client({ projectID: projectID });
       await client.upload({
         bucket: this.testBucket,

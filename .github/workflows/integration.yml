@@ -1,54 +1,54 @@
-name: 'Integration'
+# name: 'Integration'
 
-on:
-  push:
-    branches:
-    - 'main'
-  pull_request:
-    branches:
-    - 'main'
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#     - 'main'
+#   pull_request:
+#     branches:
+#     - 'main'
+#   workflow_dispatch:
 
-concurrency:
-  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
-  cancel-in-progress: true
+# concurrency:
+#   group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+#   cancel-in-progress: true
 
-permissions:
-  contents: 'read'
-  id-token: 'write'
+# permissions:
+#   contents: 'read'
+#   id-token: 'write'
 
-jobs:
-  integration:
-    if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
-    runs-on: 'ubuntu-latest'
+# jobs:
+#   integration:
+#     if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+#     runs-on: 'ubuntu-latest'
 
-    steps:
-    - uses: 'actions/checkout@v3'
+#     steps:
+#     - uses: 'actions/checkout@v4'
 
-    - uses: 'actions/setup-node@v3'
-      with:
-        node-version: '16.x'
+#     - uses: 'actions/setup-node@v3'
+#       with:
+#         node-version: '20.x'
 
-    - name: 'npm build'
-      run: 'npm ci && npm run build'
+#     - name: 'npm build'
+#       run: 'npm ci && npm run build'
 
-    - uses: 'google-github-actions/auth@main'
-      with:
-        workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
-        service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+#     - uses: 'google-github-actions/auth@main'
+#       with:
+#         workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
+#         service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
-    - name: 'Create files'
-      run: |-
-        mkdir -p test
-        touch test/test1.txt
-        touch test/test2.txt
+#     - name: 'Create files'
+#       run: |-
+#         mkdir -p test
+#         touch test/test1.txt
+#         touch test/test2.txt
 
-    - id: 'upload'
-      name: 'Upload files'
-      uses: './'
-      with:
-        path: './test'
-        destination: '${{ vars.BUCKET_NAME }}/testprefix'
+#     - id: 'upload'
+#       name: 'Upload files'
+#       uses: './'
+#       with:
+#         path: './test'
+#         destination: '${{ vars.BUCKET_NAME }}/testprefix'
 
-    - name: 'Get output'
-      run: 'echo "${{ steps.upload.outputs.uploaded }}"'
+#     - name: 'Get output'
+#       run: 'echo "${{ steps.upload.outputs.uploaded }}"'
