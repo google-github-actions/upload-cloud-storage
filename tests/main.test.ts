@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { test } from 'node:test';
+import assert from 'node:assert';
 
 import * as path from 'path';
 import * as os from 'os';
@@ -24,8 +23,9 @@ import { promises as fs } from 'fs';
 
 import * as core from '@actions/core';
 import { clearEnv, forceRemove, setInputs } from '@google-github-actions/actions-utils';
+import { Bucket, UploadOptions } from '@google-cloud/storage';
 
-import { stubUpload } from './util.test';
+import { mockUpload } from './helpers.test';
 
 import { run } from '../src/main';
 
@@ -33,41 +33,42 @@ import { run } from '../src/main';
  * These are ONLY meant to be the highest-level tests that exercise the entire
  * workflow up to but not including the actual uploading of files.
  */
-describe('#run', () => {
-  beforeEach(async function () {
+test('#run', { concurrency: true }, async (suite) => {
+  let githubWorkspace: string;
+
+  suite.before(() => {
+    suite.mock.method(core, 'debug', () => {});
+    suite.mock.method(core, 'info', () => {});
+    suite.mock.method(core, 'warning', () => {});
+    suite.mock.method(core, 'setOutput', () => {});
+    suite.mock.method(core, 'setSecret', () => {});
+    suite.mock.method(core, 'group', () => {});
+    suite.mock.method(core, 'startGroup', () => {});
+    suite.mock.method(core, 'endGroup', () => {});
+    suite.mock.method(core, 'addPath', () => {});
+    suite.mock.method(core, 'exportVariable', () => {});
+  });
+
+  suite.beforeEach(async () => {
     // Create a temporary directory to serve as the actions workspace
-    const githubWorkspace = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
+    githubWorkspace = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
     await fs.cp('tests/testdata', path.join(githubWorkspace, 'testdata'), {
       recursive: true,
       force: true,
     });
-    this.githubWorkspace = githubWorkspace;
-    process.env.GITHUB_WORKSPACE = this.githubWorkspace;
-
-    // Stub somewhat annoying logs
-    const doNothing = () => {
-      /** do nothing */
-    };
-    sinon.stub(core, 'debug').callsFake(doNothing);
-    sinon.stub(core, 'endGroup').callsFake(doNothing);
-    sinon.stub(core, 'info').callsFake(doNothing);
-    sinon.stub(core, 'setOutput').callsFake(doNothing);
-    sinon.stub(core, 'startGroup').callsFake(doNothing);
-    sinon.stub(core, 'warning').callsFake(doNothing);
+    process.env.GITHUB_WORKSPACE = githubWorkspace;
   });
 
-  afterEach(async function () {
-    sinon.restore();
-
-    await forceRemove(this.githubWorkspace);
+  suite.afterEach(async () => {
+    await forceRemove(githubWorkspace);
 
     clearEnv((key) => {
       return key.startsWith(`INPUT_`) || key.startsWith(`GITHUB_`);
     });
   });
 
-  it('uploads all files', async function () {
-    const uploadStub = stubUpload();
+  await suite.test('uploads all files', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 
     setInputs({
       path: './testdata',
@@ -85,33 +86,29 @@ describe('#run', () => {
     await run();
 
     // Check call sites
-    const uploadedFiles = uploadStub.getCalls().map((call) => call.args[0]);
-    expect(uploadedFiles).to.eql([
-      path.join(this.githubWorkspace, 'testdata', '🚀'),
-      path.join(this.githubWorkspace, 'testdata', 'testfile'),
-      path.join(this.githubWorkspace, 'testdata', 'test2.txt'),
-      path.join(this.githubWorkspace, 'testdata', 'test1.txt'),
-      path.join(this.githubWorkspace, 'testdata', 'test.json'),
-      path.join(this.githubWorkspace, 'testdata', 'test.js'),
-      path.join(this.githubWorkspace, 'testdata', 'test.css'),
-      path.join(this.githubWorkspace, 'testdata', 'nested1', 'test1.txt'),
-      path.join(this.githubWorkspace, 'testdata', 'nested1', 'nested2', 'test3.txt'),
+    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0)).sort();
+    assert.deepStrictEqual(uploadedFiles, [
+      path.join(githubWorkspace, 'testdata', 'nested1', 'nested2', 'test3.txt'),
+      path.join(githubWorkspace, 'testdata', 'nested1', 'test1.txt'),
+      path.join(githubWorkspace, 'testdata', 'test.css'),
+      path.join(githubWorkspace, 'testdata', 'test.js'),
+      path.join(githubWorkspace, 'testdata', 'test.json'),
+      path.join(githubWorkspace, 'testdata', 'test1.txt'),
+      path.join(githubWorkspace, 'testdata', 'test2.txt'),
+      path.join(githubWorkspace, 'testdata', 'testfile'),
     ]);
 
     // Check arguments
-    const call = uploadStub.getCall(0).args[1];
-    if (!call) {
-      throw new Error('expected first call to be defined');
-    }
-    expect(call.destination).to.eql('sub/path/testdata/🚀');
-    expect(call.metadata).to.eql({ contentType: 'application/json' });
-    expect(call.gzip).to.eql(true);
-    expect(call.predefinedAcl).to.eql('authenticatedRead');
-    expect(call.resumable).to.eql(true);
+    const call = uploadMock.mock.calls.at(0)?.arguments?.at(1) as UploadOptions;
+    assert.deepStrictEqual(call?.destination, 'sub/path/testdata/nested1/nested2/test3.txt');
+    assert.deepStrictEqual(call?.metadata, { contentType: 'application/json' });
+    assert.deepStrictEqual(call?.gzip, true);
+    assert.deepStrictEqual(call?.predefinedAcl, 'authenticatedRead');
+    assert.deepStrictEqual(call?.resumable, true);
   });
 
-  it('uploads all files without a parent', async function () {
-    const uploadStub = stubUpload();
+  await suite.test('uploads all files without a parent', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 
     setInputs({
       path: './testdata',
@@ -129,36 +126,36 @@ describe('#run', () => {
     await run();
 
     // Check call sites
-    const uploadedFiles = uploadStub.getCalls().map((call) => call.args[0]);
-    expect(uploadedFiles).to.eql([
-      path.join(this.githubWorkspace, 'testdata', '🚀'),
-      path.join(this.githubWorkspace, 'testdata', 'testfile'),
-      path.join(this.githubWorkspace, 'testdata', 'test2.txt'),
-      path.join(this.githubWorkspace, 'testdata', 'test1.txt'),
-      path.join(this.githubWorkspace, 'testdata', 'test.json'),
-      path.join(this.githubWorkspace, 'testdata', 'test.js'),
-      path.join(this.githubWorkspace, 'testdata', 'test.css'),
-      path.join(this.githubWorkspace, 'testdata', 'nested1', 'test1.txt'),
-      path.join(this.githubWorkspace, 'testdata', 'nested1', 'nested2', 'test3.txt'),
+    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0)).sort();
+    assert.deepStrictEqual(uploadedFiles, [
+      path.join(githubWorkspace, 'testdata', 'nested1', 'nested2', 'test3.txt'),
+      path.join(githubWorkspace, 'testdata', 'nested1', 'test1.txt'),
+      path.join(githubWorkspace, 'testdata', 'test.css'),
+      path.join(githubWorkspace, 'testdata', 'test.js'),
+      path.join(githubWorkspace, 'testdata', 'test.json'),
+      path.join(githubWorkspace, 'testdata', 'test1.txt'),
+      path.join(githubWorkspace, 'testdata', 'test2.txt'),
+      path.join(githubWorkspace, 'testdata', 'testfile'),
     ]);
 
     // Check upload paths
-    const paths = uploadStub.getCalls().map((call) => call.args[1]?.destination);
-    expect(paths).to.eql([
-      'sub/path/🚀',
-      'sub/path/testfile',
-      'sub/path/test2.txt',
-      'sub/path/test1.txt',
-      'sub/path/test.json',
-      'sub/path/test.js',
-      'sub/path/test.css',
-      'sub/path/nested1/test1.txt',
+    const paths = uploadMock.mock.calls.map(
+      (call) => (call.arguments?.at(1) as UploadOptions)?.destination,
+    );
+    assert.deepStrictEqual(paths, [
       'sub/path/nested1/nested2/test3.txt',
+      'sub/path/nested1/test1.txt',
+      'sub/path/test.css',
+      'sub/path/test.js',
+      'sub/path/test.json',
+      'sub/path/test1.txt',
+      'sub/path/test2.txt',
+      'sub/path/testfile',
     ]);
   });
 
-  it('uploads a single file', async function () {
-    const uploadStub = stubUpload();
+  await suite.test('uploads a single file', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 
     setInputs({
       path: './testdata/test.css',
@@ -175,19 +172,16 @@ describe('#run', () => {
     await run();
 
     // Check call sites
-    const uploadedFiles = uploadStub.getCalls().map((call) => call.args[0]);
-    expect(uploadedFiles).to.eql([path.join(this.githubWorkspace, 'testdata', 'test.css')]);
+    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0)).sort();
+    assert.deepStrictEqual(uploadedFiles, [path.join(githubWorkspace, 'testdata', 'test.css')]);
 
     // Check arguments
-    const call = uploadStub.getCall(0).args[1];
-    if (!call) {
-      throw new Error('expected first call to be defined');
-    }
-    expect(call.destination).to.eql('sub/path/test.css');
+    const call = uploadMock.mock.calls.at(0)?.arguments?.at(1) as UploadOptions;
+    assert.deepStrictEqual(call?.destination, 'sub/path/test.css');
   });
 
-  it('processes a gcloudignore', async function () {
-    const uploadStub = stubUpload();
+  await suite.test('processes a gcloudignore', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 
     setInputs({
       path: './testdata',
@@ -200,25 +194,21 @@ describe('#run', () => {
     });
 
     // Add gcloudignore
-    await fs.writeFile(path.join(this.githubWorkspace, '.gcloudignore'), '*.txt');
+    await fs.writeFile(path.join(githubWorkspace, '.gcloudignore'), '*.txt');
 
     await run();
 
     // Check call sites
-    const uploadedFiles = uploadStub.getCalls().map((call) => call.args[0]);
-    expect(uploadedFiles).to.eql([
-      path.join(this.githubWorkspace, 'testdata', '🚀'),
-      path.join(this.githubWorkspace, 'testdata', 'testfile'),
-      path.join(this.githubWorkspace, 'testdata', 'test.json'),
-      path.join(this.githubWorkspace, 'testdata', 'test.js'),
-      path.join(this.githubWorkspace, 'testdata', 'test.css'),
+    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0));
+    assert.deepStrictEqual(uploadedFiles, [
+      path.join(githubWorkspace, 'testdata', 'test.css'),
+      path.join(githubWorkspace, 'testdata', 'test.js'),
+      path.join(githubWorkspace, 'testdata', 'test.json'),
+      path.join(githubWorkspace, 'testdata', 'testfile'),
     ]);
 
     // Check arguments
-    const call = uploadStub.getCall(0).args[1];
-    if (!call) {
-      throw new Error('expected first call to be defined');
-    }
-    expect(call.destination).to.eql('sub/path/testdata/🚀');
+    const call = uploadMock.mock.calls.at(0)?.arguments?.at(1) as UploadOptions;
+    assert.deepStrictEqual(call?.destination, 'sub/path/testdata/test.css');
   });
 });

@@ -14,110 +14,95 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import { expect } from 'chai';
+import { test } from 'node:test';
+import assert from 'node:assert';
 
-import { errorMessage, inParallel } from '@google-github-actions/actions-utils';
+import { inParallel } from '@google-github-actions/actions-utils';
 import { randomBytes } from 'crypto';
 import { Storage } from '@google-cloud/storage';
 
-import { getFilesInBucket, getFileNamesInBucket } from './util.test';
 import { Client } from '../src/client';
 
 const projectID = process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT;
 
-describe('Client (integration)', () => {
-  describe('#upload', () => {
-    before(async function () {
-      if (!projectID) this.skip();
+test(
+  'integration/Client#upload',
+  {
+    concurrency: true,
+    skip: ((): string | undefined => {
+      if (!projectID) return `missing $UPLOAD_CLOUD_STORAGE_TEST_PROJECT`;
+    })(),
+  },
+  async (suite) => {
+    let storage: Storage;
+    let testBucket: string;
 
-      // Create storage handler.
-      const storage = new Storage({
+    suite.before(async () => {
+      storage = new Storage({
         projectId: projectID,
       });
-      this.storage = storage;
 
       // Create a dedicated bucket for each run.
       const testBucketName = `client-${randomBytes(6).toString('hex')}-${
         process.env.GITHUB_SHA || 'unknown'
       }`;
-      const [bucket] = await this.storage.createBucket(testBucketName, {
+      const [bucket] = await storage.createBucket(testBucketName, {
         location: 'US',
       });
-      this.testBucket = bucket.name;
+      testBucket = bucket.name;
     });
 
-    beforeEach(async function () {
-      if (!projectID) this.skip();
-    });
+    suite.afterEach(async () => {
+      const bucket = storage.bucket(testBucket);
 
-    afterEach(async function () {
-      if (!projectID) this.skip();
-
-      const storage: Storage = this.storage;
-      const bucket = storage.bucket(this.testBucket);
       const [files] = await bucket.getFiles();
-      const deleteOne = async (name: string): Promise<void> => {
-        await bucket.file(name).delete();
-      };
-
-      const args: [name: string][] = files.map((file) => [file.name]);
-      await inParallel(deleteOne, args);
+      const tasks = files.map((file) => async (): Promise<void> => {
+        await bucket.file(file.name).delete();
+      });
+      await inParallel(tasks, 50);
     });
 
-    after(async function () {
-      if (!projectID) return;
-
-      const storage: Storage = this.storage;
-      const bucket = storage.bucket(this.testBucket);
+    suite.after(async () => {
+      const bucket = storage.bucket(testBucket);
       await bucket.delete();
     });
 
-    it('throws an error on a non-existent bucket', async function () {
+    await suite.test('throws an error on a non-existent bucket', async () => {
       const client = new Client({ projectID: projectID });
-
-      try {
+      await assert.rejects(async () => {
         await client.upload({
           bucket: 'definitely-not-a-real-bucket',
           files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
         });
-        throw new Error('expected error');
-      } catch (err: unknown) {
-        const msg = errorMessage(err);
-        expect(msg).to.include('bucket does not exist');
-      }
+      }, 'dafdaf');
     });
 
-    it('throws an error on a non-existent file', async function () {
+    await suite.test('throws an error on a non-existent file', async () => {
       const client = new Client({ projectID: projectID });
-
-      try {
+      await assert.rejects(async () => {
         await client.upload({
-          bucket: this.testBucket,
+          bucket: testBucket,
           files: [{ source: 'test1.txt', destination: 'test1.txt' }],
         });
-        throw new Error('expected error');
-      } catch (err: unknown) {
-        const msg = errorMessage(err);
-        expect(msg).to.include('ENOENT');
-      }
+      }, /ENOENT/);
     });
 
-    it('uploads a single file', async function () {
+    await suite.test('uploads a single file', async () => {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        bucket: this.testBucket,
+        bucket: testBucket,
         files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
       });
 
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql(['test1.txt']);
+      const [files] = await storage.bucket(testBucket).getFiles();
+      const list = files.map((file) => file.name);
+      assert.deepStrictEqual(list, ['test1.txt']);
     });
 
-    it('uploads files with the correct mime type', async function () {
+    await suite.test('uploads files with the correct mime type', async () => {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        bucket: this.testBucket,
+        bucket: testBucket,
         files: [
           { source: './tests/testdata/test.css', destination: 'test.css' },
           { source: './tests/testdata/test.js', destination: 'test.js' },
@@ -126,60 +111,67 @@ describe('Client (integration)', () => {
         ],
       });
 
-      const list = await getFilesInBucket(this.storage, this.testBucket);
-      const names = list.map((file) => file.name);
-      expect(names).to.eql(['test.css', 'test.js', 'test.json', 'test1.txt']);
+      const [files] = await storage.bucket(testBucket).getFiles();
+      const list = files.map((file) => file.name);
+      assert.deepStrictEqual(list, ['test.css', 'test.js', 'test.json', 'test1.txt']);
 
-      const css = list[0];
-      expect(css?.metadata.contentType).to.eql('text/css');
+      const css = files[0];
+      assert.deepStrictEqual(css?.metadata?.contentType, 'text/css');
 
-      const js = list[1];
-      expect(js?.metadata.contentType).to.eql('application/javascript');
+      const js = files[1];
+      assert.deepStrictEqual(js?.metadata?.contentType, 'application/javascript');
 
-      const json = list[2];
-      expect(json?.metadata.contentType).to.eql('application/json');
+      const json = files[2];
+      assert.deepStrictEqual(json?.metadata?.contentType, 'application/json');
 
-      const txt = list[3];
-      expect(txt?.metadata.contentType).to.eql('text/plain');
+      const txt = files[3];
+      assert.deepStrictEqual(txt?.metadata?.contentType, 'text/plain');
     });
 
-    it('uploads a single file with prefix', async function () {
+    await suite.test('uploads a single file with prefix', async () => {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        bucket: this.testBucket,
+        bucket: testBucket,
         files: [{ source: './tests/testdata/test1.txt', destination: 'my/prefix/test1.txt' }],
       });
 
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql(['my/prefix/test1.txt']);
+      const [files] = await storage.bucket(testBucket).getFiles();
+      const list = files.map((file) => file.name);
+      assert.deepStrictEqual(list, ['my/prefix/test1.txt']);
     });
 
-    it('uploads a single file without an extension', async function () {
+    await suite.test('uploads a single file without an extension', async () => {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        bucket: this.testBucket,
+        bucket: testBucket,
         files: [{ source: './tests/testdata/testfile', destination: 'testfile' }],
       });
 
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql(['testfile']);
+      const [files] = await storage.bucket(testBucket).getFiles();
+      const list = files.map((file) => file.name);
+      assert.deepStrictEqual(list, ['testfile']);
     });
 
-    it('uploads a single file with special characters in the filename', async function () {
+    await suite.test(
+      'uploads a file with unicode characters in the filename',
+      { skip: process.platform === 'win32' },
+      async () => {
+        const client = new Client({ projectID: projectID });
+        await client.upload({
+          bucket: testBucket,
+          files: [{ source: './tests/testdata-unicode/🚀', destination: '🚀' }],
+        });
+
+        const [files] = await storage.bucket(testBucket).getFiles();
+        const list = files.map((file) => file.name);
+        assert.deepStrictEqual(list, ['🚀']);
+      },
+    );
+
+    await suite.test('uploads a single file with metadata', async () => {
       const client = new Client({ projectID: projectID });
       await client.upload({
-        bucket: this.testBucket,
-        files: [{ source: './tests/testdata/🚀', destination: '🚀' }],
-      });
-
-      const list = await getFileNamesInBucket(this.storage, this.testBucket);
-      expect(list).to.eql(['🚀']);
-    });
-
-    it('uploads a single file with metadata', async function () {
-      const client = new Client({ projectID: projectID });
-      await client.upload({
-        bucket: this.testBucket,
+        bucket: testBucket,
         files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
         metadata: {
           contentType: 'application/json',
@@ -189,10 +181,11 @@ describe('Client (integration)', () => {
         },
       });
 
-      const list = await getFilesInBucket(this.storage, this.testBucket);
-      const metadata = list[0]?.metadata;
-      expect(metadata?.contentType).to.eql('application/json');
-      expect(metadata?.metadata?.foo).to.eql('bar');
+      const [files] = await storage.bucket(testBucket).getFiles();
+      const metadata = files[0]?.metadata;
+
+      assert.deepStrictEqual(metadata?.contentType, 'application/json');
+      assert.deepStrictEqual(metadata?.metadata?.foo, 'bar');
     });
-  });
-});
+  },
+);

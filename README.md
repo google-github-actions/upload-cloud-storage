@@ -23,6 +23,12 @@ support](https://cloud.google.com/support).**
 
 ## Usage
 
+> **⚠️ WARNING!** The Node.js runtime has [known issues with unicode characters
+> in filepaths on Windows][nodejs-unicode-windows]. There is nothing we can do
+> to fix this issue in our GitHub Action. If you use unicode or special
+> characters in your filenames, please use `gsutil` or `gcloud` to upload
+> instead.
+
 ### For uploading a file
 
 ```yaml
@@ -34,23 +40,23 @@ jobs:
 
     steps:
     - id: 'checkout'
-      uses: 'actions/checkout@v3'
+      uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'upload-file'
-      uses: 'google-github-actions/upload-cloud-storage@v1'
+      uses: 'google-github-actions/upload-cloud-storage@v2'
       with:
         path: '/path/to/file'
         destination: 'bucket-name/file'
 
     # Example of using the output
     - id: 'uploaded-files'
-      uses: 'foo/bar@main'
+      uses: 'foo/bar@v1'
       env:
         file: '${{ steps.upload-file.outputs.uploaded }}'
 ```
@@ -68,23 +74,23 @@ jobs:
 
     steps:
     - id: 'checkout'
-      uses: 'actions/checkout@v3'
+      uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'upload-folder'
-      uses: 'google-github-actions/upload-cloud-storage@v1'
+      uses: 'google-github-actions/upload-cloud-storage@v2'
       with:
         path: '/path/to/folder'
         destination: 'bucket-name'
 
     # Example of using the output
     - id: 'uploaded-files'
-      uses: 'foo/bar@main'
+      uses: 'foo/bar@v1'
       env:
         files: '${{ steps.upload-folder.outputs.uploaded }}'
 ```
@@ -107,7 +113,7 @@ With default configuration
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v1'
+  uses: 'google-github-actions/upload-cloud-storage@v2'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -119,7 +125,7 @@ Optionally, you can also specify a prefix in destination.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v1'
+  uses: 'google-github-actions/upload-cloud-storage@v2'
   with:
     path: 'myfolder'
     destination: 'bucket-name/myprefix'
@@ -134,7 +140,7 @@ Setting `parent` to false will omit `path` when uploading to bucket.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v1'
+  uses: 'google-github-actions/upload-cloud-storage@v2'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -149,7 +155,7 @@ Optionally, you can also specify a prefix in destination.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v1'
+  uses: 'google-github-actions/upload-cloud-storage@v2'
   with:
     path: 'myfolder'
     destination: 'bucket-name/myprefix'
@@ -164,7 +170,7 @@ You can specify a glob pattern like
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v1'
+  uses: 'google-github-actions/upload-cloud-storage@v2'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -304,7 +310,7 @@ For example:
 
 ```yaml
 - id: 'upload-file'
-  uses: 'google-github-actions/upload-cloud-storage@v1'
+  uses: 'google-github-actions/upload-cloud-storage@v2'
   with:
     path: '/path/to/file'
     destination: 'bucket-name/file'
@@ -314,7 +320,7 @@ will be available in future steps as the output "uploaded":
 
 ```yaml
 - id: 'publish'
-  uses: 'foo/bar@main'
+  uses: 'foo/bar@v1'
   env:
     file: '${{ steps.upload-file.outputs.uploaded }}'
 ```
@@ -339,12 +345,12 @@ jobs:
 
     steps:
     - id: 'auth'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
-    - uses: 'google-github-actions/upload-cloud-storage@v1'
+    - uses: 'google-github-actions/upload-cloud-storage@v2'
 ```
 
 ### Via Application Default Credentials
@@ -359,7 +365,7 @@ jobs:
   job_id:
     steps:
     - id: 'upload-file'
-      uses: 'google-github-actions/upload-cloud-storage@v1'
+      uses: 'google-github-actions/upload-cloud-storage@v2'
 ```
 
 The action will automatically detect and use the Application Default
@@ -368,3 +374,4 @@ Credentials.
 [gcs]: https://cloud.google.com/storage
 [wif]: https://cloud.google.com/iam/docs/workload-identity-federation
 [sa]: https://cloud.google.com/iam/docs/creating-managing-service-accounts
+[nodejs-unicode-windows]: https://github.com/nodejs/node/issues/48673

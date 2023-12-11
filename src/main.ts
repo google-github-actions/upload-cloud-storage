@@ -40,9 +40,9 @@ const NO_FILES_WARNING =
   `There are no files to upload! Make sure the workflow uses the "checkout"` +
   `step before uploading files:\n` +
   `\n` +
-  `    - uses: 'actions/checkout@v3'\n` +
+  `    - uses: 'actions/checkout@v4'\n` +
   `    # ...\n` +
-  `    - uses: 'google-github-actions/upload-cloud-storage@v0'\n` +
+  `    - uses: 'google-github-actions/upload-cloud-storage@v2'\n` +
   `\n` +
   `Check that the "path" points to a valid destination on disk, relative to ` +
   `the GitHub Workspace. Make sure your files are not being ignored via a ` +

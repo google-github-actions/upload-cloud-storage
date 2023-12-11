@@ -14,34 +14,27 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 
 import * as path from 'path';
 
-import { Client, ClientComputeDestinationOptions, ClientFileUpload } from '../src/client';
-import { stubUpload } from './util.test';
+import { Client } from '../src/client';
+import { Bucket, UploadOptions } from '@google-cloud/storage';
 
-describe('Client', () => {
-  afterEach(() => {
-    sinon.restore();
-  });
+import { mockUpload } from './helpers.test';
 
-  describe('#new', () => {
-    it('initializes with ADC', function () {
+describe('Client', { concurrency: true }, async () => {
+  test('#new', async (suite) => {
+    await suite.test('initializes with ADC', async () => {
       const client = new Client();
-      expect(client.storage.authClient.jsonContent).eql(null);
+      const result = client?.storage?.authClient?.jsonContent;
+      assert.deepStrictEqual(result, null);
     });
   });
 
-  describe('.computeDestinations', () => {
-    const cases: {
-      only?: boolean;
-      name: string;
-      input: ClientComputeDestinationOptions;
-      exp: ClientFileUpload[];
-    }[] = [
+  test('.computeDestinations', async (suite) => {
+    const cases = [
       {
         name: 'no files',
         input: {
@@ -49,7 +42,7 @@ describe('Client', () => {
           absoluteRoot: '',
           files: [],
         },
-        exp: [],
+        expected: [],
       },
 
       // relative
@@ -60,7 +53,7 @@ describe('Client', () => {
           absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
           files: ['file1', 'nested/sub/file2'],
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'file1',
@@ -79,7 +72,7 @@ describe('Client', () => {
           files: ['file1', 'nested/sub/file2'],
           includeParent: true,
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'bar/file1',
@@ -98,7 +91,7 @@ describe('Client', () => {
           files: ['file1', 'nested/sub/file2'],
           prefix: 'prefix',
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'prefix/file1',
@@ -118,7 +111,7 @@ describe('Client', () => {
           prefix: 'prefix',
           includeParent: true,
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'prefix/bar/file1',
@@ -138,7 +131,7 @@ describe('Client', () => {
           absoluteRoot: path.join(process.cwd(), 'foo', 'bar'),
           files: ['file1', 'nested/sub/file2'],
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'file1',
@@ -157,7 +150,7 @@ describe('Client', () => {
           files: ['file1', 'nested/sub/file2'],
           includeParent: true,
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'bar/file1',
@@ -176,7 +169,7 @@ describe('Client', () => {
           files: ['file1', 'nested/sub/file2'],
           prefix: 'prefix',
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'prefix/file1',
@@ -196,7 +189,7 @@ describe('Client', () => {
           prefix: 'prefix',
           includeParent: true,
         },
-        exp: [
+        expected: [
           {
             source: path.join(process.cwd(), 'foo', 'bar', 'file1'),
             destination: 'prefix/bar/file1',
@@ -209,18 +202,17 @@ describe('Client', () => {
       },
     ];
 
-    cases.forEach((tc) => {
-      const fn = tc.only ? it.only : it;
-      fn(tc.name, () => {
+    for (const tc of cases) {
+      await suite.test(tc.name, async () => {
         const result = Client.computeDestinations(tc.input);
-        expect(result).to.eql(tc.exp);
+        assert.deepStrictEqual(result, tc.expected);
       });
-    });
+    }
   });
 
-  describe('#upload', () => {
-    it('calls uploadFile', async () => {
-      const stub = stubUpload();
+  test('#upload', async (suite) => {
+    await suite.test('calls uploadFile', async (t) => {
+      const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 
       // Do the upload
       const client = new Client();
@@ -246,21 +238,18 @@ describe('Client', () => {
       });
 
       // Check call sites
-      const uploadedFiles = stub.getCalls().map((call) => call.args[0]);
-      expect(uploadedFiles).to.eql([
-        path.join(process.cwd(), 'nested', 'file2'),
+      const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0));
+      assert.deepStrictEqual(uploadedFiles, [
         path.join(process.cwd(), 'file1'),
+        path.join(process.cwd(), 'nested', 'file2'),
       ]);
 
-      const call = stub.getCall(0).args[1];
-      if (!call) {
-        throw new Error('expected first call to be defined');
-      }
-      expect(call.destination).to.eql('sub/path/to/nested/file2');
-      expect(call.metadata).to.eql({ contentType: 'application/json' });
-      expect(call.gzip).to.eql(true);
-      expect(call.predefinedAcl).to.eql('authenticatedRead');
-      expect(call.resumable).to.eql(true);
+      const call = uploadMock.mock.calls.at(0)?.arguments?.at(1) as UploadOptions;
+      assert.deepStrictEqual(call?.destination, 'sub/path/to/file1');
+      assert.deepStrictEqual(call?.metadata, { contentType: 'application/json' });
+      assert.deepStrictEqual(call?.gzip, true);
+      assert.deepStrictEqual(call?.predefinedAcl, 'authenticatedRead');
+      assert.deepStrictEqual(call?.resumable, true);
     });
   });
 });

@@ -32,11 +32,11 @@ jobs:
         - 'macos-latest'
 
     steps:
-    - uses: 'actions/checkout@v3'
+    - uses: 'actions/checkout@v4'
 
-    - uses: 'actions/setup-node@v3'
+    - uses: 'actions/setup-node@v4'
       with:
-        node-version: '16.x'
+        node-version: '20.x'
 
     - name: 'npm build'
       run: 'npm ci && npm run build'
@@ -48,7 +48,7 @@ jobs:
       run: 'npm run lint'
 
     # Only authenticate if this is a full CI run.
-    - uses: 'google-github-actions/auth@main'
+    - uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
         service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
