@@ -48,6 +48,17 @@ const NO_FILES_WARNING =
   `.gcloudignore file in the repository.`;
 
 export async function run(): Promise<void> {
+  // v0 is deprecated and is no longer supported per our "two major versions"
+  // policy.
+  core.error(
+    `The v0 series of google-github-actions/upload-cloud-storage is no ` +
+      `longer maintained. It will not receive updates, improvements, or ` +
+      `security patches. Please upgrade to the latest supported versions: ` +
+      `\n` +
+      `\n` +
+      `    https://github.com/google-github-actions/upload-cloud-storage`,
+  );
+
   try {
     // Warn if pinned to HEAD
     if (isPinnedToHead()) {
