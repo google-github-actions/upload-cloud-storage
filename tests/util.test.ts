@@ -14,311 +14,264 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { test } from 'node:test';
+import assert from 'node:assert';
 
-import { promises as fs } from 'fs';
+import { promises as fs } from 'node:fs';
 import * as os from 'os';
 import * as path from 'path';
 
 import { forceRemove, toPosixPath, toWin32Path } from '@google-github-actions/actions-utils';
-import { Bucket, File, Storage, UploadOptions, UploadResponse } from '@google-cloud/storage';
 
 import { absoluteRootAndComputedGlob, expandGlob, parseBucketNameAndPrefix } from '../src/util';
 
-/**
- * stubUpload stubs out the storage.bucket.upload API calls.
- */
-export const stubUpload = (): sinon.SinonStub<
-  [string, UploadOptions?],
-  Promise<UploadResponse>
-> => {
-  const stub = (
-    sinon.stub<Bucket, 'upload'>(Bucket.prototype, 'upload') as unknown as sinon.SinonStub<
-      [string, UploadOptions?],
-      Promise<UploadResponse>
-    >
-  ).callsFake((p: string, opts?: UploadOptions): Promise<UploadResponse> => {
-    const bucket = new Bucket(new Storage(), 'bucket');
-    const file = new File(bucket, p);
-    return Promise.resolve([file, opts]);
-  });
-  return stub;
-};
+test('#absoluteRootAndComputedGlob', { concurrency: true }, async (suite) => {
+  let tmpdir: string;
 
-/**
- * getFilesInBucket returns the names of the files in the bucket.
- */
-export const getFilesInBucket = async (storage: Storage, bucketName: string): Promise<File[]> => {
-  const [files] = await storage.bucket(bucketName).getFiles();
-  return files;
-};
-
-/**
- * getFileNamesInBucket returns the names of the files in the bucket.
- */
-export const getFileNamesInBucket = async (
-  storage: Storage,
-  bucketName: string,
-): Promise<string[]> => {
-  return (await getFilesInBucket(storage, bucketName)).map((file) => file.name);
-};
-
-describe('#absoluteRootAndComputedGlob', () => {
-  beforeEach(async function () {
+  suite.beforeEach(async () => {
     // Make a temporary directory for each test.
-    this.tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
-    process.env.GITHUB_WORKSPACE = this.tmpdir;
+    tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
+    process.env.GITHUB_WORKSPACE = tmpdir;
   });
 
-  afterEach(async function () {
+  suite.afterEach(async () => {
     delete process.env.GITHUB_WORKSPACE;
-    if (this.tmpdir) {
-      await forceRemove(this.tmpdir);
-    }
+    await forceRemove(tmpdir);
   });
 
-  it('throws an error when GITHUB_WORKSPACE is unset', async function () {
+  await suite.test('throws an error when GITHUB_WORKSPACE is unset', async () => {
     delete process.env.GITHUB_WORKSPACE;
 
-    try {
+    await assert.rejects(async () => {
       await absoluteRootAndComputedGlob('/not/a/real/path', '');
-      throw new Error('expected error, got nothing');
-    } catch (err: unknown) {
-      expect(`${err}`).to.include('$GITHUB_WORKSPACE is not set');
-    }
+    }, /GITHUB_WORKSPACE is not set/);
   });
 
-  it('throws an error if input path does not exist', async function () {
-    try {
+  await suite.test('throws an error if input path does not exist', async () => {
+    await assert.rejects(async () => {
       await absoluteRootAndComputedGlob('/not/a/real/path', '');
-      throw new Error('expected error, got nothing');
-    } catch (err: unknown) {
-      expect(`${err}`).to.include('ENOENT');
-    }
+    }, 'ENOENT');
   });
 
-  it('throws an error if the input is a file and glob is defined', async function () {
-    const file = path.join(this.tmpdir, 'my-file');
+  await suite.test('throws an error if the input is a file and glob is defined', async () => {
+    const file = path.join(tmpdir, 'my-file');
     await fs.writeFile(file, 'test');
 
-    try {
+    await assert.rejects(async () => {
       await absoluteRootAndComputedGlob(file, '*.md');
-      throw new Error('expected error, got nothing');
-    } catch (err: unknown) {
-      expect(`${err}`).to.include('root "path" points to a file');
-    }
+    }, 'root "path" points to a file');
   });
 
-  it('modifies the directory and glob when given a relative file', async function () {
-    const file = path.join(this.tmpdir, 'my-file');
+  await suite.test('modifies the directory and glob when given a relative file', async () => {
+    const file = path.join(tmpdir, 'my-file');
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(path.basename(file), '');
-    expect(result).to.eql([path.dirname(file), 'my-file', false]);
+    assert.deepStrictEqual(result, [path.dirname(file), 'my-file', false]);
   });
 
-  it('modifies the directory and glob when given a relative file in a subpath', async function () {
-    const subdir = await fs.mkdtemp(path.join(this.tmpdir, 'sub-'));
-    const file = path.join(subdir, 'my-file');
-    await fs.writeFile(file, 'test');
+  await suite.test(
+    'modifies the directory and glob when given a relative file in a subpath',
+    async () => {
+      const subdir = await fs.mkdtemp(path.join(tmpdir, 'sub-'));
+      const file = path.join(subdir, 'my-file');
+      await fs.writeFile(file, 'test');
 
-    const name = path.join(path.basename(subdir), path.basename(file));
-    const result = await absoluteRootAndComputedGlob(name, '');
-    expect(result).to.eql([path.dirname(file), 'my-file', false]);
-  });
+      const name = path.join(path.basename(subdir), path.basename(file));
+      const result = await absoluteRootAndComputedGlob(name, '');
+      assert.deepStrictEqual(result, [path.dirname(file), 'my-file', false]);
+    },
+  );
 
-  it('modifies the directory and glob when given an absolute file', async function () {
-    const file = path.join(this.tmpdir, 'my-file');
+  await suite.test('modifies the directory and glob when given an absolute file', async () => {
+    const file = path.join(tmpdir, 'my-file');
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(file, '');
-    expect(result).to.eql([path.dirname(file), 'my-file', false]);
+    assert.deepStrictEqual(result, [path.dirname(file), 'my-file', false]);
   });
 
-  it('resolves a relative directory', async function () {
-    const subdir = await fs.mkdtemp(path.join(this.tmpdir, 'sub-'));
+  await suite.test('resolves a relative directory', async () => {
+    const subdir = await fs.mkdtemp(path.join(tmpdir, 'sub-'));
     const rel = path.basename(subdir);
 
     const result = await absoluteRootAndComputedGlob(rel, '*.md');
-    expect(result).to.eql([subdir, '*.md', true]);
+    assert.deepStrictEqual(result, [subdir, '*.md', true]);
   });
 
-  it('does not resolve an absolute directory', async function () {
-    const subdir = await fs.mkdtemp(path.join(this.tmpdir, 'sub-'));
+  await suite.test('does not resolve an absolute directory', async () => {
+    const subdir = await fs.mkdtemp(path.join(tmpdir, 'sub-'));
 
     const result = await absoluteRootAndComputedGlob(subdir, '*.md');
-    expect(result).to.eql([subdir, '*.md', true]);
+    assert.deepStrictEqual(result, [subdir, '*.md', true]);
   });
 
-  it('always returns a posix glob', async function () {
-    const result = await absoluteRootAndComputedGlob(this.tmpdir, 'foo\\bar\\*.txt');
-    expect(result).to.eql([this.tmpdir, 'foo/bar/*.txt', true]);
+  await suite.test('always returns a posix glob', async () => {
+    const result = await absoluteRootAndComputedGlob(tmpdir, 'foo\\bar\\*.txt');
+    assert.deepStrictEqual(result, [tmpdir, 'foo/bar/*.txt', true]);
   });
 
-  it('resolves a win32-style absolute root', async function () {
-    const file = path.join(this.tmpdir, 'my-file');
+  await suite.test('resolves a win32-style absolute root', async () => {
+    const file = path.join(tmpdir, 'my-file');
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toWin32Path(file), '');
-    expect(result).to.eql([path.dirname(file), 'my-file', false]);
+    assert.deepStrictEqual(result, [path.dirname(file), 'my-file', false]);
   });
 
-  it('resolves a win32-style relative root', async function () {
-    const file = path.join(this.tmpdir, 'my-file');
+  await suite.test('resolves a win32-style relative root', async () => {
+    const file = path.join(tmpdir, 'my-file');
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toWin32Path(path.basename(file)), '');
-    expect(result).to.eql([path.dirname(file), 'my-file', false]);
+    assert.deepStrictEqual(result, [path.dirname(file), 'my-file', false]);
   });
 
-  it('resolves a posix-style absolute root', async function () {
-    const file = path.join(this.tmpdir, 'my-file');
+  await suite.test('resolves a posix-style absolute root', async () => {
+    const file = path.join(tmpdir, 'my-file');
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toPosixPath(file), '');
-    expect(result).to.eql([path.dirname(file), 'my-file', false]);
+    assert.deepStrictEqual(result, [path.dirname(file), 'my-file', false]);
   });
 
-  it('resolves a posix-style relative root', async function () {
-    const file = path.join(this.tmpdir, 'my-file');
+  await suite.test('resolves a posix-style relative root', async () => {
+    const file = path.join(tmpdir, 'my-file');
     await fs.writeFile(file, 'test');
 
     const result = await absoluteRootAndComputedGlob(toPosixPath(path.basename(file)), '');
-    expect(result).to.eql([path.dirname(file), 'my-file', false]);
+    assert.deepStrictEqual(result, [path.dirname(file), 'my-file', false]);
   });
 });
 
-describe('#expandGlob', () => {
-  beforeEach(async function () {
+test('#expandGlob', { concurrency: true }, async (suite) => {
+  let tmpdir: string;
+
+  suite.beforeEach(async () => {
     // Make a temporary directory for each test.
-    this.tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
+    tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
   });
 
-  afterEach(async function () {
-    if (this.tmpdir) {
-      await forceRemove(this.tmpdir);
-    }
+  suite.afterEach(async () => {
+    await forceRemove(tmpdir);
   });
 
-  it('returns an empty array when the directory does not exist', async function () {
-    const list = await expandGlob(path.join('dir', 'does', 'not', 'exist'), '');
-    expect(list).to.eql([]);
+  await suite.test('returns an empty array when the directory does not exist', async () => {
+    const result = await expandGlob(path.join('dir', 'does', 'not', 'exist'), '');
+    assert.deepStrictEqual(result, []);
   });
 
-  it('returns an empty array when the directory is empty', async function () {
-    const list = await expandGlob(this.tmpdir, '');
-    expect(list).to.eql([]);
+  await suite.test('returns an empty array when the directory is empty', async () => {
+    const result = await expandGlob(tmpdir, '');
+    assert.deepStrictEqual(result, []);
   });
 
-  it('returns one file in a directory', async function () {
-    const a = path.join(this.tmpdir, 'a');
+  await suite.test('returns one file in a directory', async () => {
+    const a = path.join(tmpdir, 'a');
     await fs.writeFile(a, 'test');
-    const list = await expandGlob(this.tmpdir, '');
-    expect(list).to.eql([toPosixPath('a')]);
+    const result = await expandGlob(tmpdir, '');
+    assert.deepStrictEqual(result, [toPosixPath('a')]);
   });
 
-  it('returns multiple files in a directory', async function () {
-    const a = path.join(this.tmpdir, 'a');
+  await suite.test('returns multiple files in a directory', async () => {
+    const a = path.join(tmpdir, 'a');
     await fs.writeFile(a, 'test');
 
-    const b = path.join(this.tmpdir, 'b');
+    const b = path.join(tmpdir, 'b');
     await fs.writeFile(b, 'test');
 
-    const list = await expandGlob(this.tmpdir, '');
-    expect(list).to.eql([toPosixPath('a'), toPosixPath('b')]);
+    const result = await expandGlob(tmpdir, '');
+    assert.deepStrictEqual(result, [toPosixPath('a'), toPosixPath('b')]);
   });
 
-  it('returns files in subdirectories', async function () {
-    const a = path.join(this.tmpdir, 'a');
+  await suite.test('returns files in subdirectories', async () => {
+    const a = path.join(tmpdir, 'a');
     await fs.writeFile(a, 'test');
 
-    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    const pth = path.join(tmpdir, 'sub', 'directory');
     await fs.mkdir(pth, { recursive: true });
     const b = path.join(pth, 'b');
     await fs.writeFile(b, 'test');
 
-    const list = await expandGlob(this.tmpdir, '');
-    expect(list).to.eql([toPosixPath('a'), toPosixPath('sub/directory/b')]);
+    const result = await expandGlob(tmpdir, '');
+    assert.deepStrictEqual(result, [toPosixPath('a'), toPosixPath('sub/directory/b')]);
   });
 
-  it('returns files beginning with a dot', async function () {
-    const a = path.join(this.tmpdir, '.a');
+  await suite.test('returns files beginning with a dot', async () => {
+    const a = path.join(tmpdir, '.a');
     await fs.writeFile(a, 'test');
 
-    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    const pth = path.join(tmpdir, 'sub', 'directory');
     await fs.mkdir(pth, { recursive: true });
     const b = path.join(pth, '.b');
     await fs.writeFile(b, 'test');
 
-    const list = await expandGlob(this.tmpdir, '');
-    expect(list).to.eql([toPosixPath('.a'), toPosixPath('sub/directory/.b')]);
+    const result = await expandGlob(tmpdir, '');
+    assert.deepStrictEqual(result, [toPosixPath('.a'), toPosixPath('sub/directory/.b')]);
   });
 
-  it('returns files with non-ascii characters', async function () {
-    const a = path.join(this.tmpdir, '🚀');
+  await suite.test(
+    'returns files with unicode characters in the filename',
+    { skip: process.platform === 'win32' },
+    async () => {
+      const a = path.join(tmpdir, '🚀');
+      await fs.writeFile(a, 'test');
+
+      const pth = path.join(tmpdir, 'sub', 'directory');
+      await fs.mkdir(pth, { recursive: true });
+      const b = path.join(pth, '.🚀');
+      await fs.writeFile(b, 'test');
+
+      const result = await expandGlob(tmpdir, '');
+      assert.deepStrictEqual(result, [toPosixPath('sub/directory/.🚀'), toPosixPath('🚀')]);
+    },
+  );
+
+  await suite.test('returns files when given a relative path', async () => {
+    const a = path.join(tmpdir, 'a');
     await fs.writeFile(a, 'test');
 
-    const pth = path.join(this.tmpdir, 'sub', 'directory');
-    await fs.mkdir(pth, { recursive: true });
-    const b = path.join(pth, '.🚀');
-    await fs.writeFile(b, 'test');
-
-    const list = await expandGlob(this.tmpdir, '');
-    expect(list).to.eql([toPosixPath('sub/directory/.🚀'), toPosixPath('🚀')]);
-  });
-
-  it('returns files when given a relative path', async function () {
-    const a = path.join(this.tmpdir, 'a');
-    await fs.writeFile(a, 'test');
-
-    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    const pth = path.join(tmpdir, 'sub', 'directory');
     await fs.mkdir(pth, { recursive: true });
     const b = path.join(pth, 'b');
     await fs.writeFile(b, 'test');
 
-    const rel = path.relative(process.cwd(), this.tmpdir);
-    const list = await expandGlob(rel, '');
-    expect(list).to.eql([toPosixPath('a'), toPosixPath('sub/directory/b')]);
+    const rel = path.relative(process.cwd(), tmpdir);
+    const result = await expandGlob(rel, '');
+    assert.deepStrictEqual(result, [toPosixPath('a'), toPosixPath('sub/directory/b')]);
   });
 
-  it('only returns files', async function () {
-    const a = path.join(this.tmpdir, '.a');
+  await suite.test('only returns files', async () => {
+    const a = path.join(tmpdir, '.a');
     await fs.writeFile(a, 'test');
 
-    const b = path.join(this.tmpdir, 'b');
+    const b = path.join(tmpdir, 'b');
     await fs.writeFile(b, 'test');
 
-    const pth = path.join(this.tmpdir, 'sub', 'directory');
+    const pth = path.join(tmpdir, 'sub', 'directory');
     await fs.mkdir(pth, { recursive: true });
 
     // "sub/directory" should not be included because it has no files.
-    const list = await expandGlob(this.tmpdir, '');
-    expect(list).to.eql([toPosixPath('.a'), toPosixPath('b')]);
+    const result = await expandGlob(tmpdir, '');
+    assert.deepStrictEqual(result, [toPosixPath('.a'), toPosixPath('b')]);
   });
 
-  it('honors the glob pattern', async function () {
-    const a = path.join(this.tmpdir, '.a');
+  await suite.test('honors the glob pattern', async () => {
+    const a = path.join(tmpdir, '.a');
     await fs.writeFile(a, 'test');
 
-    const b = path.join(this.tmpdir, 'b');
+    const b = path.join(tmpdir, 'b');
     await fs.writeFile(b, 'test');
 
     // The list should only contain a, since the glob only includes files
     // starting with a ".".
-    const list = await expandGlob(this.tmpdir, '.*');
-    expect(list).to.eql([toPosixPath('.a')]);
+    const result = await expandGlob(tmpdir, '.*');
+    assert.deepStrictEqual(result, [toPosixPath('.a')]);
   });
 });
 
-describe('#parseBucketNameAndPrefix', () => {
-  const cases: {
-    only?: boolean;
-    name: string;
-    input: string;
-    expected: [bucket: string, prefix: string];
-  }[] = [
+test('#parseBucketNameAndPrefix', { concurrency: true }, async (suite) => {
+  const cases = [
     {
       name: 'empty string',
       input: '',
@@ -351,11 +304,10 @@ describe('#parseBucketNameAndPrefix', () => {
     },
   ];
 
-  cases.forEach((tc) => {
-    const fn = tc.only ? it.only : it;
-    fn(tc.name, () => {
+  for await (const tc of cases) {
+    await suite.test(tc.name, async () => {
       const result = parseBucketNameAndPrefix(tc.input);
-      expect(result).to.eql(tc.expected);
+      assert.deepStrictEqual(result, tc.expected);
     });
-  });
+  }
 });

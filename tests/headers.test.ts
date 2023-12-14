@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import { expect } from 'chai';
+import { test } from 'node:test';
+import assert from 'node:assert';
 
 import { parseHeadersInput } from '../src/headers';
 
-describe('#parseHeadersInput', () => {
+test('#parseHeadersInput', { concurrency: true }, async (suite) => {
   const cases = [
     {
       name: 'empty string',
@@ -103,15 +103,16 @@ describe('#parseHeadersInput', () => {
     },
   ];
 
-  cases.forEach((tc) => {
-    it(tc.name, () => {
-      if (tc.expected) {
-        expect(parseHeadersInput(tc.input)).to.eql(tc.expected);
-      } else if (tc.error) {
-        expect(() => {
+  for await (const tc of cases) {
+    await suite.test(tc.name, async () => {
+      if (tc.error) {
+        assert.throws(() => {
           parseHeadersInput(tc.input);
-        }).to.throw(tc.error);
+        }, tc.error);
+      } else {
+        const result = parseHeadersInput(tc.input);
+        assert.deepStrictEqual(result, tc.expected);
       }
     });
-  });
+  }
 });

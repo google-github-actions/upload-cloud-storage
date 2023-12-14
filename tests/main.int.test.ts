@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import 'mocha';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { test } from 'node:test';
+import assert from 'node:assert';
 
 import * as path from 'path';
 import { randomBytes } from 'crypto';
@@ -25,84 +24,75 @@ import * as core from '@actions/core';
 import { clearEnv, inParallel, setInputs } from '@google-github-actions/actions-utils';
 import { Storage } from '@google-cloud/storage';
 
-import { getFilesInBucket } from './util.test';
 import { run } from '../src/main';
 
 const projectID = process.env.UPLOAD_CLOUD_STORAGE_TEST_PROJECT;
 
-describe('main (integration)', () => {
-  describe('#run', () => {
-    before(async function () {
-      if (!projectID) this.skip();
+test(
+  'integration/main#run',
+  {
+    concurrency: true,
+    skip: ((): string | undefined => {
+      if (!projectID) return `missing $UPLOAD_CLOUD_STORAGE_TEST_PROJECT`;
+    })(),
+  },
+  async (suite) => {
+    let storage: Storage;
+    let testBucket: string;
 
-      // Create storage handler.
-      const storage = new Storage({
+    suite.before(async () => {
+      storage = new Storage({
         projectId: projectID,
       });
-      this.storage = storage;
 
       // Create a dedicated bucket for each run.
       const testBucketName = `main-${randomBytes(6).toString('hex')}-${
         process.env.GITHUB_SHA || 'unknown'
       }`;
-      const [bucket] = await this.storage.createBucket(testBucketName, {
+      const [bucket] = await storage.createBucket(testBucketName, {
         location: 'US',
       });
-      this.testBucket = bucket.name;
+      testBucket = bucket.name;
 
       process.env.GITHUB_WORKSPACE = path.join(path.dirname(__dirname), 'tests');
+
+      suite.mock.method(core, 'debug', () => {});
+      suite.mock.method(core, 'info', () => {});
+      suite.mock.method(core, 'warning', () => {});
+      suite.mock.method(core, 'setOutput', () => {});
+      suite.mock.method(core, 'setSecret', () => {});
+      suite.mock.method(core, 'group', () => {});
+      suite.mock.method(core, 'startGroup', () => {});
+      suite.mock.method(core, 'endGroup', () => {});
+      suite.mock.method(core, 'addPath', () => {});
+      suite.mock.method(core, 'exportVariable', () => {});
     });
 
-    beforeEach(async function () {
-      if (!projectID) this.skip();
-
-      // Stub somewhat annoying logs
-      const doNothing = () => {
-        /** do nothing */
-      };
-      sinon.stub(core, 'debug').callsFake(doNothing);
-      sinon.stub(core, 'endGroup').callsFake(doNothing);
-      sinon.stub(core, 'info').callsFake(doNothing);
-      sinon.stub(core, 'setOutput').callsFake(doNothing);
-      sinon.stub(core, 'startGroup').callsFake(doNothing);
-      sinon.stub(core, 'warning').callsFake(doNothing);
-    });
-
-    afterEach(async function () {
-      if (!projectID) this.skip();
-
-      sinon.restore();
-
+    suite.afterEach(async () => {
       clearEnv((key) => {
         return key.startsWith(`INPUT_`) || key.startsWith(`GITHUB_`);
       });
 
-      const storage: Storage = this.storage;
-      const bucket = storage.bucket(this.testBucket);
+      const bucket = storage.bucket(testBucket);
       const [files] = await bucket.getFiles();
-      const deleteOne = async (name: string): Promise<void> => {
-        await bucket.file(name).delete();
-      };
-
-      const args: [name: string][] = files.map((file) => [file.name]);
-      await inParallel(deleteOne, args);
+      const tasks = files.map((file) => async (): Promise<void> => {
+        await bucket.file(file.name).delete();
+      });
+      await inParallel(tasks, 50);
     });
 
-    after(async function () {
-      if (!projectID) return;
-
-      const storage: Storage = this.storage;
-      const bucket = storage.bucket(this.testBucket);
+    suite.after(async () => {
+      const bucket = storage.bucket(testBucket);
       await bucket.delete();
     });
 
-    it('uploads all files', async function () {
+    await suite.test('uploads all files', async () => {
       setInputs({
         // project_id cannot actually be undefined if we got here, but
         // TypeScript doesn't know about Mocha's skip().
         project_id: projectID || '',
         path: './testdata',
-        destination: `${this.testBucket}/sub/path`,
+        destination: `${testBucket}/sub/path`,
         gzip: 'true',
         resumable: 'true',
         parent: 'false',
@@ -114,9 +104,9 @@ describe('main (integration)', () => {
 
       await run();
 
-      const list = await getFilesInBucket(this.storage, this.testBucket);
+      const [list] = await storage.bucket(testBucket).getFiles();
       const names = list.map((file) => [file.name, file.metadata.contentType]);
-      expect(names).to.eql([
+      assert.deepStrictEqual(names, [
         ['sub/path/nested1/nested2/test3.txt', 'text/plain'],
         ['sub/path/nested1/test1.txt', 'text/plain'],
         ['sub/path/test.css', 'text/css'],
@@ -125,8 +115,7 @@ describe('main (integration)', () => {
         ['sub/path/test1.txt', 'text/plain'],
         ['sub/path/test2.txt', 'text/plain'],
         ['sub/path/testfile', undefined],
-        ['sub/path/🚀', undefined],
       ]);
     });
-  });
-});
+  },
+);

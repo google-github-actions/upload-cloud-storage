@@ -23,7 +23,7 @@ import {
   StorageOptions,
   UploadOptions,
 } from '@google-cloud/storage';
-import { inParallel, toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
+import { errorMessage, toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
 import { deepClone } from './util';
@@ -220,7 +220,7 @@ export class Client {
     const bucket = opts.bucket;
     const storageBucket = this.storage.bucket(bucket);
 
-    const uploadOne = async (file: ClientFileUpload): Promise<string> => {
+    const tasks = opts.files.map((file) => async (): Promise<string> => {
       const source = file.source;
       const destination = file.destination;
 
@@ -245,12 +245,48 @@ export class Client {
       const response = await storageBucket.upload(source, uploadOpts);
       const name = response[0].name;
       return name;
-    };
-
-    const args: [file: ClientFileUpload][] = opts.files.map((file) => [file]);
-    const results = await inParallel(uploadOne, args, {
-      concurrency: opts.concurrency,
     });
+
+    const results = await inParallel(tasks, opts.concurrency);
     return results;
   }
+}
+
+/**
+ * TODO(sethvargo): move into actions-utils
+ */
+import { cpus as oscpus } from 'os';
+
+export async function inParallel<F extends () => Promise<Awaited<R>>, R extends ReturnType<F>>(
+  tasks: (() => Promise<R> | Promise<R>)[],
+  concurrency: number | undefined,
+): Promise<R[]> {
+  // Concurrency is the minimum of the number of arguments or concurrency. This
+  // prevents additional undefined entries in the results array.
+  concurrency = Math.min(concurrency || oscpus().length - 1);
+  if (concurrency < 1) {
+    throw new Error(`concurrency must be at least 1`);
+  }
+
+  const results: R[] = [];
+  const errors: string[] = [];
+
+  const runTasks = async (iter: IterableIterator<[number, () => Promise<R> | Promise<R>]>) => {
+    for (const [idx, task] of iter) {
+      try {
+        results[idx] = await task();
+      } catch (err) {
+        errors[idx] = errorMessage(err);
+      }
+    }
+  };
+
+  const workers = new Array(concurrency).fill(tasks.entries()).map(runTasks);
+  await Promise.allSettled(workers);
+
+  if (errors.length > 0) {
+    throw new Error(errors.join('\n'));
+  }
+
+  return results;
 }
