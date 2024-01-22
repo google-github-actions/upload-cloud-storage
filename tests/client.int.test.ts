@@ -17,7 +17,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 
-import { inParallel } from '@google-github-actions/actions-utils';
+import { inParallel, skipIfMissingEnv } from '@google-github-actions/actions-utils';
 import { randomBytes } from 'crypto';
 import { Storage } from '@google-cloud/storage';
 
@@ -29,9 +29,7 @@ test(
   'integration/Client#upload',
   {
     concurrency: true,
-    skip: ((): string | undefined => {
-      if (!projectID) return `missing $UPLOAD_CLOUD_STORAGE_TEST_PROJECT`;
-    })(),
+    skip: skipIfMissingEnv('UPLOAD_CLOUD_STORAGE_TEST_PROJECT'),
   },
   async (suite) => {
     let storage: Storage;

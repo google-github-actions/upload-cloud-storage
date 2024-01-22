@@ -21,7 +21,12 @@ import * as path from 'path';
 import { randomBytes } from 'crypto';
 
 import * as core from '@actions/core';
-import { clearEnv, inParallel, setInputs } from '@google-github-actions/actions-utils';
+import {
+  clearEnv,
+  inParallel,
+  setInputs,
+  skipIfMissingEnv,
+} from '@google-github-actions/actions-utils';
 import { Storage } from '@google-cloud/storage';
 
 import { run } from '../src/main';
@@ -32,9 +37,7 @@ test(
   'integration/main#run',
   {
     concurrency: true,
-    skip: ((): string | undefined => {
-      if (!projectID) return `missing $UPLOAD_CLOUD_STORAGE_TEST_PROJECT`;
-    })(),
+    skip: skipIfMissingEnv('UPLOAD_CLOUD_STORAGE_TEST_PROJECT'),
   },
   async (suite) => {
     let storage: Storage;
