@@ -52,7 +52,7 @@ jobs:
       uses: 'google-github-actions/upload-cloud-storage@v2'
       with:
         path: '/path/to/file'
-        destination: 'bucket-name/file'
+        destination: 'bucket-name'
 
     # Example of using the output
     - id: 'uploaded-files'
