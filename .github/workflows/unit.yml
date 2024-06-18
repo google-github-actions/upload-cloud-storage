@@ -27,37 +27,37 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - 'ubuntu-latest'
-        - 'windows-latest'
-        - 'macos-latest'
+          - 'ubuntu-latest'
+          - 'windows-latest'
+          - 'macos-latest'
 
     steps:
-    - uses: 'actions/checkout@v4'
+      - uses: 'actions/checkout@v4'
 
-    - uses: 'actions/setup-node@v4'
-      with:
-        node-version: '20.x'
+      - uses: 'actions/setup-node@v4'
+        with:
+          node-version: '20.12.x' # https://github.com/nodejs/node/issues/53033
 
-    - name: 'npm build'
-      run: 'npm ci && npm run build'
+      - name: 'npm build'
+        run: 'npm ci && npm run build'
 
-    - name: 'npm lint'
-      # There's no need to run the linter for each operating system, since it
-      # will find the same thing 3x and clog up the PR review.
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: 'npm run lint'
+      - name: 'npm lint'
+        # There's no need to run the linter for each operating system, since it
+        # will find the same thing 3x and clog up the PR review.
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: 'npm run lint'
 
-    # Only authenticate if this is a full CI run.
-    - uses: 'google-github-actions/auth@v2'
-      with:
-        workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
-        service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
-      if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name && github.actor != 'dependabot[bot]' }}
+      # Only authenticate if this is a full CI run.
+      - if: ${{ github.event_name == 'push' || github.repository == github.event.pull_request.head.repo.full_name }}
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
+          service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
-    # The secrets will only be injected in pushes to main or from maintainers.
-    # If they aren't present, the associated steps are skipped.
-    - name: 'npm test'
-      run: 'npm run test'
-      env:
-        UPLOAD_CLOUD_STORAGE_TEST_BUCKET: '${{ vars.BUCKET_NAME }}'
-        UPLOAD_CLOUD_STORAGE_TEST_PROJECT: '${{ vars.PROJECT_ID }}'
+      # The secrets will only be injected in pushes to main or from maintainers.
+      # If they aren't present, the associated steps are skipped.
+      - name: 'npm test'
+        run: 'npm run test'
+        env:
+          UPLOAD_CLOUD_STORAGE_TEST_BUCKET: '${{ vars.BUCKET_NAME }}'
+          UPLOAD_CLOUD_STORAGE_TEST_PROJECT: '${{ vars.PROJECT_ID }}'
