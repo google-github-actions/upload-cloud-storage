@@ -194,7 +194,7 @@ test('#run', { concurrency: true }, async (suite) => {
     });
 
     // Add gcloudignore
-    await fs.writeFile(path.join(githubWorkspace, '.gcloudignore'), '*.txt');
+    await fs.writeFile(path.join(githubWorkspace, '.gcloudignore'), 'testdata/**/*.txt');
 
     await run();
 

@@ -109,7 +109,7 @@ export async function run(): Promise<void> {
         }
 
         for (let i = 0; i < files.length; i++) {
-          const name = files[i];
+          const name = path.join(root, files[i]);
           try {
             if (ignores.ignores(name)) {
               core.debug(`Ignoring ${name} because of ignore file`);
