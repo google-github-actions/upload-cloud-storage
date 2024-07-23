@@ -42,6 +42,7 @@ const userAgent = `google-github-actions:upload-cloud-storage/${appVersion}`;
  */
 export type ClientOptions = {
   projectID?: string;
+  universe?: string;
 };
 
 /**
@@ -161,6 +162,7 @@ export class Client {
   constructor(opts?: ClientOptions) {
     const options: StorageOptions = {
       projectId: opts?.projectID,
+      universeDomain: opts?.universe,
       userAgent: userAgent,
 
       retryOptions: {
