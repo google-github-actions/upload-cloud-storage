@@ -23,6 +23,7 @@ import {
   StorageOptions,
   UploadOptions,
 } from '@google-cloud/storage';
+import { GoogleAuth } from 'google-auth-library';
 import { errorMessage, toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
@@ -161,6 +162,12 @@ export class Client {
 
   constructor(opts?: ClientOptions) {
     const options: StorageOptions = {
+      // Create own own auth client to re-use credentials.
+      authClient: new GoogleAuth({
+        projectId: opts?.projectID,
+        universeDomain: opts?.universe,
+      }),
+
       projectId: opts?.projectID,
       universeDomain: opts?.universe,
       userAgent: userAgent,
