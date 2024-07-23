@@ -55,6 +55,11 @@ export async function run(): Promise<void> {
       core.warning(pinnedToHeadWarning('v0'));
     }
 
+    // Google Cloud inputs
+    const projectID = core.getInput('project_id');
+    const universe = core.getInput('universe') || 'googleapis.com';
+
+    // GCS inputs
     const root = core.getInput('path', { required: true });
     const destination = core.getInput('destination', { required: true });
     const gzip = parseBoolean(core.getInput('gzip'));
@@ -68,7 +73,6 @@ export async function run(): Promise<void> {
     const headersInput = core.getInput('headers');
     const processGcloudIgnore = parseBoolean(core.getInput('process_gcloudignore'));
     const metadata = headersInput === '' ? {} : parseHeadersInput(headersInput);
-    const projectID = core.getInput('project_id');
 
     // Compute the absolute root and compute the glob.
     const [absoluteRoot, computedGlob, rootIsDir] = await absoluteRootAndComputedGlob(root, glob);
@@ -161,6 +165,7 @@ export async function run(): Promise<void> {
     core.startGroup('Upload files');
     const client = new Client({
       projectID: projectID,
+      universe: universe,
     });
     const uploadResponses = await client.upload({
       bucket: bucket,
