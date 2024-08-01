@@ -29,7 +29,6 @@ import { Metadata } from './headers';
 import { deepClone } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version: appVersion } = require('../package.json');
 
 // userAgent is the default user agent.
@@ -114,6 +113,7 @@ export interface ClientUploadOptions {
  * FOnUploadObject is the function interface for the upload callback signature.
  */
 export interface FOnUploadObject {
+  // eslint-disable-next-line no-unused-vars
   (source: string, destination: string, opts: UploadOptions): void;
 }
 
