@@ -6,7 +6,7 @@
   "scripts": {
     "build": "ncc build -m src/main.ts",
     "docs": "./node_modules/.bin/actions-gen-readme",
-    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write **/*.ts",
     "test": "bash ./bin/runTests.sh"
   },
@@ -31,15 +31,17 @@
     "ignore": "^5.3.1"
   },
   "devDependencies": {
-    "@types/node": "^20.14.12",
-    "@typescript-eslint/eslint-plugin": "^7.17.0",
-    "@typescript-eslint/parser": "^7.17.0",
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.8.0",
+    "@types/node": "^22.0.2",
     "@vercel/ncc": "^0.38.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "eslint": "^8.57.0",
+    "eslint": "^9.8.0",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
+    "typescript-eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
     "typescript": "^5.5.4"
   }
 }
