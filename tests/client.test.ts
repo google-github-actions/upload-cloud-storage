@@ -19,17 +19,35 @@ import assert from 'node:assert';
 
 import * as path from 'path';
 
+import { forceRemove, randomFilepath, writeSecureFile } from '@google-github-actions/actions-utils';
+
 import { Client } from '../src/client';
 import { Bucket, UploadOptions } from '@google-cloud/storage';
 
 import { mockUpload } from './helpers.test';
 
 describe('Client', { concurrency: true }, async () => {
-  test('#new', async (suite) => {
+  test('.build', async (suite) => {
+    const originalEnv = Object.assign({}, process.env);
+    const appCreds = {
+      client_email: 'test-email@example.com',
+      private_key: 'test-private-key',
+    };
+    const appCredsJSON = await writeSecureFile(randomFilepath(), JSON.stringify(appCreds));
+
+    suite.beforeEach(async () => {
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = appCredsJSON;
+    });
+
+    suite.afterEach(async () => {
+      await forceRemove(appCredsJSON);
+      process.env = originalEnv;
+    });
+
     await suite.test('initializes with ADC', async () => {
-      const client = new Client();
+      const client = await Client.build();
       const result = client?.storage?.authClient?.jsonContent;
-      assert.deepStrictEqual(result, null);
+      assert.deepStrictEqual(result, appCreds);
     });
   });
 
@@ -215,7 +233,7 @@ describe('Client', { concurrency: true }, async () => {
       const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 
       // Do the upload
-      const client = new Client();
+      const client = await Client.build();
       await client.upload({
         bucket: 'my-bucket',
         files: [
