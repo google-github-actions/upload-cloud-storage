@@ -23,7 +23,6 @@ import {
   StorageOptions,
   UploadOptions,
 } from '@google-cloud/storage';
-import { GoogleAuth } from 'google-auth-library';
 import { errorMessage, toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
@@ -174,13 +173,7 @@ export class Client {
   }
 
   private constructor(opts?: ClientOptions) {
-    const authClient = new GoogleAuth({
-      projectId: opts?.projectID,
-      universeDomain: opts?.universe,
-    });
-
     const options: StorageOptions = {
-      authClient: authClient,
       projectId: opts?.projectID,
       universeDomain: opts?.universe,
       userAgent: userAgent,
