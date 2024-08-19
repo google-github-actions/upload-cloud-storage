@@ -163,7 +163,7 @@ export async function run(): Promise<void> {
 
     // Create the client and upload files.
     core.startGroup('Upload files');
-    const client = new Client({
+    const client = await Client.build({
       projectID: projectID,
       universe: universe,
     });

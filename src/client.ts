@@ -23,6 +23,7 @@ import {
   StorageOptions,
   UploadOptions,
 } from '@google-cloud/storage';
+import { GoogleAuth } from 'google-auth-library';
 import { errorMessage, toPlatformPath, toPosixPath } from '@google-github-actions/actions-utils';
 
 import { Metadata } from './headers';
@@ -159,8 +160,27 @@ export interface ClientComputeDestinationOptions {
 export class Client {
   readonly storage: Storage;
 
-  constructor(opts?: ClientOptions) {
+  static async build(opts?: ClientOptions): Promise<Client> {
+    const client = new Client(opts);
+
+    // We need to force the authClient to cache its internal client. Since all
+    // our calls are done in parallel, this has to be done as part of
+    // initialization.
+    //
+    // https://github.com/google-github-actions/upload-cloud-storage/issues/364
+    await client.storage.authClient.getClient();
+
+    return client;
+  }
+
+  private constructor(opts?: ClientOptions) {
+    const authClient = new GoogleAuth({
+      projectId: opts?.projectID,
+      universeDomain: opts?.universe,
+    });
+
     const options: StorageOptions = {
+      authClient: authClient,
       projectId: opts?.projectID,
       universeDomain: opts?.universe,
       userAgent: userAgent,

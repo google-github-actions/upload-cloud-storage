@@ -66,7 +66,7 @@ test(
     });
 
     await suite.test('throws an error on a non-existent bucket', async () => {
-      const client = new Client({ projectID: projectID });
+      const client = await Client.build({ projectID: projectID });
       await assert.rejects(async () => {
         await client.upload({
           bucket: 'definitely-not-a-real-bucket',
@@ -76,7 +76,7 @@ test(
     });
 
     await suite.test('throws an error on a non-existent file', async () => {
-      const client = new Client({ projectID: projectID });
+      const client = await Client.build({ projectID: projectID });
       await assert.rejects(async () => {
         await client.upload({
           bucket: testBucket,
@@ -86,7 +86,7 @@ test(
     });
 
     await suite.test('uploads a single file', async () => {
-      const client = new Client({ projectID: projectID });
+      const client = await Client.build({ projectID: projectID });
       await client.upload({
         bucket: testBucket,
         files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
@@ -98,7 +98,7 @@ test(
     });
 
     await suite.test('uploads files with the correct mime type', async () => {
-      const client = new Client({ projectID: projectID });
+      const client = await Client.build({ projectID: projectID });
       await client.upload({
         bucket: testBucket,
         files: [
@@ -127,7 +127,7 @@ test(
     });
 
     await suite.test('uploads a single file with prefix', async () => {
-      const client = new Client({ projectID: projectID });
+      const client = await Client.build({ projectID: projectID });
       await client.upload({
         bucket: testBucket,
         files: [{ source: './tests/testdata/test1.txt', destination: 'my/prefix/test1.txt' }],
@@ -139,7 +139,7 @@ test(
     });
 
     await suite.test('uploads a single file without an extension', async () => {
-      const client = new Client({ projectID: projectID });
+      const client = await Client.build({ projectID: projectID });
       await client.upload({
         bucket: testBucket,
         files: [{ source: './tests/testdata/testfile', destination: 'testfile' }],
@@ -154,7 +154,7 @@ test(
       'uploads a file with unicode characters in the filename',
       { skip: process.platform === 'win32' },
       async () => {
-        const client = new Client({ projectID: projectID });
+        const client = await Client.build({ projectID: projectID });
         await client.upload({
           bucket: testBucket,
           files: [{ source: './tests/testdata-unicode/🚀', destination: '🚀' }],
@@ -167,7 +167,7 @@ test(
     );
 
     await suite.test('uploads a single file with metadata', async () => {
-      const client = new Client({ projectID: projectID });
+      const client = await Client.build({ projectID: projectID });
       await client.upload({
         bucket: testBucket,
         files: [{ source: './tests/testdata/test1.txt', destination: 'test1.txt' }],
