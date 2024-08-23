@@ -29,7 +29,6 @@ import { Metadata } from './headers';
 import { deepClone } from './util';
 
 // Do not listen to the linter - this can NOT be rewritten as an ES6 import statement.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version: appVersion } = require('../package.json');
 
 // userAgent is the default user agent.
@@ -42,6 +41,7 @@ const userAgent = `google-github-actions:upload-cloud-storage/${appVersion}`;
  */
 export type ClientOptions = {
   projectID?: string;
+  universe?: string;
 };
 
 /**
@@ -113,6 +113,7 @@ export interface ClientUploadOptions {
  * FOnUploadObject is the function interface for the upload callback signature.
  */
 export interface FOnUploadObject {
+  // eslint-disable-next-line no-unused-vars
   (source: string, destination: string, opts: UploadOptions): void;
 }
 
@@ -158,9 +159,23 @@ export interface ClientComputeDestinationOptions {
 export class Client {
   readonly storage: Storage;
 
-  constructor(opts?: ClientOptions) {
+  static async build(opts?: ClientOptions): Promise<Client> {
+    const client = new Client(opts);
+
+    // We need to force the authClient to cache its internal client. Since all
+    // our calls are done in parallel, this has to be done as part of
+    // initialization.
+    //
+    // https://github.com/google-github-actions/upload-cloud-storage/issues/364
+    await client.storage.authClient.getClient();
+
+    return client;
+  }
+
+  private constructor(opts?: ClientOptions) {
     const options: StorageOptions = {
       projectId: opts?.projectID,
+      universeDomain: opts?.universe,
       userAgent: userAgent,
 
       retryOptions: {

@@ -3,64 +3,186 @@ description: Upload files or folders to GCS buckets
 author: Google LLC
 
 inputs:
+  #
+  # Google Cloud
+  # ------------
   project_id:
     description: |-
-      Project ID to use for making requests. By default, this is extracted from
-      the running environment.
+      Google Cloud project ID to use for billing and API requests. If not
+      provided, the project will be inferred from the environment, best-effort.
+      To explicitly set the value:
+
+      ```yaml
+      project_id: 'my-project'
+      ```
     required: false
+
+  universe:
+    description: |-
+      The Google Cloud universe to use for constructing API endpoints. Trusted
+      Partner Cloud and Google Distributed Hosted Cloud should set this to their
+      universe address.
+
+      You can also override individual API endpoints by setting the environment
+      variable `GHA_ENDPOINT_OVERRIDE_<endpoint>` where `<endpoint>` is the API
+      endpoint to override. For example:
+
+      ```yaml
+      env:
+        GHA_ENDPOINT_OVERRIDE_oauth2: 'https://oauth2.myapi.endpoint/v1'
+      ```
+
+      For more information about universes, see the Google Cloud documentation.
+    default: 'googleapis.com'
+    required: false
+
+  #
+  # GCS
+  # ------------
   path:
     description: |-
-      The path to a file or folder inside the action's filesystem
-      that should be uploaded to the bucket.
-      You can specify either the absolute path or the relative path from the action.
+      The path to a file or folder inside the action's filesystem that should be
+      uploaded to the bucket.
+
+      You can specify either the absolute path or the relative path from the
+      action:
+
+      ```yaml
+      path: '/path/to/file'
+      ```
+
+      ```yaml
+      path: '../path/to/file'
+      ```
     required: true
+
   destination:
     description: |-
-      GCS bucket name of form <bucketname> or with an optional prefix
-      of form <bucketname>/<prefix>
+      The destination for the file/folder in the form bucket-name or with an
+      optional prefix in the form `bucket-name/prefix`. For example, to upload a
+      file named `file` to the GCS bucket `bucket-name`:
+
+      ```yaml
+      destination: 'bucket-name'
+      ```
+
+      To upload to a subfolder:
+
+      ```yaml
+      destination: 'bucket-name/prefix'
+      ```
     required: true
+
   gzip:
     description: |-
-      Upload file(s) with gzip content encoding, defaults to true.
+      Upload file(s) with gzip content encoding. To disable gzip
+      content-encoding, set the value to false:
+
+      ```yaml
+      gzip: false
+      ```
     required: false
     default: true
+
   resumable:
     description: |-
-      Enable resumable uploads, defaults to true.
+      Enable resumable uploads. To disable resumable uploads, set the value to
+      false:
+
+      ```yaml
+      resumable: false
+      ```
     required: false
     default: true
+
   predefinedAcl:
     description: |-
-      Apply a predefined set of access controls to the file(s).
+      Apply a predefined set of access controls to the files being uploaded. For
+      example, to grant project team members access to the uploaded files
+      according to their roles:
+
+      ```yaml
+      predefinedAcl: 'projectPrivate'
+      ```
+
+      Acceptable values are: `authenticatedRead`, `bucketOwnerFullControl`,
+      `bucketOwnerRead`, `private`, `projectPrivate`, `publicRead`. See [the
+      document](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions)
+      for details.
     required: false
+
+  headers:
+    description: |-
+      Set object metadata. For example, to set the `Content-Type` header to
+      `application/json` and custom metadata with key `custom-field` and value
+      `custom-value`:
+
+      ```yaml
+      headers: |-
+        content-type: 'application/json'
+        x-goog-meta-custom-field: 'custom-value'
+      ```
+
+      Settable fields are: `cache-control`, `content-disposition`,
+      `content-encoding`, `content-language`, `content-type`, `custom-time`. See
+      [the
+      document](https://cloud.google.com/storage/docs/gsutil/addlhelp/WorkingWithObjectMetadata#settable-fields;-field-values)
+      for details. All custom metadata fields must be prefixed with
+      `x-goog-meta-`.
+    required: false
+
   parent:
     description: |-
-      Whether parent dir should be included in GCS destination, defaults to true.
+      Whether the parent directory should be included in GCS destination path. To disable this:
+
+      ```yaml
+      parent: false
+      ```
     required: false
     default: true
+
   glob:
     description: |-
-      Optional glob pattern.
+      Glob pattern to match for files to upload.
+
+      ```yaml
+      glob: '*.txt'
+      ```
     required: false
+
   concurrency:
     description: |-
       Number of files to simultaneously upload.
+
+      ```yaml
+      concurrency: '10'
+      ```
     required: false
-    default: 100
-  headers:
-    description: |-
-      Set headers (object metadata).
-    required: false
+    default: '100'
+
   process_gcloudignore:
     description: |-
-      Process the .gcloudignore file in the root of the repository and do not
-      upload files that match the patterns.
+      Process a `.gcloudignore` file present in the top-level of the repository.
+      If true, the file is parsed and any filepaths that match are not uploaded
+      to the storage bucket. To disable, set the value to false:
+
+      ```yaml
+      process_gcloudignore: false
+      ```
     required: false
     default: true
+
+
+outputs:
+  uploaded:
+    description: |-
+      Comma-separated list of files that were uploaded.
+
 
 branding:
   icon: 'upload-cloud'
   color: 'blue'
+
 
 runs:
   using: 'node20'
