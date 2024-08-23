@@ -160,6 +160,16 @@ inputs:
     required: false
     default: '100'
 
+  gcloudignore_path:
+    description: |-
+      Path to a file within the repository to a gcloudignore exists.
+
+      ```yaml
+      gcloudignore_path: '.gcloudignore.dev'
+      ```
+    required: false
+    default: '.gcloudignore'
+
   process_gcloudignore:
     description: |-
       Process a `.gcloudignore` file present in the top-level of the repository.

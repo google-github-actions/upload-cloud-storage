@@ -23,6 +23,7 @@ import { forceRemove, randomFilepath, writeSecureFile } from '@google-github-act
 
 import { Client } from '../src/client';
 import { Bucket, UploadOptions } from '@google-cloud/storage';
+import { GoogleAuth } from 'google-auth-library';
 
 import { mockUpload } from './helpers.test';
 
@@ -231,6 +232,7 @@ describe('Client', { concurrency: true }, async () => {
   test('#upload', async (suite) => {
     await suite.test('calls uploadFile', async (t) => {
       const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
+      t.mock.method(GoogleAuth.prototype, 'getClient', () => {});
 
       // Do the upload
       const client = await Client.build();

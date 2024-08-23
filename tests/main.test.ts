@@ -24,6 +24,7 @@ import { promises as fs } from 'fs';
 import * as core from '@actions/core';
 import { clearEnv, forceRemove, setInputs } from '@google-github-actions/actions-utils';
 import { Bucket, UploadOptions } from '@google-cloud/storage';
+import { GoogleAuth } from 'google-auth-library';
 
 import { mockUpload } from './helpers.test';
 
@@ -47,6 +48,9 @@ test('#run', { concurrency: true }, async (suite) => {
     suite.mock.method(core, 'endGroup', () => {});
     suite.mock.method(core, 'addPath', () => {});
     suite.mock.method(core, 'exportVariable', () => {});
+
+    // We do not care about authentication in the unit tests
+    suite.mock.method(GoogleAuth.prototype, 'getClient', () => {});
   });
 
   suite.beforeEach(async () => {
@@ -195,6 +199,40 @@ test('#run', { concurrency: true }, async (suite) => {
 
     // Add gcloudignore
     await fs.writeFile(path.join(githubWorkspace, '.gcloudignore'), 'testdata/**/*.txt');
+
+    await run();
+
+    // Check call sites
+    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0));
+    assert.deepStrictEqual(uploadedFiles, [
+      path.join(githubWorkspace, 'testdata', 'test.css'),
+      path.join(githubWorkspace, 'testdata', 'test.js'),
+      path.join(githubWorkspace, 'testdata', 'test.json'),
+      path.join(githubWorkspace, 'testdata', 'testfile'),
+    ]);
+
+    // Check arguments
+    const call = uploadMock.mock.calls.at(0)?.arguments?.at(1) as UploadOptions;
+    assert.deepStrictEqual(call?.destination, 'sub/path/testdata/test.css');
+  });
+
+  await suite.test('processes a custom gcloudignore path', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
+    const gcloudIgnorePath = path.join(githubWorkspace, '.gcloudignore-other');
+
+    setInputs({
+      path: './testdata',
+      destination: 'my-bucket/sub/path',
+      gzip: 'true',
+      resumable: 'true',
+      parent: 'true',
+      concurrency: '10',
+      process_gcloudignore: 'true',
+      gcloudignore_path: '.gcloudignore-other',
+    });
+
+    // Add gcloudignore
+    await fs.writeFile(gcloudIgnorePath, 'testdata/**/*.txt');
 
     await run();
 
