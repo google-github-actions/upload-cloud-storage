@@ -71,6 +71,7 @@ export async function run(): Promise<void> {
     const predefinedAcl =
       predefinedAclInput === '' ? undefined : (predefinedAclInput as PredefinedAcl);
     const headersInput = core.getInput('headers');
+    const gcloudIgnorePath = core.getInput('gcloudignore_path') || '.gcloudignore';
     const processGcloudIgnore = parseBoolean(core.getInput('process_gcloudignore'));
     const metadata = headersInput === '' ? {} : parseHeadersInput(headersInput);
 
@@ -89,18 +90,18 @@ export async function run(): Promise<void> {
     // - Format all files to be posix relative to input.path
     // - Filter out items that match
     if (processGcloudIgnore) {
-      core.debug(`Processing gcloudignore`);
+      core.debug(`Processing gcloudignore at ${gcloudIgnorePath}`);
 
       const ignores = ignore();
 
       // Look for a .gcloudignore in the repository root.
       const githubWorkspace = process.env.GITHUB_WORKSPACE;
       if (githubWorkspace) {
-        const gcloudIgnorePath = path.join(githubWorkspace, '.gcloudignore');
-        const ignoreList = await parseGcloudIgnore(gcloudIgnorePath);
+        const gcloudIgnorePathAbs = path.join(githubWorkspace, gcloudIgnorePath);
+        const ignoreList = await parseGcloudIgnore(gcloudIgnorePathAbs);
 
         if (ignoreList && ignoreList.length) {
-          core.debug(`Using .gcloudignore at: ${gcloudIgnorePath}`);
+          core.debug(`Using .gcloudignore at: ${gcloudIgnorePathAbs}`);
           core.debug(`Parsed ignore list: ${JSON.stringify(ignoreList)}`);
 
           ignores.add(ignoreList);
@@ -113,7 +114,7 @@ export async function run(): Promise<void> {
         }
 
         for (let i = 0; i < files.length; i++) {
-          const name = files[i];
+          const name = path.join(root, files[i]);
           try {
             if (ignores.ignores(name)) {
               core.debug(`Ignoring ${name} because of ignore file`);
