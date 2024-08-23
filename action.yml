@@ -162,7 +162,7 @@ inputs:
 
   gcloudignore_path:
     description: |-
-      Path to a file within the repository to a gcloudignore exists.
+      Path to a gcloudignore file within the repository.
 
       ```yaml
       gcloudignore_path: '.gcloudignore.dev'
