@@ -300,6 +300,12 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     concurrency: '10'
     ```
 
+-   <a name="gcloudignore_path"></a><a href="#user-content-gcloudignore_path"><code>gcloudignore_path</code></a>: _(Optional, default: `.gcloudignore`)_ Path to a gcloudignore file within the repository.
+
+    ```yaml
+    gcloudignore_path: '.gcloudignore.dev'
+    ```
+
 -   <a name="process_gcloudignore"></a><a href="#user-content-process_gcloudignore"><code>process_gcloudignore</code></a>: _(Optional, default: `true`)_ Process a `.gcloudignore` file present in the top-level of the repository.
     If true, the file is parsed and any filepaths that match are not uploaded
     to the storage bucket. To disable, set the value to false:
