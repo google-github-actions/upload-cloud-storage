@@ -15,14 +15,15 @@
  */
 {
   "compilerOptions": {
-    "target": "es6",
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "lib": ["es2022"],
     "module": "commonjs",
-    "lib": ["es6"],
+    "noImplicitAny": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
-    "noImplicitAny": true,
-    "esModuleInterop": true
+    "target": "es2022",
   },
-  "exclude": ["node_modules/", "tests/"]
+  "exclude": ["dist/", "node_modules/", "tests/"],
 }
