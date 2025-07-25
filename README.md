@@ -183,6 +183,22 @@ In this case, `myfolder/folder2/file2.txt` is the only matched file and will be 
 
 If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/file2.txt`.
 
+### Upload Multiple Files
+
+To upload multiple specific files, use the YAML pipe (`|`) syntax to specify multiple paths:
+
+```yaml
+- name: Upload specific files to GCS
+  uses: google-github-actions/upload-cloud-storage@v2
+  with:
+    path: |
+      file1.json
+      file2.json
+      path/to/another-file.txt
+    destination: 'bucket-name'
+    parent: false
+```
+
 ## Inputs
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
