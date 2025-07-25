@@ -42,7 +42,8 @@ inputs:
   path:
     description: |-
       The path to a file or folder inside the action's filesystem that should be
-      uploaded to the bucket.
+      uploaded to the bucket. You can specify multiple paths by separating them 
+      with newlines.
 
       You can specify either the absolute path or the relative path from the
       action:
@@ -53,6 +54,15 @@ inputs:
 
       ```yaml
       path: '../path/to/file'
+      ```
+
+      To upload multiple specific files:
+
+      ```yaml
+      path: |
+        file1.json
+        file2.json
+        path/to/file3.txt
       ```
     required: true
 

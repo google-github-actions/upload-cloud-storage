@@ -113,6 +113,73 @@ export async function expandGlob(directoryPath: string, glob: string): Promise<s
 }
 
 /**
+ * processMultiplePaths handles multiple paths specified in the path input by
+ * splitting on newlines and processing each path individually.
+ *
+ * @param pathInput The path input string (may contain multiple paths separated by newlines)
+ * @param glob The glob pattern to apply to each path
+ * @return Object containing files array, absolute root, given root, and whether any path is a directory
+ */
+export async function processMultiplePaths(
+  pathInput: string, 
+  glob: string
+): Promise<{
+  files: string[]; 
+  absoluteRoot: string; 
+  givenRoot: string; 
+  rootIsDir: boolean;
+}> {
+  // Split path input by newlines and filter out empty lines
+  const paths = pathInput
+    .split('\n')
+    .map((p: string) => p.trim())
+    .filter((p: string) => p.length > 0);
+
+  if (paths.length === 1) {
+    // Single path - use existing logic
+    const [absoluteRoot, computedGlob, rootIsDir] = await absoluteRootAndComputedGlob(paths[0], glob);
+    const files = await expandGlob(absoluteRoot, computedGlob);
+    
+    return {
+      files,
+      absoluteRoot,
+      givenRoot: paths[0],
+      rootIsDir,
+    };
+  }
+
+  // Multiple paths - collect files from all paths
+  const githubWorkspace = process.env.GITHUB_WORKSPACE;
+  if (!githubWorkspace) {
+    throw new Error(`$GITHUB_WORKSPACE is not set`);
+  }
+
+  const allFiles: string[] = [];
+
+  for (const singlePath of paths) {
+    const [pathAbsoluteRoot, computedGlob] = await absoluteRootAndComputedGlob(singlePath, glob);
+    const pathFiles = await expandGlob(pathAbsoluteRoot, computedGlob);
+    
+    // For multiple paths, we add the relative path from workspace to the file
+    for (const file of pathFiles) {
+      const fullFilePath = path.join(pathAbsoluteRoot, file);
+      const relativeToWorkspace = path.posix.relative(githubWorkspace, fullFilePath);
+      allFiles.push(relativeToWorkspace);
+    }
+  }
+
+  // Remove duplicates while preserving order
+  const uniqueFiles = [...new Set(allFiles)];
+
+  return {
+    files: uniqueFiles,
+    absoluteRoot: githubWorkspace,
+    givenRoot: githubWorkspace,
+    rootIsDir: true,
+  };
+}
+
+/**
  * deepClone makes a deep clone of the given object.
  *
  * @param obj T, object to clone

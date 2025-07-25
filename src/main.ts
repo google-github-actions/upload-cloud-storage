@@ -30,10 +30,9 @@ import * as path from 'path';
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
 import {
-  absoluteRootAndComputedGlob,
   deepClone,
   parseBucketNameAndPrefix,
-  expandGlob,
+  processMultiplePaths,
 } from './util';
 
 const NO_FILES_WARNING =
@@ -60,7 +59,7 @@ export async function run(): Promise<void> {
     const universe = core.getInput('universe') || 'googleapis.com';
 
     // GCS inputs
-    const root = core.getInput('path', { required: true });
+    const pathInput = core.getInput('path', { required: true });
     const destination = core.getInput('destination', { required: true });
     const gzip = parseBoolean(core.getInput('gzip'));
     const resumable = parseBoolean(core.getInput('resumable'));
@@ -75,13 +74,10 @@ export async function run(): Promise<void> {
     const processGcloudIgnore = parseBoolean(core.getInput('process_gcloudignore'));
     const metadata = headersInput === '' ? {} : parseHeadersInput(headersInput);
 
-    // Compute the absolute root and compute the glob.
-    const [absoluteRoot, computedGlob, rootIsDir] = await absoluteRootAndComputedGlob(root, glob);
-    core.debug(`Computed absoluteRoot from "${root}" to "${absoluteRoot}" (isDir: ${rootIsDir})`);
-    core.debug(`Computed computedGlob from "${glob}" to "${computedGlob}"`);
-
-    // Build complete file list.
-    const files = await expandGlob(absoluteRoot, computedGlob);
+    // Process path input (supports multiple paths separated by newlines)
+    const { files, absoluteRoot, givenRoot, rootIsDir } = await processMultiplePaths(pathInput, glob);
+    
+    core.debug(`Computed absoluteRoot to "${absoluteRoot}" (isDir: ${rootIsDir})`);
     core.debug(`Found ${files.length} files: ${JSON.stringify(files)}`);
 
     // Process ignores:
@@ -114,7 +110,7 @@ export async function run(): Promise<void> {
         }
 
         for (let i = 0; i < files.length; i++) {
-          const name = path.join(root, files[i]);
+          const name = path.join(givenRoot, files[i]);
           try {
             if (ignores.ignores(name)) {
               core.debug(`Ignoring ${name} because of ignore file`);
@@ -151,7 +147,7 @@ export async function run(): Promise<void> {
     // Compute the list of file destinations in the bucket based on given
     // parameters.
     const destinations = Client.computeDestinations({
-      givenRoot: root,
+      givenRoot: givenRoot,
       absoluteRoot: absoluteRoot,
       files: files,
       prefix: prefix,
