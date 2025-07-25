@@ -23,7 +23,7 @@ import { promises as fs } from 'fs';
 
 import * as core from '@actions/core';
 import { clearEnv, forceRemove, setInputs } from '@google-github-actions/actions-utils';
-import { Bucket, UploadOptions } from '@google-cloud/storage';
+import { Bucket } from '@google-cloud/storage';
 import { GoogleAuth } from 'google-auth-library';
 
 import { mockUpload } from './helpers.test';
@@ -54,12 +54,12 @@ test('#run multiple paths', { concurrency: true }, async (suite) => {
   suite.beforeEach(async () => {
     // Create a temporary directory to serve as the actions workspace
     githubWorkspace = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-'));
-    
-    // Create test files directly in the workspace 
+
+    // Create test files directly in the workspace
     await fs.writeFile(path.join(githubWorkspace, 'file1.json'), '{"test": 1}');
     await fs.writeFile(path.join(githubWorkspace, 'file2.json'), '{"test": 2}');
     await fs.writeFile(path.join(githubWorkspace, 'other.txt'), 'not a json file');
-    
+
     process.env.GITHUB_WORKSPACE = githubWorkspace;
   });
 
@@ -85,7 +85,9 @@ file2.json`,
     await run();
 
     // Check that both files were uploaded
-    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0) as string).sort();
+    const uploadedFiles = uploadMock.mock.calls
+      .map((call) => call?.arguments?.at(0) as string)
+      .sort();
     assert.strictEqual(uploadedFiles.length, 2);
     assert.deepStrictEqual(uploadedFiles, [
       path.join(githubWorkspace, 'file1.json'),
@@ -103,16 +105,18 @@ file2.json`,
       path: `file1.json
 file2.json`,
       destination: 'my-bucket',
-      parent: 'false', 
+      parent: 'false',
       process_gcloudignore: 'false',
     });
 
     await run();
 
     // Check that both files were uploaded and not the .txt file
-    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0) as string).sort();
+    const uploadedFiles = uploadMock.mock.calls
+      .map((call) => call?.arguments?.at(0) as string)
+      .sort();
     assert.strictEqual(uploadedFiles.length, 2);
-    
+
     // Verify that only JSON files were uploaded, not the .txt file
     assert.deepStrictEqual(uploadedFiles, [
       path.join(githubWorkspace, 'file1.json'),
@@ -155,7 +159,9 @@ file2.json
     await run();
 
     // Check that both files were uploaded despite empty lines
-    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0) as string).sort();
+    const uploadedFiles = uploadMock.mock.calls
+      .map((call) => call?.arguments?.at(0) as string)
+      .sort();
     assert.strictEqual(uploadedFiles.length, 2);
     assert.deepStrictEqual(uploadedFiles, [
       path.join(githubWorkspace, 'file1.json'),

@@ -29,11 +29,7 @@ import * as path from 'path';
 
 import { Client } from './client';
 import { parseHeadersInput } from './headers';
-import {
-  deepClone,
-  parseBucketNameAndPrefix,
-  processMultiplePaths,
-} from './util';
+import { deepClone, parseBucketNameAndPrefix, processMultiplePaths } from './util';
 
 const NO_FILES_WARNING =
   `There are no files to upload! Make sure the workflow uses the "checkout"` +
@@ -75,8 +71,11 @@ export async function run(): Promise<void> {
     const metadata = headersInput === '' ? {} : parseHeadersInput(headersInput);
 
     // Process path input (supports multiple paths separated by newlines)
-    const { files, absoluteRoot, givenRoot, rootIsDir } = await processMultiplePaths(pathInput, glob);
-    
+    const { files, absoluteRoot, givenRoot, rootIsDir } = await processMultiplePaths(
+      pathInput,
+      glob,
+    );
+
     core.debug(`Computed absoluteRoot to "${absoluteRoot}" (isDir: ${rootIsDir})`);
     core.debug(`Found ${files.length} files: ${JSON.stringify(files)}`);
 

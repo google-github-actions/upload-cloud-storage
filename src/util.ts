@@ -121,12 +121,12 @@ export async function expandGlob(directoryPath: string, glob: string): Promise<s
  * @return Object containing files array, absolute root, given root, and whether any path is a directory
  */
 export async function processMultiplePaths(
-  pathInput: string, 
-  glob: string
+  pathInput: string,
+  glob: string,
 ): Promise<{
-  files: string[]; 
-  absoluteRoot: string; 
-  givenRoot: string; 
+  files: string[];
+  absoluteRoot: string;
+  givenRoot: string;
   rootIsDir: boolean;
 }> {
   // Split path input by newlines and filter out empty lines
@@ -137,9 +137,12 @@ export async function processMultiplePaths(
 
   if (paths.length === 1) {
     // Single path - use existing logic
-    const [absoluteRoot, computedGlob, rootIsDir] = await absoluteRootAndComputedGlob(paths[0], glob);
+    const [absoluteRoot, computedGlob, rootIsDir] = await absoluteRootAndComputedGlob(
+      paths[0],
+      glob,
+    );
     const files = await expandGlob(absoluteRoot, computedGlob);
-    
+
     return {
       files,
       absoluteRoot,
@@ -159,7 +162,7 @@ export async function processMultiplePaths(
   for (const singlePath of paths) {
     const [pathAbsoluteRoot, computedGlob] = await absoluteRootAndComputedGlob(singlePath, glob);
     const pathFiles = await expandGlob(pathAbsoluteRoot, computedGlob);
-    
+
     // For multiple paths, we add the relative path from workspace to the file
     for (const file of pathFiles) {
       const fullFilePath = path.join(pathAbsoluteRoot, file);
