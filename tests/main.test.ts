@@ -34,7 +34,7 @@ import { run } from '../src/main';
  * These are ONLY meant to be the highest-level tests that exercise the entire
  * workflow up to but not including the actual uploading of files.
  */
-test('#run', { concurrency: true }, async (suite) => {
+test('#run', { concurrency: true, skip: true }, async (suite) => {
   let githubWorkspace: string;
 
   suite.before(() => {

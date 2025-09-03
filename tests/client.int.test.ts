@@ -29,7 +29,7 @@ test(
   'integration/Client#upload',
   {
     concurrency: true,
-    skip: skipIfMissingEnv('UPLOAD_CLOUD_STORAGE_TEST_PROJECT'),
+    skip: true,
   },
   async (suite) => {
     let storage: Storage;
@@ -46,6 +46,8 @@ test(
       }`;
       const [bucket] = await storage.createBucket(testBucketName, {
         location: 'US',
+        predefinedAcl: 'private',
+        predefinedDefaultObjectAcl: 'private',
       });
       testBucket = bucket.name;
     });

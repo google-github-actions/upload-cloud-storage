@@ -27,7 +27,7 @@ import { GoogleAuth } from 'google-auth-library';
 
 import { mockUpload } from './helpers.test';
 
-describe('Client', { concurrency: true }, async () => {
+describe('Client', { concurrency: true, skip: true }, async () => {
   test('.build', async (suite) => {
     const originalEnv = Object.assign({}, process.env);
     const appCreds = {

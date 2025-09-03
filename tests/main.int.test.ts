@@ -102,7 +102,7 @@ test(
         glob: '**/*',
         concurrency: '10',
         process_gcloudignore: 'false',
-        predefinedAcl: 'authenticatedRead',
+        predefinedAcl: 'private',
       });
 
       await run();

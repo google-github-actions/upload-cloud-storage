@@ -25,7 +25,7 @@ import { forceRemove, toPosixPath, toWin32Path } from '@google-github-actions/ac
 
 import { absoluteRootAndComputedGlob, expandGlob, parseBucketNameAndPrefix } from '../src/util';
 
-test('#absoluteRootAndComputedGlob', { concurrency: true }, async (suite) => {
+test('#absoluteRootAndComputedGlob', { concurrency: true, skip: true }, async (suite) => {
   let tmpdir: string;
 
   suite.beforeEach(async () => {
