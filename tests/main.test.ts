@@ -83,7 +83,7 @@ test('#run', { concurrency: true }, async (suite) => {
       glob: '**/*',
       concurrency: '10',
       process_gcloudignore: 'false',
-      predefinedAcl: 'authenticatedRead',
+      predefinedAcl: 'private',
       headers: 'content-type: application/json',
     });
 
@@ -107,7 +107,7 @@ test('#run', { concurrency: true }, async (suite) => {
     assert.deepStrictEqual(call?.destination, 'sub/path/testdata/nested1/nested2/test3.txt');
     assert.deepStrictEqual(call?.metadata, { contentType: 'application/json' });
     assert.deepStrictEqual(call?.gzip, true);
-    assert.deepStrictEqual(call?.predefinedAcl, 'authenticatedRead');
+    assert.deepStrictEqual(call?.predefinedAcl, 'private');
     assert.deepStrictEqual(call?.resumable, true);
   });
 
@@ -123,7 +123,7 @@ test('#run', { concurrency: true }, async (suite) => {
       glob: '**/*',
       concurrency: '10',
       process_gcloudignore: 'false',
-      predefinedAcl: 'authenticatedRead',
+      predefinedAcl: 'private',
       headers: 'content-type: application/json',
     });
 
