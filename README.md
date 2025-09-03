@@ -187,7 +187,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
 
--   <a name="project_id"></a><a href="#user-content-project_id"><code>project_id</code></a>: _(Optional)_ Google Cloud project ID to use for billing and API requests. If not
+-   <a name="__input_project_id"></a><a href="#user-content-__input_project_id"><code>project_id</code></a>: _(Optional)_ Google Cloud project ID to use for billing and API requests. If not
     provided, the project will be inferred from the environment, best-effort.
     To explicitly set the value:
 
@@ -195,7 +195,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     project_id: 'my-project'
     ```
 
--   <a name="universe"></a><a href="#user-content-universe"><code>universe</code></a>: _(Optional, default: `googleapis.com`)_ The Google Cloud universe to use for constructing API endpoints. Trusted
+-   <a name="__input_universe"></a><a href="#user-content-__input_universe"><code>universe</code></a>: _(Optional, default: `googleapis.com`)_ The Google Cloud universe to use for constructing API endpoints. Trusted
     Partner Cloud and Google Distributed Hosted Cloud should set this to their
     universe address.
 
@@ -210,7 +210,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
 
     For more information about universes, see the Google Cloud documentation.
 
--   <a name="path"></a><a href="#user-content-path"><code>path</code></a>: _(Required)_ The path to a file or folder inside the action's filesystem that should be
+-   <a name="__input_path"></a><a href="#user-content-__input_path"><code>path</code></a>: _(Required)_ The path to a file or folder inside the action's filesystem that should be
     uploaded to the bucket.
 
     You can specify either the absolute path or the relative path from the
@@ -224,7 +224,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     path: '../path/to/file'
     ```
 
--   <a name="destination"></a><a href="#user-content-destination"><code>destination</code></a>: _(Required)_ The destination for the file/folder in the form bucket-name or with an
+-   <a name="__input_destination"></a><a href="#user-content-__input_destination"><code>destination</code></a>: _(Required)_ The destination for the file/folder in the form bucket-name or with an
     optional prefix in the form `bucket-name/prefix`. For example, to upload a
     file named `file` to the GCS bucket `bucket-name`:
 
@@ -238,21 +238,21 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     destination: 'bucket-name/prefix'
     ```
 
--   <a name="gzip"></a><a href="#user-content-gzip"><code>gzip</code></a>: _(Optional, default: `true`)_ Upload file(s) with gzip content encoding. To disable gzip
+-   <a name="__input_gzip"></a><a href="#user-content-__input_gzip"><code>gzip</code></a>: _(Optional, default: `true`)_ Upload file(s) with gzip content encoding. To disable gzip
     content-encoding, set the value to false:
 
     ```yaml
     gzip: false
     ```
 
--   <a name="resumable"></a><a href="#user-content-resumable"><code>resumable</code></a>: _(Optional, default: `true`)_ Enable resumable uploads. To disable resumable uploads, set the value to
+-   <a name="__input_resumable"></a><a href="#user-content-__input_resumable"><code>resumable</code></a>: _(Optional, default: `true`)_ Enable resumable uploads. To disable resumable uploads, set the value to
     false:
 
     ```yaml
     resumable: false
     ```
 
--   <a name="predefinedAcl"></a><a href="#user-content-predefinedAcl"><code>predefinedAcl</code></a>: _(Optional)_ Apply a predefined set of access controls to the files being uploaded. For
+-   <a name="__input_predefinedAcl"></a><a href="#user-content-__input_predefinedAcl"><code>predefinedAcl</code></a>: _(Optional)_ Apply a predefined set of access controls to the files being uploaded. For
     example, to grant project team members access to the uploaded files
     according to their roles:
 
@@ -265,7 +265,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     document](https://googleapis.dev/nodejs/storage/latest/global.html#UploadOptions)
     for details.
 
--   <a name="headers"></a><a href="#user-content-headers"><code>headers</code></a>: _(Optional)_ Set object metadata. For example, to set the `Content-Type` header to
+-   <a name="__input_headers"></a><a href="#user-content-__input_headers"><code>headers</code></a>: _(Optional)_ Set object metadata. For example, to set the `Content-Type` header to
     `application/json` and custom metadata with key `custom-field` and value
     `custom-value`:
 
@@ -282,31 +282,31 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     for details. All custom metadata fields must be prefixed with
     `x-goog-meta-`.
 
--   <a name="parent"></a><a href="#user-content-parent"><code>parent</code></a>: _(Optional, default: `true`)_ Whether the parent directory should be included in GCS destination path. To disable this:
+-   <a name="__input_parent"></a><a href="#user-content-__input_parent"><code>parent</code></a>: _(Optional, default: `true`)_ Whether the parent directory should be included in GCS destination path. To disable this:
 
     ```yaml
     parent: false
     ```
 
--   <a name="glob"></a><a href="#user-content-glob"><code>glob</code></a>: _(Optional)_ Glob pattern to match for files to upload.
+-   <a name="__input_glob"></a><a href="#user-content-__input_glob"><code>glob</code></a>: _(Optional)_ Glob pattern to match for files to upload.
 
     ```yaml
     glob: '*.txt'
     ```
 
--   <a name="concurrency"></a><a href="#user-content-concurrency"><code>concurrency</code></a>: _(Optional, default: `100`)_ Number of files to simultaneously upload.
+-   <a name="__input_concurrency"></a><a href="#user-content-__input_concurrency"><code>concurrency</code></a>: _(Optional, default: `100`)_ Number of files to simultaneously upload.
 
     ```yaml
     concurrency: '10'
     ```
 
--   <a name="gcloudignore_path"></a><a href="#user-content-gcloudignore_path"><code>gcloudignore_path</code></a>: _(Optional, default: `.gcloudignore`)_ Path to a gcloudignore file within the repository.
+-   <a name="__input_gcloudignore_path"></a><a href="#user-content-__input_gcloudignore_path"><code>gcloudignore_path</code></a>: _(Optional, default: `.gcloudignore`)_ Path to a gcloudignore file within the repository.
 
     ```yaml
     gcloudignore_path: '.gcloudignore.dev'
     ```
 
--   <a name="process_gcloudignore"></a><a href="#user-content-process_gcloudignore"><code>process_gcloudignore</code></a>: _(Optional, default: `true`)_ Process a `.gcloudignore` file present in the top-level of the repository.
+-   <a name="__input_process_gcloudignore"></a><a href="#user-content-__input_process_gcloudignore"><code>process_gcloudignore</code></a>: _(Optional, default: `true`)_ Process a `.gcloudignore` file present in the top-level of the repository.
     If true, the file is parsed and any filepaths that match are not uploaded
     to the storage bucket. To disable, set the value to false:
 
@@ -322,7 +322,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
 
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 
--   `uploaded`: Comma-separated list of files that were uploaded.
+-   <a name="__output_uploaded"></a><a href="#user-content-__output_uploaded"><code>uploaded</code></a>: Comma-separated list of files that were uploaded.
 
 
 <!-- END_AUTOGEN_OUTPUTS -->
