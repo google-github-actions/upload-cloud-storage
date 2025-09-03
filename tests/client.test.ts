@@ -254,7 +254,7 @@ describe('Client', { concurrency: true }, async () => {
         },
         gzip: true,
         resumable: true,
-        predefinedAcl: 'authenticatedRead',
+        predefinedAcl: 'private',
       });
 
       // Check call sites
@@ -268,7 +268,7 @@ describe('Client', { concurrency: true }, async () => {
       assert.deepStrictEqual(call?.destination, 'sub/path/to/file1');
       assert.deepStrictEqual(call?.metadata, { contentType: 'application/json' });
       assert.deepStrictEqual(call?.gzip, true);
-      assert.deepStrictEqual(call?.predefinedAcl, 'authenticatedRead');
+      assert.deepStrictEqual(call?.predefinedAcl, 'private');
       assert.deepStrictEqual(call?.resumable, true);
     });
   });
