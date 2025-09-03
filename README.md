@@ -17,9 +17,10 @@ support](https://cloud.google.com/support).**
     blobs to the specified bucket. See the [Authorization](#authorization)
     section below for more information.
 
--   This action runs using Node 16. If you are using self-hosted GitHub Actions
-    runners, you must use runner version [2.285.0](https://github.com/actions/virtual-environments)
-    or newer.
+-   This action runs using Node 24. If you are using self-hosted GitHub Actions
+    runners, you must use a [runner
+    version](https://github.com/actions/virtual-environments) that supports this
+    version or later.
 
 ## Usage
 
@@ -43,13 +44,13 @@ jobs:
       uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v2'
+      uses: 'google-github-actions/auth@v3'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'upload-file'
-      uses: 'google-github-actions/upload-cloud-storage@v2'
+      uses: 'google-github-actions/upload-cloud-storage@v3'
       with:
         path: '/path/to/file'
         destination: 'bucket-name'
@@ -77,13 +78,13 @@ jobs:
       uses: 'actions/checkout@v4'
 
     - id: 'auth'
-      uses: 'google-github-actions/auth@v2'
+      uses: 'google-github-actions/auth@v3'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
     - id: 'upload-folder'
-      uses: 'google-github-actions/upload-cloud-storage@v2'
+      uses: 'google-github-actions/upload-cloud-storage@v3'
       with:
         path: '/path/to/folder'
         destination: 'bucket-name'
@@ -113,7 +114,7 @@ With default configuration
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v2'
+  uses: 'google-github-actions/upload-cloud-storage@v3'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -125,7 +126,7 @@ Optionally, you can also specify a prefix in destination.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v2'
+  uses: 'google-github-actions/upload-cloud-storage@v3'
   with:
     path: 'myfolder'
     destination: 'bucket-name/myprefix'
@@ -140,7 +141,7 @@ Setting `parent` to false will omit `path` when uploading to bucket.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v2'
+  uses: 'google-github-actions/upload-cloud-storage@v3'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -155,7 +156,7 @@ Optionally, you can also specify a prefix in destination.
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v2'
+  uses: 'google-github-actions/upload-cloud-storage@v3'
   with:
     path: 'myfolder'
     destination: 'bucket-name/myprefix'
@@ -170,7 +171,7 @@ You can specify a glob pattern like
 
 ```yaml
 - id: 'upload-files'
-  uses: 'google-github-actions/upload-cloud-storage@v2'
+  uses: 'google-github-actions/upload-cloud-storage@v3'
   with:
     path: 'myfolder'
     destination: 'bucket-name'
@@ -348,12 +349,12 @@ jobs:
 
     steps:
     - id: 'auth'
-      uses: 'google-github-actions/auth@v2'
+      uses: 'google-github-actions/auth@v3'
       with:
         workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
         service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
 
-    - uses: 'google-github-actions/upload-cloud-storage@v2'
+    - uses: 'google-github-actions/upload-cloud-storage@v3'
 ```
 
 ### Via Application Default Credentials
@@ -368,7 +369,7 @@ jobs:
   job_id:
     steps:
     - id: 'upload-file'
-      uses: 'google-github-actions/upload-cloud-storage@v2'
+      uses: 'google-github-actions/upload-cloud-storage@v3'
 ```
 
 The action will automatically detect and use the Application Default

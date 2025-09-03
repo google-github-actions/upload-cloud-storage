@@ -42,7 +42,7 @@ const NO_FILES_WARNING =
   `\n` +
   `    - uses: 'actions/checkout@v4'\n` +
   `    # ...\n` +
-  `    - uses: 'google-github-actions/upload-cloud-storage@v2'\n` +
+  `    - uses: 'google-github-actions/upload-cloud-storage@v3'\n` +
   `\n` +
   `Check that the "path" points to a valid destination on disk, relative to ` +
   `the GitHub Workspace. Make sure your files are not being ignored via a ` +
