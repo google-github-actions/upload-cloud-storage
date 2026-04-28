@@ -71,6 +71,48 @@ test('#run', { concurrency: true }, async (suite) => {
     });
   });
 
+  await suite.test('rejects invalid universe domain (SSRF guard)', async () => {
+    setInputs({
+      path: './testdata',
+      destination: 'my-bucket',
+      universe: 'attacker.com',
+    });
+
+    await assert.rejects(run, /Invalid universe domain/);
+  });
+
+  await suite.test('rejects universe with URL fragment injection', async () => {
+    setInputs({
+      path: './testdata',
+      destination: 'my-bucket',
+      universe: 'attacker.com#.googleapis.com',
+    });
+
+    await assert.rejects(run, /Invalid universe domain/);
+  });
+
+  await suite.test('accepts valid Trusted Partner Cloud universe', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
+
+    setInputs({
+      path: './testdata',
+      destination: 'my-bucket',
+      universe: 'us-central1.rep.googleapis.com',
+      process_gcloudignore: 'false',
+    });
+
+    // Should not throw on valid universe; actual upload may fail without real
+    // GCS credentials, so we only verify no universe-validation error is thrown.
+    await run().catch((err: Error) => {
+      assert.ok(
+        !err.message.includes('Invalid universe domain'),
+        `Unexpected universe validation error: ${err.message}`,
+      );
+    });
+
+    uploadMock.mock.restore();
+  });
+
   await suite.test('uploads all files', async (t) => {
     const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 
