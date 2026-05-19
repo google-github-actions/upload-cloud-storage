@@ -27,7 +27,7 @@ support](https://cloud.google.com/support).**
 > **⚠️ WARNING!** The Node.js runtime has [known issues with unicode characters
 > in filepaths on Windows][nodejs-unicode-windows]. There is nothing we can do
 > to fix this issue in our GitHub Action. If you use unicode or special
-> characters in your filenames, please use `gcloud` to upload
+> characters in your filenames, please use `gcloud`  to upload
 > instead.
 
 ### For uploading a file
