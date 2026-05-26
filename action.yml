@@ -126,7 +126,7 @@ inputs:
       Settable fields are: `cache-control`, `content-disposition`,
       `content-encoding`, `content-language`, `content-type`, `custom-time`. See
       [the
-      document](https://cloud.google.com/storage/docs/gsutil/addlhelp/WorkingWithObjectMetadata#settable-fields;-field-values)
+      document](https://docs.cloud.google.com/storage/docs/metadata)
       for details. All custom metadata fields must be prefixed with
       `x-goog-meta-`.
     required: false

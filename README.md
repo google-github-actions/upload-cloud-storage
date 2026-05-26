@@ -27,7 +27,7 @@ support](https://cloud.google.com/support).**
 > **⚠️ WARNING!** The Node.js runtime has [known issues with unicode characters
 > in filepaths on Windows][nodejs-unicode-windows]. There is nothing we can do
 > to fix this issue in our GitHub Action. If you use unicode or special
-> characters in your filenames, please use `gsutil` or `gcloud` to upload
+> characters in your filenames, please use `gcloud`  to upload
 > instead.
 
 ### For uploading a file
@@ -279,7 +279,7 @@ If `parent` is set to `false`, it wil be uploaded to `gs://bucket-name/folder2/f
     Settable fields are: `cache-control`, `content-disposition`,
     `content-encoding`, `content-language`, `content-type`, `custom-time`. See
     [the
-    document](https://cloud.google.com/storage/docs/gsutil/addlhelp/WorkingWithObjectMetadata#settable-fields;-field-values)
+    document](https://docs.cloud.google.com/storage/docs/metadata)
     for details. All custom metadata fields must be prefixed with
     `x-goog-meta-`.
 
