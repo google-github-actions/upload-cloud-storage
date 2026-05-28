@@ -59,6 +59,18 @@ export async function run(): Promise<void> {
     const projectID = core.getInput('project_id');
     const universe = core.getInput('universe') || 'googleapis.com';
 
+    // Validate universe to prevent SSRF: an attacker-controlled universe value
+    // is interpolated directly into the storage API endpoint
+    // (https://storage.${universe}/...), sending credentials to an arbitrary
+    // host. Only the public Google Cloud universe ("googleapis.com") and
+    // Trusted Partner Cloud universes (subdomains of googleapis.com) are valid.
+    if (!/^([a-z0-9-]+\.)*googleapis\.com$/.test(universe)) {
+      throw new Error(
+        `Invalid universe domain "${universe}": must be "googleapis.com" or a valid ` +
+          `Trusted Partner Cloud subdomain (e.g. "us-central1.rep.googleapis.com").`,
+      );
+    }
+
     // GCS inputs
     const root = core.getInput('path', { required: true });
     const destination = core.getInput('destination', { required: true });
