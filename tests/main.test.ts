@@ -71,6 +71,56 @@ test('#run', { concurrency: true }, async (suite) => {
     });
   });
 
+  await suite.test('rejects universe carrying URL syntax (SSRF guard)', async (t) => {
+    // run() surfaces failures via core.setFailed rather than throwing, so spy
+    // on it instead of asserting a rejection.
+    const failed = t.mock.method(core, 'setFailed', () => {});
+
+    for (const universe of [
+      'attacker.com#.googleapis.com', // fragment truncates the real host
+      'attacker.com#',
+      'attacker.com/path',
+      'attacker.com:8080',
+      'user@attacker.com',
+      'https://attacker.com',
+      'attacker .com', // embedded whitespace (leading/trailing is trimmed by getInput)
+    ]) {
+      setInputs({ path: './testdata', destination: 'my-bucket', universe });
+      await run();
+      const last = String(failed.mock.calls.at(-1)?.arguments?.[0] ?? '');
+      assert.match(last, /invalid universe/i, `expected rejection for "${universe}"`);
+    }
+  });
+
+  await suite.test('accepts non-googleapis.com universes (TPC / GDC)', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
+    const failed = t.mock.method(core, 'setFailed', () => {});
+
+    for (const universe of ['googleapis.com', 'us-central1.rep.googleapis.com', 'apis-tpc.goog']) {
+      setInputs({
+        path: './testdata',
+        destination: 'my-bucket',
+        universe,
+        process_gcloudignore: 'false',
+      });
+
+      await run();
+
+      // Hostname validation must not reject a legitimate universe. The upload
+      // itself may still fail without real credentials, so only assert that no
+      // universe-validation failure was reported.
+      for (const call of failed.mock.calls) {
+        assert.doesNotMatch(
+          String(call.arguments?.[0] ?? ''),
+          /invalid universe/i,
+          `unexpected universe validation failure for "${universe}"`,
+        );
+      }
+    }
+
+    uploadMock.mock.restore();
+  });
+
   await suite.test('uploads all files', async (t) => {
     const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
 

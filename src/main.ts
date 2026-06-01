@@ -59,6 +59,26 @@ export async function run(): Promise<void> {
     const projectID = core.getInput('project_id');
     const universe = core.getInput('universe') || 'googleapis.com';
 
+    // The universe value is interpolated directly into the storage API endpoint
+    // (https://storage.${universe}/...), so a value carrying URL syntax can
+    // redirect the request — and the GCP access token in the Authorization
+    // header — to an attacker-controlled host. For example "attacker.com#"
+    // truncates the real host via the fragment delimiter. Require a well-formed
+    // DNS hostname (no scheme, path, port, userinfo, query, or fragment) so the
+    // value can only ever be a host. This still accepts any legitimate universe
+    // — googleapis.com, Trusted Partner Cloud, and Google Distributed Cloud
+    // domains — without an allowlist that would break sovereign deployments.
+    if (
+      !/^(?=.{1,253}$)[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/.test(
+        universe,
+      )
+    ) {
+      throw new Error(
+        `Invalid universe "${universe}": must be a bare DNS hostname ` +
+          `(e.g. "googleapis.com"), with no scheme, path, port, or other URL characters.`,
+      );
+    }
+
     // GCS inputs
     const root = core.getInput('path', { required: true });
     const destination = core.getInput('destination', { required: true });
