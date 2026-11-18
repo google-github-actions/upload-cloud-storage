@@ -22,6 +22,7 @@ import {
   parseBoolean,
   parseGcloudIgnore,
   pinnedToHeadWarning,
+  toPosixPath,
 } from '@google-github-actions/actions-utils';
 import ignore from 'ignore';
 
@@ -87,7 +88,7 @@ export async function run(): Promise<void> {
     // Process ignores:
     //
     // - Find ignore file
-    // - Format all files to be posix relative to input.path
+    // - Format all files to be posix relative to the workspace
     // - Filter out items that match
     if (processGcloudIgnore) {
       core.debug(`Processing gcloudignore at ${gcloudIgnorePath}`);
@@ -114,7 +115,16 @@ export async function run(): Promise<void> {
         }
 
         for (let i = 0; i < files.length; i++) {
-          const name = path.join(root, files[i]);
+          // Match against the path relative to the workspace, which is where
+          // the ignore file lives, however "path" was given.
+          const name = toPosixPath(
+            path.relative(githubWorkspace, path.join(absoluteRoot, files[i])),
+          );
+          if (name.startsWith('../') || path.isAbsolute(name)) {
+            core.debug(`Not checking ${name} against the ignore file, it is outside the workspace`);
+            continue;
+          }
+
           try {
             if (ignores.ignores(name)) {
               core.debug(`Ignoring ${name} because of ignore file`);

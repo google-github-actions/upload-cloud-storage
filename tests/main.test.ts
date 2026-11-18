@@ -249,4 +249,94 @@ test('#run', { concurrency: true }, async (suite) => {
     const call = uploadMock.mock.calls.at(0)?.arguments?.at(1) as UploadOptions;
     assert.deepStrictEqual(call?.destination, 'sub/path/testdata/test.css');
   });
+
+  await suite.test('processes a gcloudignore with an absolute path', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
+
+    setInputs({
+      path: path.join(githubWorkspace, 'testdata'),
+      destination: 'my-bucket/sub/path',
+      gzip: 'true',
+      resumable: 'true',
+      parent: 'true',
+      concurrency: '10',
+      process_gcloudignore: 'true',
+    });
+
+    // Add gcloudignore
+    await fs.writeFile(path.join(githubWorkspace, '.gcloudignore'), 'testdata/**/*.txt');
+
+    await run();
+
+    // Check call sites
+    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0));
+    assert.deepStrictEqual(uploadedFiles, [
+      path.join(githubWorkspace, 'testdata', 'test.css'),
+      path.join(githubWorkspace, 'testdata', 'test.js'),
+      path.join(githubWorkspace, 'testdata', 'test.json'),
+      path.join(githubWorkspace, 'testdata', 'testfile'),
+    ]);
+  });
+
+  await suite.test('processes a gcloudignore for a single file', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
+
+    // Add gcloudignore
+    await fs.writeFile(path.join(githubWorkspace, '.gcloudignore'), 'testdata/test1.txt');
+
+    for (const p of ['./testdata/test1.txt', path.join(githubWorkspace, 'testdata', 'test1.txt')]) {
+      uploadMock.mock.resetCalls();
+
+      setInputs({
+        path: p,
+        destination: 'my-bucket/sub/path',
+        gzip: 'true',
+        resumable: 'true',
+        parent: 'true',
+        concurrency: '10',
+        process_gcloudignore: 'true',
+      });
+
+      await run();
+
+      // Check call sites
+      const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0));
+      assert.deepStrictEqual(uploadedFiles, [], `path: ${p}`);
+    }
+  });
+
+  await suite.test('skips the gcloudignore for files outside the workspace', async (t) => {
+    const uploadMock = t.mock.method(Bucket.prototype, 'upload', mockUpload);
+    const errorMock = t.mock.method(core, 'error', () => {});
+
+    const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'gha-outside-'));
+    t.after(async () => {
+      await forceRemove(outside);
+    });
+    await fs.writeFile(path.join(outside, 'a.txt'), 'a');
+    await fs.writeFile(path.join(outside, 'b.css'), 'b');
+
+    setInputs({
+      path: outside,
+      destination: 'my-bucket/sub/path',
+      gzip: 'true',
+      resumable: 'true',
+      parent: 'false',
+      concurrency: '10',
+      process_gcloudignore: 'true',
+    });
+
+    // Add gcloudignore
+    await fs.writeFile(path.join(githubWorkspace, '.gcloudignore'), '*.txt');
+
+    await run();
+
+    // Check call sites
+    const uploadedFiles = uploadMock.mock.calls.map((call) => call?.arguments?.at(0));
+    assert.deepStrictEqual(uploadedFiles, [
+      path.join(outside, 'a.txt'),
+      path.join(outside, 'b.css'),
+    ]);
+    assert.deepStrictEqual(errorMock.mock.callCount(), 0);
+  });
 });
